@@ -12,6 +12,7 @@
   "author": "CryptoBenkei",
   "license": "ISC",
   "devDependencies": {
+    "hardhat-abi-exporter": "^2.8.0",
     "@ethersproject/bignumber": "^5.6.0",
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
