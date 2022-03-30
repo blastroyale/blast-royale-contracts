@@ -40,9 +40,9 @@ describe("Blast Royale Marketplace", function () {
     const BlastNFT = await ethers.getContractFactory("BlastNFT");
     nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
     await nft.deployed();
-    nft.connect(admin).mint(player1.address);
-    nft.connect(admin).mint(player1.address);
-    nft.connect(admin).mint(player1.address);
+    nft.connect(admin).safeMint(player1.address, "ipfs://1");
+    nft.connect(admin).safeMint(player1.address, "ipfs://2");
+    nft.connect(admin).safeMint(player1.address, "ipfs://3");
   });
 
   it("Deploy Marketplace", async function () {
