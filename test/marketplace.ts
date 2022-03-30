@@ -38,7 +38,7 @@ describe("Blast Royale Marketplace", function () {
 
   it("Deploy NFT", async function () {
     const BlastNFT = await ethers.getContractFactory("BlastNFT");
-    nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT", uri);
+    nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
     await nft.deployed();
     nft.connect(admin).mint(player1.address);
     nft.connect(admin).mint(player1.address);
