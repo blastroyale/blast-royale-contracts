@@ -76,6 +76,7 @@ contract Marketplace is ReentrancyGuard, Ownable  {
   /// @param price Price in NFTs.
   function addListing(uint256 tokenId, uint256 price) public nonReentrant
   {
+    require(price > 0, "Price must be > 0");
     uint256 listingId = listingCount;
     listings[listingId] = Listing(
       msg.sender,
