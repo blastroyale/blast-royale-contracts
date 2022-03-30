@@ -121,13 +121,13 @@ contract Marketplace is ReentrancyGuard, Ownable  {
     erc20Contract.transferFrom(
       msg.sender,
       listings[listingId].owner,
-      listings[listingId].price - fee
+      listings[listingId].price - buyingFee
     );
-    if (fee > 0 ) {
+    if (buyingFee > 0 ) {
       erc20Contract.transferFrom(
         msg.sender,
        treasuryAddress,
-        fee
+        buyingFee
       );
     }
     erc721Contract.transferFrom(
