@@ -65,13 +65,13 @@ contract BlastNFT is
      *
      * - the caller must have the `MINTER_ROLE`.
      */
-    function mint(address to) public virtual {
+     function mint(address to, string memory tokenURI) public payable returns (uint) {
         require(hasRole(MINTER_ROLE, _msgSender()), "ERC721PresetMinterPauserAutoId: must have minter role to mint");
-
-        // We cannot just use balanceOf to create the new tokenId because tokens
-        // can be burned (destroyed), so we need a separate counter.
-        _mint(to, _tokenIdTracker.current());
         _tokenIdTracker.increment();
+        uint256 newTokenId = _tokenIdTracker.current();
+        _mint(to, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+        return newTokenId;
     }
 
     /**
