@@ -10,14 +10,16 @@ describe("Blast Royale Marketplace", function () {
   let admin: any;
   let player1: any;
   let player2: any;
-  let treasury: any;
+  let treasury1: any;
+  let treasury2: any;
 
   before("deploying", async () => {
     const signers = await ethers.getSigners();
     admin = signers[0];
     player1 = signers[1];
     player2 = signers[2];
-    treasury = signers[3];
+    treasury1 = signers[3];
+    treasury2 = signers[4];
   });
 
   it("Deploy Primary Token", async function () {
@@ -38,6 +40,7 @@ describe("Blast Royale Marketplace", function () {
     const BlastNFT = await ethers.getContractFactory("BlastNFT");
     nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT", uri);
     await nft.deployed();
+    nft.connect(admin).mint(player1.address);
     nft.connect(admin).mint(player1.address);
     nft.connect(admin).mint(player1.address);
   });
@@ -90,7 +93,7 @@ describe("Blast Royale Marketplace", function () {
     await blt.connect(player2).approve(market.address, listing.price);
     await expect(market.connect(player2).buy(listingId))
       .to.emit(market, "ItemSold")
-      .withArgs(2, 1, player1.address, player2.address, listing.price);
+      .withArgs(2, 1, player1.address, player2.address, listing.price, 0, 0);
     totalListings = await market.activeListingCount();
     expect(totalListings.toNumber()).to.equal(1);
 
@@ -107,21 +110,54 @@ describe("Blast Royale Marketplace", function () {
   });
 
   it("Add Fees", async function () {
-    await market.connect(admin).setFee(1000, treasury.address);
+    await expect(
+      market
+        .connect(admin)
+        .setFee(200, treasury1.address, 50, treasury2.address)
+    )
+      .to.emit(market, "FeesChanged")
+      .withArgs(200, treasury1.address, 50, treasury2.address, admin.address);
     const listingId = 1;
     const listing = await market.listings(listingId);
     await blt.connect(player2).approve(market.address, listing.price);
     await expect(market.connect(player2).buy(listingId))
       .to.emit(market, "ItemSold")
-      .withArgs(1, 0, player1.address, player2.address, listing.price);
+      .withArgs(
+        1,
+        0,
+        player1.address,
+        player2.address,
+        listing.price,
+        ethers.utils.parseUnits("0.1"),
+        ethers.utils.parseUnits("0.025")
+      );
     expect((await market.activeListingCount()).toNumber()).to.equal(0);
 
     // Check BLT was paid from player2 to player1 and Fees were applied
     expect(await blt.balanceOf(player1.address)).to.equal(
-      ethers.utils.parseUnits("10")
+      ethers.utils.parseUnits("14.875")
     );
     expect(await blt.balanceOf(player2.address)).to.equal(
-      ethers.utils.parseUnits("90")
+      ethers.utils.parseUnits("85")
     );
+    expect(await blt.balanceOf(treasury1.address)).to.equal(
+      ethers.utils.parseUnits("0.1")
+    );
+    expect(await blt.balanceOf(treasury2.address)).to.equal(
+      ethers.utils.parseUnits("0.025")
+    );
+  });
+
+  it("Pause contract", async () => {
+    await market.connect(admin).pause(true);
+    await expect(
+      market.connect(player1).addListing(2, ethers.utils.parseUnits("2"))
+    ).to.be.revertedWith("Action not enabled, contract paused");
+    await expect(market.connect(player1).buy(2)).to.be.revertedWith(
+      "Action not enabled, contract paused"
+    );
+    await market.connect(admin).pause(false);
+    await nft.connect(player1).approve(market.address, 2);
+    await market.connect(player1).addListing(2, ethers.utils.parseUnits("10"));
   });
 });

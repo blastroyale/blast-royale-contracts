@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import '@openzeppelin/contracts/security/Pausable.sol';
+import "hardhat/console.sol";
 
 struct Listing {
   address owner;
@@ -16,14 +18,16 @@ struct Listing {
 
 /// @title Blast Royale Token - $BLT
 /// @dev Based on OpenZeppelin Contracts.
-contract Marketplace is ReentrancyGuard, Ownable  {
+contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
 
   using SafeMath for uint256;
 
   uint256 public listingCount = 0;
   uint256 public activeListingCount = 0;
-  uint256 private fee;
-  address private treasuryAddress;
+  uint256 private fee1;
+  address private treasury1;
+  uint256 private fee2;
+  address private treasury2;
 
   mapping (uint256 => Listing) public listings;
   ERC721 private erc721Contract;
@@ -50,13 +54,17 @@ contract Marketplace is ReentrancyGuard, Ownable  {
 		uint256 tokenId,
 		address seller,
 		address buyer,
-    uint256 price
+    uint256 price,
+    uint256 fee1,
+    uint256 fee2
 	);
 
   /// @notice Event Fee changed
-  event FeeChanged(
-    uint256 oldFee,
-    uint256 newFee,
+  event FeesChanged(
+    uint256 fee1,
+    address treasury1,
+    uint256 fee2,
+    address treasury2,
     address changedBy
   );
  
@@ -67,7 +75,8 @@ contract Marketplace is ReentrancyGuard, Ownable  {
   constructor(address erc721Address, address erc20Address) {
     erc721Contract = ERC721(erc721Address);
     erc20Contract = ERC20(erc20Address);
-    fee = 0;
+    fee1 = 0;
+    fee2 = 0;
   }
 
   /// @notice add a Listing to the Marketplace
@@ -76,6 +85,7 @@ contract Marketplace is ReentrancyGuard, Ownable  {
   /// @param price Price in NFTs.
   function addListing(uint256 tokenId, uint256 price) public nonReentrant
   {
+    require(!paused(), "Action not enabled, contract paused");
     uint256 listingId = listingCount;
     listings[listingId] = Listing(
       msg.sender,
@@ -115,25 +125,34 @@ contract Marketplace is ReentrancyGuard, Ownable  {
   /// @param listingId NFT Listing Id.
   function buy(uint256 listingId) public nonReentrant
   {
+    require(!paused(), "Action not enabled, contract paused");
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
-    uint256 buyingFee = (fee * listings[listingId].price / 10000);
-    erc20Contract.transferFrom(
-      msg.sender,
-      listings[listingId].owner,
-      listings[listingId].price - fee
-    );
-    if (fee > 0 ) {
+    uint256 buyingFee1 = (fee1 * listings[listingId].price / 10000);
+   if (buyingFee1 > 0 ) {
       erc20Contract.transferFrom(
         msg.sender,
-       treasuryAddress,
-        fee
+        treasury1,
+        buyingFee1
       );
     }
-    erc721Contract.transferFrom(
+    uint256 buyingFee2 = (fee2 * listings[listingId].price / 10000);
+     if (buyingFee2 > 0 ) {
+      erc20Contract.transferFrom(
+        msg.sender,
+        treasury2,
+        buyingFee2
+      );
+    }
+   erc721Contract.transferFrom(
       address(this),
       msg.sender,
       listings[listingId].tokenId
+    );
+    erc20Contract.transferFrom(
+      msg.sender,
+      listings[listingId].owner,
+      listings[listingId].price - buyingFee1 - buyingFee2
     );
     activeListingCount = activeListingCount.sub(1);
     emit ItemSold(
@@ -141,17 +160,41 @@ contract Marketplace is ReentrancyGuard, Ownable  {
       listings[listingId].tokenId,
       listings[listingId].owner,
       msg.sender,
-      listings[listingId].price
+      listings[listingId].price,
+      buyingFee1,
+      buyingFee2
     );
   }
 
   /// @notice Sets a new Fee
-  /// @param _fee new Fee.
-  /// @param _treasuryAddress New treasury address.
-  function setFee(uint256 _fee, address _treasuryAddress) public onlyOwner
+  /// @param _fee1 new Fee1.
+  /// @param _treasury1 New treasury1 address.
+  /// @param _fee2 new Fee2.
+  /// @param _treasury2 New treasury2 address.
+  function setFee(uint256 _fee1, address _treasury1, uint256 _fee2, address _treasury2) public onlyOwner
   {
-    fee = _fee;
-    treasuryAddress = _treasuryAddress;
+    fee1 = _fee1;
+    treasury1 = _treasury1;
+    fee2 = _fee2;
+    treasury2 = _treasury2;
+    emit FeesChanged(
+      fee1,
+      treasury1,
+      fee2,
+      treasury2,
+      msg.sender
+    );
+  }
+
+  // @notice Pauses/Unpauses the contract
+  // @dev While paused, addListing, and buy are not allowed
+  // @param stop whether to pause or unpause the contract.
+  function pause(bool stop) external onlyOwner {
+    if (stop) {
+      _pause();
+    } else {
+      _unpause();
+    }
   }
 }
 
