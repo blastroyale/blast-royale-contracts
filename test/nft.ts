@@ -9,8 +9,7 @@ describe("Blast Royale Token", function () {
     const BlastToken = await ethers.getContractFactory("BlastNFT");
     const blt = await BlastToken.connect(owner).deploy(
       "Blast Royale",
-      "$BLT",
-      uri
+      "$BLT"
     );
     await blt.deployed();
 

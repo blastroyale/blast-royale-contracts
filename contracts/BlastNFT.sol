@@ -3,11 +3,9 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
@@ -27,19 +25,18 @@ import "@openzeppelin/contracts/utils/Counters.sol";
  *
  * _Deprecated in favor of https://wizard.openzeppelin.com/[Contracts Wizard]._
  */
+
+
 contract BlastNFT is
-    Context,
-    AccessControlEnumerable,
-    ERC721Enumerable,
-    ERC721Burnable,
-    ERC721Pausable
+    ERC721URIStorage,
+    Pausable,
+    AccessControlEnumerable
 {
     using Counters for Counters.Counter;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     Counters.Counter private _tokenIdTracker;
-    string private _baseTokenURI;
 
     /**
      * @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
@@ -50,17 +47,11 @@ contract BlastNFT is
      */
     constructor(
         string memory name,
-        string memory symbol,
-        string memory baseTokenURI
+        string memory symbol
     ) ERC721(name, symbol) {
-        _baseTokenURI = baseTokenURI;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(PAUSER_ROLE, _msgSender());
-    }
-
-    function _baseURI() internal view virtual override returns (string memory) {
-        return _baseTokenURI;
     }
 
     /**
@@ -74,13 +65,13 @@ contract BlastNFT is
      *
      * - the caller must have the `MINTER_ROLE`.
      */
-    function mint(address to) public virtual {
+     function mint(address to, string memory tokenURI) public payable returns (uint) {
         require(hasRole(MINTER_ROLE, _msgSender()), "ERC721PresetMinterPauserAutoId: must have minter role to mint");
-
-        // We cannot just use balanceOf to create the new tokenId because tokens
-        // can be burned (destroyed), so we need a separate counter.
-        _mint(to, _tokenIdTracker.current());
         _tokenIdTracker.increment();
+        uint256 newTokenId = _tokenIdTracker.current();
+        _mint(to, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+        return newTokenId;
     }
 
     /**
@@ -115,8 +106,14 @@ contract BlastNFT is
         address from,
         address to,
         uint256 tokenId
-    ) internal virtual override(ERC721, ERC721Enumerable, ERC721Pausable) {
+    ) internal virtual override {
+        require(!paused(), "ERC721Pausable: token transfer while paused");
         super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function burn(uint256 tokenId) public virtual {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721Burnable: caller is not owner nor approved");
+        _burn(tokenId);
     }
 
     /**
@@ -126,7 +123,7 @@ contract BlastNFT is
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721, ERC721Enumerable)
+        override(AccessControlEnumerable, ERC721)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
