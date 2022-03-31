@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import '@openzeppelin/contracts/security/Pausable.sol';
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "hardhat/console.sol";
 
 struct Listing {
@@ -85,7 +85,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
   /// @param price Price in NFTs.
   function addListing(uint256 tokenId, uint256 price) public nonReentrant
   {
-    require(!paused(), "Action not enabled, contract paused");
+    require(!paused(), "Contract paused");
     require(price > 0, "Price must be > 0");
     uint256 listingId = listingCount;
     listings[listingId] = Listing(
@@ -126,7 +126,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
   /// @param listingId NFT Listing Id.
   function buy(uint256 listingId) public nonReentrant
   {
-    require(!paused(), "Action not enabled, contract paused");
+    require(!paused(), "Contract paused");
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
     uint256 buyingFee1 = (fee1 * listings[listingId].price / 10000);
