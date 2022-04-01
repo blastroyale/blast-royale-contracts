@@ -152,9 +152,9 @@ describe("Blast Royale Marketplace", function () {
     await market.connect(admin).pause(true);
     await expect(
       market.connect(player1).addListing(2, ethers.utils.parseUnits("2"))
-    ).to.be.revertedWith("Action not enabled, contract paused");
+    ).to.be.revertedWith("Contract paused");
     await expect(market.connect(player1).buy(2)).to.be.revertedWith(
-      "Action not enabled, contract paused"
+      "Contract paused"
     );
     await market.connect(admin).pause(false);
     await nft.connect(player1).approve(market.address, 2);

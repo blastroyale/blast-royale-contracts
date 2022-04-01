@@ -74,7 +74,7 @@ contract SecondaryToken is ERC20, ERC20Pausable, Ownable, EIP712 {
       keccak256(abi.encode(keccak256("Call(address minter,uint256 amount,uint256 nonce)"), minter, amount, nonce ))
     );
     address recoveredSigner = ECDSA.recover(digest, signature);
-    require(owner() == recoveredSigner, 'Invalid signature');
+    require(owner() == recoveredSigner, "Invalid signature");
   }
 
   function getChainId() external view returns (uint256) {

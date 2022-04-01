@@ -16,6 +16,7 @@ contract BlastNFT is ERC721, ERC721URIStorage, Pausable, AccessControl, ERC721Bu
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdCounter;
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+  mapping(uint256 => bytes32) public seeds;
 
   /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
   /// @param name Name of the contract
@@ -30,14 +31,17 @@ contract BlastNFT is ERC721, ERC721URIStorage, Pausable, AccessControl, ERC721Bu
 
   /// @notice Creates a new token for `to`. Its token ID will be automatically
   /// @dev The caller must have the `MINTER_ROLE`.
-  function safeMint(address to, string memory uri)
+  function safeMint(address to, string[] memory uri, bytes32[] memory _seeds)
     public
     onlyRole(MINTER_ROLE)
   {
-    uint256 tokenId = _tokenIdCounter.current();
-    _tokenIdCounter.increment();
-    _safeMint(to, tokenId);
-    _setTokenURI(tokenId, uri);
+    for (uint256 i = 0; i < uri.length; i = i + 1) {
+      uint256 tokenId = _tokenIdCounter.current();
+      _tokenIdCounter.increment();
+      _safeMint(to, tokenId);
+      _setTokenURI(tokenId, uri[i]);
+      seeds[tokenId] = _seeds[i];
+    }
   }
 
   /// @notice Pauses all token transfers.
@@ -64,7 +68,7 @@ contract BlastNFT is ERC721, ERC721URIStorage, Pausable, AccessControl, ERC721Bu
   /// @dev The caller must be the Owner (or have approval) of the Token.
   /// @param tokenId Token ID.
   function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
-    require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721Burnable: caller is not owner nor approved");
+    require(_isApprovedOrOwner(_msgSender(), tokenId), "Not the owner");
     _burn(tokenId);
   }
 
