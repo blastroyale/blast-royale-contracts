@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract BlastLootBox is
     ERC721,
     ERC721URIStorage,
-    AccessControl,
+    AccessControl
 {
     using Counters for Counters.Counter;
 

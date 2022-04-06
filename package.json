@@ -7,8 +7,8 @@
     "compile": "hardhat compile",
     "deploy:rinkeby": "hardhat run scripts/deploy.ts --network rinkeby",
     "verify:rinkeby": "hardhat run scripts/verify.ts --network rinkeby",
-    "deploy:matic": "hardhat run scripts/deploy.ts --network matic",
-    "verify:matic": "hardhat run scripts/verify.ts --network matic",
+    "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
+    "verify:mumbai": "hardhat run scripts/verify.ts --network mumbai",
     "cucumber": "hardhat compile && tsc && cucumber-js"
   },
   "keywords": [],
