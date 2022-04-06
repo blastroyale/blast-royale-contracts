@@ -28,12 +28,10 @@ describe("Blast Equipment NFT", function () {
 
     console.log(await blt.attributes(0));
 
-    await blt.connect(owner).setAttribute(0, {
-      level: 2,
-      durabilityRemaining: 2,
-      repairCount: 2,
-      replicationCount: 1,
-    });
+    await blt.connect(owner).setLevel(0, 3);
+    await blt.connect(owner).setDurabilityRemaining(0, 2);
+    await blt.connect(owner).setRepairCount(0, 1);
+    await blt.connect(owner).setReplicationCount(0, 4);
 
     console.log(await blt.attributes(0));
     expect(await blt.balanceOf(addr1.address)).to.equal(2);

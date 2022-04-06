@@ -87,9 +87,28 @@ contract BlastEquipmentNFT is
         }
     }
 
-    function setAttribute(uint _tokenId, VariableAttributes memory _newAttribute) public hasGameRole {
-        attributes[_tokenId] = _newAttribute;
-        emit AttributeUpdated(_tokenId, _newAttribute.level, _newAttribute.durabilityRemaining, _newAttribute.repairCount, _newAttribute.replicationCount);
+    function setLevel(uint _tokenId, uint _newLevel) public hasGameRole {
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.level = _newLevel;
+        emit AttributeUpdated(_tokenId, _newLevel, _attribute.durabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
+    }
+
+    function setDurabilityRemaining(uint _tokenId, uint _newDurabilityRemaining) public hasGameRole {
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.durabilityRemaining = _newDurabilityRemaining;
+        emit AttributeUpdated(_tokenId, _attribute.level, _newDurabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
+    }
+
+    function setRepairCount(uint _tokenId, uint _newRepairCount) public hasGameRole {
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.repairCount = _newRepairCount;
+        emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _newRepairCount, _attribute.replicationCount);
+    }
+
+    function setReplicationCount(uint _tokenId, uint _newReplicationCount) public hasGameRole {
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.replicationCount = _newReplicationCount;
+        emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _newReplicationCount);
     }
 
     /// @notice Pauses all token transfers.
