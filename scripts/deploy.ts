@@ -8,11 +8,11 @@ async function main() {
   console.log("Deploying contracts with the account:", deployer.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  // NFT MARKETPLACE
-  const Marketplace = await ethers.getContractFactory("BlastNFT");
-  const marketplace = await Marketplace.deploy("Blast Royale NFT", "BRW");
-  await marketplace.deployed();
-  console.log("Marketplace address address:", marketplace.address);
+  // BlastNFT
+  const BlastNFT = await ethers.getContractFactory("BlastNFT");
+  const blastNFT = await BlastNFT.deploy("Blast Royale NFT", "BRW");
+  await blastNFT.deployed();
+  console.log("BlastNFT address address:", blastNFT.address);
 
   // BLT
   console.log("Deploying primary token");
@@ -24,6 +24,15 @@ async function main() {
     BigNumber.from("10000000000000000000000")
   );
   console.log("Primary token address:", primaryToken.address);
+
+  // NFT MARKETPLACE
+  const Marketplace = await ethers.getContractFactory("Marketplace");
+  const marketplace = await Marketplace.deploy(
+    blastNFT.address,
+    primaryToken.address
+  );
+  await marketplace.deployed();
+  console.log("Marketplace address address:", marketplace.address);
 
   // CS
   console.log("Deploying Secondary token");
@@ -40,8 +49,9 @@ async function main() {
     "./scripts/address.json",
     JSON.stringify({
       deployerAddress: deployer.address,
-      marketplaceAddress: marketplace.address,
+      blastNFT: blastNFT.address,
       primaryToken: primaryToken.address,
+      marketplaceAddress: marketplace.address,
       secondaryToken: secondaryToken.address,
     })
   );

@@ -9,9 +9,9 @@ async function main() {
   });
   const addresses = JSON.parse(_address);
 
-  // Verify Marketplace Contract
+  // Verify BlastNFT Contract
   await hre.run("verify:verify", {
-    address: addresses.marketplaceAddress,
+    address: addresses.blastNFT,
     constructorArguments: ["Blast Royale NFT", "BRW"],
     contract: "contracts/BlastNFT.sol:BlastNFT",
   });
@@ -26,6 +26,13 @@ async function main() {
       BigNumber.from("10000000000000000000000"),
     ],
     contract: "contracts/PrimaryToken.sol:PrimaryToken",
+  });
+
+  // Verify Marketplace Contract
+  await hre.run("verify:verify", {
+    address: addresses.marketplaceAddress,
+    constructorArguments: [addresses.blastNFT, addresses.primaryToken],
+    contract: "contracts/Marketplace.sol:Marketplace",
   });
 
   // Verify Secondary Token Contract
