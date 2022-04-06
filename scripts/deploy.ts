@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import fs from "fs";
+import { BigNumber } from "ethers";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -20,28 +21,28 @@ async function main() {
 
   // BlastLootBox
   const BlastLootBox = await ethers.getContractFactory("BlastLootBox");
-  const blastLootBox = await BlastLootBox.deploy("Blast Token", "BLT");
+  const blastLootBox = await BlastLootBox.deploy("Blast Token", "BLB");
   console.log("BlastLootBox address:", blastLootBox.address);
 
   // BLT
-  // console.log("Deploying primary token");
-  // const PrimaryToken = await ethers.getContractFactory("PrimaryToken");
-  // const primaryToken = await PrimaryToken.deploy(
-  //   "Blast Token",
-  //   "BLT",
-  //   deployer.address,
-  //   BigNumber.from("10000000000000000000000")
-  // );
-  // console.log("Primary token address:", primaryToken.address);
+  console.log("Deploying primary token");
+  const PrimaryToken = await ethers.getContractFactory("PrimaryToken");
+  const primaryToken = await PrimaryToken.deploy(
+    "Blast Token",
+    "BLT",
+    deployer.address,
+    BigNumber.from("10000000000000000000000")
+  );
+  console.log("Primary token address:", primaryToken.address);
 
-  // // NFT MARKETPLACE
-  // const Marketplace = await ethers.getContractFactory("Marketplace");
-  // const marketplace = await Marketplace.deploy(
-  //   blastNFT.address,
-  //   primaryToken.address
-  // );
-  // await marketplace.deployed();
-  // console.log("Marketplace address address:", marketplace.address);
+  // NFT MARKETPLACE
+  const Marketplace = await ethers.getContractFactory("Marketplace");
+  const marketplace = await Marketplace.deploy(
+    blastEqtNFT.address,
+    primaryToken.address
+  );
+  await marketplace.deployed();
+  console.log("Marketplace address address:", marketplace.address);
 
   // // CS
   // console.log("Deploying Secondary token");
@@ -60,6 +61,8 @@ async function main() {
       deployerAddress: deployer.address,
       BlastEquipmentNFT: blastEqtNFT.address,
       BlastLootBox: blastLootBox.address,
+      PrimaryToken: primaryToken.address,
+      Marketplace: marketplace.address,
     })
   );
 }

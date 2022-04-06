@@ -1,5 +1,6 @@
 import hre from "hardhat";
 import fs from "fs";
+import { BigNumber } from "ethers";
 
 async function main() {
   const _address = fs.readFileSync("./scripts/address.json", {
@@ -15,23 +16,30 @@ async function main() {
     contract: "contracts/BlastEquipmentNFT.sol:BlastEquipmentNFT",
   });
 
-  // // Verify Primary Token Contract
-  // await hre.run("verify:verify", {
-  //   address: addresses.primaryToken,
-  //   constructorArguments: [
-  //     "Blast Token",
-  //     "BLT",
-  //     addresses.deployerAddress,
-  //     BigNumber.from("10000000000000000000000"),
-  //   ],
-  //   contract: "contracts/PrimaryToken.sol:PrimaryToken",
-  // });
-
   // Verify BlastLootBox Contract
   await hre.run("verify:verify", {
     address: addresses.BlastLootBox,
-    constructorArguments: ["Blast Token", "BLT"],
+    constructorArguments: ["Blast Token", "BLB"],
     contract: "contracts/BlastLootBox.sol:BlastLootBox",
+  });
+
+  // Verify Marketplace Contract
+  await hre.run("verify:verify", {
+    address: addresses.Marketplace,
+    constructorArguments: [addresses.BlastEquipmentNFT, addresses.PrimaryToken],
+    contract: "contracts/Marketplace.sol:Marketplace",
+  });
+
+  // Verify Primary Token Contract
+  await hre.run("verify:verify", {
+    address: addresses.PrimaryToken,
+    constructorArguments: [
+      "Blast Token",
+      "BLT",
+      addresses.deployerAddress,
+      BigNumber.from("10000000000000000000000"),
+    ],
+    contract: "contracts/PrimaryToken.sol:PrimaryToken",
   });
 
   // // Verify Secondary Token Contract
