@@ -4,14 +4,14 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 /// @title Blast Royale NFT
 /// @dev BlastNFT ERC721 token
-contract BlastNFT is ERC721, ERC721URIStorage, Pausable, AccessControl, ERC721Burnable {
+contract BlastNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable, AccessControl {
 
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdCounter;
@@ -56,13 +56,13 @@ contract BlastNFT is ERC721, ERC721URIStorage, Pausable, AccessControl, ERC721Bu
     _unpause();
   }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual whenNotPaused override {
-        super._beforeTokenTransfer(from, to, tokenId);
-    }
+  function _beforeTokenTransfer(
+      address from,
+      address to,
+      uint256 tokenId
+  ) internal virtual whenNotPaused override {
+      super._beforeTokenTransfer(from, to, tokenId);
+  }
 
   /// @notice Unpauses all token transfers.
   /// @dev The caller must be the Owner (or have approval) of the Token.

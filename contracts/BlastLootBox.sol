@@ -4,20 +4,20 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 /// @title Blast Royale NFT
 /// @dev BlastNFT ERC721 token
-contract LootBox is
+contract BlastLootBox is
   ERC721,
   ERC721URIStorage,
+  ERC721Burnable,
   Pausable,
   AccessControl,
-  ERC721Burnable,
   VRFConsumerBase {
 
   using Counters for Counters.Counter;
@@ -85,13 +85,13 @@ contract LootBox is
     _unpause();
   }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual whenNotPaused override {
-        super._beforeTokenTransfer(from, to, tokenId);
-    }
+  function _beforeTokenTransfer(
+      address from,
+      address to,
+      uint256 tokenId
+  ) internal virtual whenNotPaused override {
+      super._beforeTokenTransfer(from, to, tokenId);
+  }
 
   /// @notice Unpauses all token transfers.
   /// @dev The caller must be the Owner (or have approval) of the Token.
