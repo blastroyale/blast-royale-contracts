@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "hardhat compile",
+    "deploy:rinkeby": "hardhat run scripts/deploy.ts --network rinkeby",
+    "verify:rinkeby": "hardhat run scripts/verify.ts --network rinkeby",
+    "deploy:matic": "hardhat run scripts/deploy.ts --network matic",
+    "verify:matic": "hardhat run scripts/verify.ts --network matic",
     "cucumber": "hardhat compile && tsc && cucumber-js"
   },
   "keywords": [],
