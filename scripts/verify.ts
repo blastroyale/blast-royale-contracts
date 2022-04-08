@@ -1,6 +1,6 @@
-import { BigNumber } from "ethers";
 import hre from "hardhat";
 import fs from "fs";
+import { BigNumber } from "ethers";
 
 async function main() {
   const _address = fs.readFileSync("./scripts/address.json", {
@@ -9,16 +9,30 @@ async function main() {
   });
   const addresses = JSON.parse(_address);
 
-  // Verify BlastNFT Contract
+  // Verify BlastEquipmentNFT Contract
   await hre.run("verify:verify", {
-    address: addresses.blastNFT,
-    constructorArguments: ["Blast Royale NFT", "BRW"],
-    contract: "contracts/BlastNFT.sol:BlastNFT",
+    address: addresses.BlastEquipmentNFT,
+    constructorArguments: ["Blast Equipment NFT", "BEN"],
+    contract: "contracts/BlastEquipmentNFT.sol:BlastEquipmentNFT",
+  });
+
+  // Verify BlastLootBox Contract
+  await hre.run("verify:verify", {
+    address: addresses.BlastLootBox,
+    constructorArguments: ["Blast Token", "BLB"],
+    contract: "contracts/BlastLootBox.sol:BlastLootBox",
+  });
+
+  // Verify Marketplace Contract
+  await hre.run("verify:verify", {
+    address: addresses.Marketplace,
+    constructorArguments: [addresses.BlastEquipmentNFT, addresses.PrimaryToken],
+    contract: "contracts/Marketplace.sol:Marketplace",
   });
 
   // Verify Primary Token Contract
   await hre.run("verify:verify", {
-    address: addresses.primaryToken,
+    address: addresses.PrimaryToken,
     constructorArguments: [
       "Blast Token",
       "BLT",
@@ -28,24 +42,17 @@ async function main() {
     contract: "contracts/PrimaryToken.sol:PrimaryToken",
   });
 
-  // Verify Marketplace Contract
-  await hre.run("verify:verify", {
-    address: addresses.marketplaceAddress,
-    constructorArguments: [addresses.blastNFT, addresses.primaryToken],
-    contract: "contracts/Marketplace.sol:Marketplace",
-  });
-
-  // Verify Secondary Token Contract
-  await hre.run("verify:verify", {
-    address: addresses.secondaryToken,
-    constructorArguments: [
-      "Craft Spice",
-      "CS",
-      addresses.deployerAddress,
-      BigNumber.from("10000000000000000000000"),
-    ],
-    contract: "contracts/SecondaryToken.sol:SecondaryToken",
-  });
+  // // Verify Secondary Token Contract
+  // await hre.run("verify:verify", {
+  //   address: addresses.secondaryToken,
+  //   constructorArguments: [
+  //     "Craft Spice",
+  //     "CS",
+  //     addresses.deployerAddress,
+  //     BigNumber.from("10000000000000000000000"),
+  //   ],
+  //   contract: "contracts/SecondaryToken.sol:SecondaryToken",
+  // });
 }
 
 main().catch((error) => {
