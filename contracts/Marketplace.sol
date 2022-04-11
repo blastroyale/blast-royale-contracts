@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "hardhat/console.sol";
 
 struct Listing {
   address owner;
@@ -18,7 +17,7 @@ struct Listing {
 
 /// @title Blast Royale Token - $BLT
 /// @dev Based on OpenZeppelin Contracts.
-contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
+contract Marketplace is ReentrancyGuard, Ownable, Pausable {
 
   using SafeMath for uint256;
 
@@ -30,8 +29,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
   address private treasury2;
 
   mapping (uint256 => Listing) public listings;
-  ERC721 private erc721Contract;
-  ERC20 private erc20Contract;
+  IERC721 private erc721Contract;
+  IERC20 private erc20Contract;
 
   /// @notice Event Listed 
   event ItemListed(
@@ -72,9 +71,9 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
   /// @dev Setup the two contracts it will interact with : ERC721 and ERC20
   /// @param erc721Address Address of the NFT Contract.
   /// @param erc20Address Address of the Primary Token Contract.
-  constructor(address erc721Address, address erc20Address) {
-    erc721Contract = ERC721(erc721Address);
-    erc20Contract = ERC20(erc20Address);
+  constructor(IERC721 erc721Address, IERC20 erc20Address) {
+    erc721Contract = erc721Address;
+    erc20Contract = erc20Address;
     fee1 = 0;
     fee2 = 0;
   }
@@ -83,13 +82,12 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
   /// @dev Creates a new entry for a Listing object and transfers the Token to the contract
   /// @param tokenId NFT TokenId.
   /// @param price Price in NFTs.
-  function addListing(uint256 tokenId, uint256 price) public nonReentrant
+  function addListing(uint256 tokenId, uint256 price) public nonReentrant whenNotPaused
   {
-    require(!paused(), "Contract paused");
     require(price > 0, "Price must be > 0");
     uint256 listingId = listingCount;
     listings[listingId] = Listing(
-      msg.sender,
+      _msgSender(),
       true,
       tokenId,
       price
@@ -97,11 +95,11 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
     listingCount = listingCount.add(1);
     activeListingCount = activeListingCount.add(1);
     erc721Contract.transferFrom(
-      msg.sender,
+      _msgSender(),
       address(this),
       tokenId);
 
-    emit ItemListed(listingId, tokenId, msg.sender, price );   
+    emit ItemListed(listingId, tokenId, _msgSender(), price );   
   }
 
   /// @notice Remove a Listing from the Marketplace
@@ -109,49 +107,48 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
   /// @param listingId NFT Listing Id.
   function removeListing(uint256 listingId) public nonReentrant
   {
-    require(listings[listingId].owner == msg.sender, "Must be owner");
+    require(listings[listingId].owner == _msgSender(), "Must be owner");
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
     erc721Contract.transferFrom(
       address(this),
-      msg.sender,
+      _msgSender(),
       listings[listingId].tokenId
     );
     activeListingCount = activeListingCount.sub(1);
-    emit ItemDelisted(listingId, listings[listingId].tokenId, msg.sender );   
+    emit ItemDelisted(listingId, listings[listingId].tokenId, _msgSender() );   
   }
 
   /// @notice Buys a listed NFT
   /// @dev Trabsfers both the ERC20 token (price) and the NFT.
   /// @param listingId NFT Listing Id.
-  function buy(uint256 listingId) public nonReentrant
+  function buy(uint256 listingId) public nonReentrant whenNotPaused
   {
-    require(!paused(), "Contract paused");
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
     uint256 buyingFee1 = (fee1 * listings[listingId].price / 10000);
-   if (buyingFee1 > 0 ) {
+    if (buyingFee1 > 0 ) {
       erc20Contract.transferFrom(
-        msg.sender,
+        _msgSender(),
         treasury1,
         buyingFee1
       );
     }
     uint256 buyingFee2 = (fee2 * listings[listingId].price / 10000);
-     if (buyingFee2 > 0 ) {
+    if (buyingFee2 > 0 ) {
       erc20Contract.transferFrom(
-        msg.sender,
+        _msgSender(),
         treasury2,
         buyingFee2
       );
     }
-   erc721Contract.transferFrom(
+    erc721Contract.transferFrom(
       address(this),
-      msg.sender,
+      _msgSender(),
       listings[listingId].tokenId
     );
     erc20Contract.transferFrom(
-      msg.sender,
+      _msgSender(),
       listings[listingId].owner,
       listings[listingId].price - buyingFee1 - buyingFee2
     );
@@ -160,7 +157,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
       listingId,
       listings[listingId].tokenId,
       listings[listingId].owner,
-      msg.sender,
+      _msgSender(),
       listings[listingId].price,
       buyingFee1,
       buyingFee2
@@ -183,7 +180,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable  {
       treasury1,
       fee2,
       treasury2,
-      msg.sender
+      _msgSender()
     );
   }
 

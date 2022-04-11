@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "hardhat compile",
+    "deploy:rinkeby": "hardhat run scripts/deploy.ts --network rinkeby",
+    "verify:rinkeby": "hardhat run scripts/verify.ts --network rinkeby",
+    "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
+    "verify:mumbai": "hardhat run scripts/verify.ts --network mumbai",
     "cucumber": "hardhat compile && tsc && cucumber-js"
   },
   "keywords": [],
@@ -17,6 +20,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/test-helpers": "^0.5.15",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^6.0.0",
     "@types/chai": "^4.3.0",
@@ -50,6 +54,7 @@
     "@chainlink/contracts": "^0.4.0",
     "@cucumber/cucumber": "^8.0.0",
     "@types/cucumber": "^7.0.0",
+    "axios": "^0.26.1",
     "eth-sig-util": "^3.0.1",
     "ethereumjs-wallet": "^1.0.2"
   }
