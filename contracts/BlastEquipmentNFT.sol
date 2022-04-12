@@ -15,12 +15,10 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdCounter;
 
-  uint public constant URI_SET = 0;
-  uint public constant LEVEL = 1;
-  uint public constant CRAFT_COUNT = 2;
-  uint public constant REPAIR_COUNT = 3;
-  uint public constant REPAIR_TS = 4;
-  uint public constant MAX_REPAIR = 5;
+  uint public constant LEVEL = 0;
+  uint public constant CRAFT_COUNT = 1;
+  uint public constant REPAIR_COUNT = 2;
+  uint public constant REPAIR_TS = 3;
 
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
   bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
@@ -57,8 +55,7 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
       _tokenIdCounter.increment();
       _safeMint(to, tokenId);
       _setTokenURI(tokenId, defaultURI);
-      attributes[tokenId][URI_SET] = 0;
-      attributes[tokenId][LEVEL] = 1;
+      attributes[tokenId][LEVEL] = 0;
       attributes[tokenId][REPAIR_COUNT] = 0;
       attributes[tokenId][REPAIR_TS] = block.timestamp;
       attributes[tokenId][CRAFT_COUNT] = 0;
@@ -85,8 +82,8 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
     onlyRole(GAME_ROLE)
   {
     for (uint256 i = 0; i < tokenIds.length; i = i + 1) {
-      require(attributes[tokenIds[i]][URI_SET] == 0, "URI Can only be set once");
-      attributes[tokenIds[i]][URI_SET] = 1;
+      require(attributes[tokenIds[i]][LEVEL] == 0, "URI Can only be set once");
+      attributes[tokenIds[i]][LEVEL] = 1;
       _setTokenURI(tokenIds[i], newURIs[i]);
     }
   }

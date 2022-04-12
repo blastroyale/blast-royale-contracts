@@ -11,8 +11,8 @@ describe("4 - Craft & Repair Equipment", function () {
 
   it("Repair one NFT", async () => {
     // Initial parameters.
-    let repairCount = await blast.equipment.attributes(0, 3);
-    const repairTS1 = await blast.equipment.attributes(0, 4);
+    let repairCount = await blast.equipment.attributes(0, 2);
+    const repairTS1 = await blast.equipment.attributes(0, 3);
     expect(repairCount).to.equal(0);
     let balance = await getBalance(blast.blt, blast.player1.address);
     expect(balance).to.equal(1000);
@@ -35,9 +35,9 @@ describe("4 - Craft & Repair Equipment", function () {
       .withArgs(blast.player1.address, 0);
 
     // repairCount incremented, repairTS updated, BLT spent and CS burned.
-    repairCount = await blast.equipment.attributes(0, 3);
+    repairCount = await blast.equipment.attributes(0, 2);
     expect(repairCount).to.equal(1);
-    const repairTS2 = await blast.equipment.attributes(0, 4);
+    const repairTS2 = await blast.equipment.attributes(0, 3);
     expect(repairTS2 > repairTS1).to.equal(true);
 
     // Check Balances : player1, cs (burned) and treasury
@@ -83,9 +83,9 @@ describe("4 - Craft & Repair Equipment", function () {
 
   it("Craft a new NFT", async () => {
     // Initial parameters.
-    let craftCount1 = await blast.equipment.attributes(0, 2);
+    let craftCount1 = await blast.equipment.attributes(0, 1);
     expect(craftCount1).to.equal(0);
-    let craftCount2 = await blast.equipment.attributes(1, 2);
+    let craftCount2 = await blast.equipment.attributes(1, 1);
     expect(craftCount2).to.equal(0);
 
     // Approve BLT spending
@@ -104,9 +104,9 @@ describe("4 - Craft & Repair Equipment", function () {
       .withArgs(blast.player1.address, 0, 1);
 
     // repairCount incremented, repairTS updated, BLT spent and CS burned.
-    craftCount1 = await blast.equipment.attributes(0, 2);
+    craftCount1 = await blast.equipment.attributes(0, 1);
     expect(craftCount1).to.equal(1);
-    craftCount2 = await blast.equipment.attributes(1, 2);
+    craftCount2 = await blast.equipment.attributes(1, 1);
     expect(craftCount2).to.equal(1);
 
     // Check Balances : player1, cs (burned) and treasury

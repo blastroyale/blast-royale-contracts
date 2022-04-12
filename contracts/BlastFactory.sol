@@ -23,11 +23,11 @@ contract BlastFactory is Ownable, Pausable {
   uint256 private _csRepairPrice;
   uint256 private _bltCraftPrice;
   uint256 private _csCraftPrice;
-  uint public constant CRAFT_COUNT = 2;
+  uint public constant CRAFT_COUNT = 1;
   uint public constant MAX_CRAFT = 7;
-  uint public constant REPAIR_COUNT = 3;
+  uint public constant REPAIR_COUNT = 2;
   uint public constant MAX_REPAIR = 5;
-  uint public constant REPAIR_TS = 4;
+  uint public constant REPAIR_TS = 3;
   string private _baseURI;
 
   /// @notice Token constructor
