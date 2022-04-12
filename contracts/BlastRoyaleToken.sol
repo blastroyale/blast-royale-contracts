@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 
 /// @title Blast Royale Token - $BLT
 /// @dev Based on OpenZeppelin Contracts.
-contract PrimaryToken is ERC20, ERC20Pausable, Ownable {
+contract BlastRoyaleToken is ERC20, ERC20Pausable, Ownable {
 
   /// @notice Token constructor
   /// @dev Creates the token and setup the initial supply and the Admin Role.

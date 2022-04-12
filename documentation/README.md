@@ -2,15 +2,14 @@
 
 ## Index
 
-1. [Project](./project.md)
-2. [Tokenomics](./tokenomics.md)
-2.1. [Token Swap](./token-swap.md)
-3. [Arquitecture](./arquitecture.md)
-3.1. [$BLT](./contracts/blt.md) : Blast Royale Token (Bonding Curve)
-3.2. [$CS](./contracts/cs.md) : Basic ERC-20 token
-3.3. [BlastNFT](./contracts/blastnft.md) Contract : NFTs (ERC721)
-3.4. [MarketPlace](./contracts/marketplace.md) : Buy and Sell NFTs
-4. [Metadata](./metadata.md) Strategy
-5. [Security](./security.md)
-6. Smart Contract [Deployment](./deploy.md)
-7. Smart Contract [Testing](./test.md)
+1. [$BLT](./contracts/primary.md) : Blast Royale Token (ERC-20) 
+2. [$CS](./contracts/secondary.md) : Craftship Token (ERC-20)
+3. [EquipmentNFT](./contracts/equipment.md) EquipmentNFT NFTs (ERC-721)
+4. [CraftNFT](./contracts/marketplace.md) : Craft a new NFT
+5. [UpgradeNFT](./contracts/upgrade.md) : Upgrade NFT Level
+6. [LootBox](./contracts/lootbox.md) : LootBoxes
+7. [MarketPlace](./contracts/marketplace.md) : Buy and Sell NFTs
+
+## Metadata
+
+This is the [Metadata](./metadata.md) Strategy

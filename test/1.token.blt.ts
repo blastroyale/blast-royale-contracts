@@ -1,14 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-// import * as ethSigUtil from "eth-sig-util";
 
-describe("Blast Royale Token", function () {
-  it("Test Primary Token", async function () {
+describe("Blast Royale Primary Token : BLT", function () {
+  it("Deploy and Mint BLT", async function () {
     const [owner, addr1, addr2] = await ethers.getSigners();
-    const BlastToken = await ethers.getContractFactory("PrimaryToken");
+    const BlastToken = await ethers.getContractFactory("BlastRoyaleToken");
     const blt = await BlastToken.deploy(
-      "Blast Royale",
-      "$BLT",
+      "Blast Royale Token",
+      "BLT",
       owner.address,
       ethers.utils.parseEther("100000000")
     );
@@ -21,6 +20,9 @@ describe("Blast Royale Token", function () {
 
     expect(await blt.balanceOf(addr1.address)).to.equal(
       ethers.utils.parseEther("100")
+    );
+    expect(await blt.balanceOf(addr2.address)).to.equal(
+      ethers.utils.parseEther("500")
     );
   });
 });

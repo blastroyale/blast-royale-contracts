@@ -1,1 +1,0 @@
-# $BLT Smart Contract

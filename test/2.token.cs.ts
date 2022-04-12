@@ -24,34 +24,38 @@ async function signCall(
   return signature;
 }
 
-describe("Blast Royale Token", function () {
-  it("Test Secondary Token", async function () {
-    const [owner, addr1, addr2] = await ethers.getSigners();
-    const CraftToken = await ethers.getContractFactory("SecondaryToken");
-    const cs = await CraftToken.deploy(
+describe("Blast Royale Secondary Token : Craftship ($CS)", function () {
+  it("Deploy and Mint $CS", async function () {
+    const [owner, game, addr1, addr2] = await ethers.getSigners();
+
+    // Deploy $CS.
+    const CraftshipToken = await ethers.getContractFactory("CraftshipToken");
+    const cs = await CraftshipToken.deploy(
       "Craftship",
       "$BLT",
       owner.address,
       ethers.utils.parseEther("100000000")
     );
     await cs.deployed();
+    await cs.grantRole(await cs.GAME_ROLE(), game.address);
 
+    // Sign and Mint Tokens.
     const domain = {
       name: "Craftship",
       version: "1",
       chainId: await cs.getChainId(),
       verifyingContract: cs.address,
     };
-    let nonce = await cs.nonce();
-    let signature = await signCall(domain, addr1.address, "100", owner, nonce);
+    let nonce = await cs.nonce(addr1.address);
+    let signature = await signCall(domain, addr1.address, "100", game, nonce);
 
     let tx = await cs
       .connect(addr1)
       .mint(ethers.utils.parseEther("100"), signature);
     await tx.wait();
 
-    nonce = await cs.nonce();
-    signature = await signCall(domain, addr2.address, "500", owner, nonce);
+    nonce = await cs.nonce(addr2.address);
+    signature = await signCall(domain, addr2.address, "500", game, nonce);
     tx = await cs
       .connect(addr2)
       .mint(ethers.utils.parseEther("500"), signature);

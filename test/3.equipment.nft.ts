@@ -6,7 +6,7 @@ const defaultSymbol = "BNFT";
 const uri1 = "https://blastroyale.com/nft/building.png";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-describe("Blast Equipment NFT", function () {
+describe("3 - Blast Equipment NFT Minting From a Wallet", function () {
   let minter: any, game: any, player1: any;
   let bnft: any;
 
@@ -15,10 +15,11 @@ describe("Blast Equipment NFT", function () {
   });
 
   it("Deploy NFT", async () => {
-    // Getting signer
-
-    const BlastEquipmentToken = await ethers.getContractFactory("EquipmentNFT");
-    bnft = await BlastEquipmentToken.connect(minter).deploy(
+    // Deploy EquipmentNFT
+    const BlastEquipmentNFT = await ethers.getContractFactory(
+      "BlastEquipmentNFT"
+    );
+    bnft = await BlastEquipmentNFT.connect(minter).deploy(
       defaultName,
       defaultSymbol,
       minter.address,
