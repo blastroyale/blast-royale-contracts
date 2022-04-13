@@ -18,16 +18,20 @@ contract BlastFactory is Ownable, Pausable {
   IEquipmentNFT private equipment;
   IERC20 private bltContract;
   ICraftshipToken private csContract;
+
   address private _treasury;
   uint256 private _bltRepairPrice;
   uint256 private _csRepairPrice;
   uint256 private _bltCraftPrice;
   uint256 private _csCraftPrice;
-  uint public constant CRAFT_COUNT = 1;
+
+  uint public constant LEVEL = 0;
+  uint public constant ORIGIN = 1;
+  uint public constant CRAFT_COUNT = 2;
+  uint public constant REPAIR_COUNT = 3;
+  uint public constant REPAIR_TS = 4;
   uint public constant MAX_CRAFT = 7;
-  uint public constant REPAIR_COUNT = 2;
   uint public constant MAX_REPAIR = 5;
-  uint public constant REPAIR_TS = 3;
   string private _baseURI;
 
   /// @notice Token constructor
@@ -99,7 +103,7 @@ contract BlastFactory is Ownable, Pausable {
     }
     equipment.incAttribute(tokenId1, CRAFT_COUNT);
     equipment.incAttribute(tokenId2, CRAFT_COUNT);
-    equipment.safeMint(1, msg.sender, _baseURI);
+    equipment.safeMint(1, msg.sender, _baseURI, 1);
     emit Crafted(_msgSender(), tokenId1, tokenId2);
   }
 

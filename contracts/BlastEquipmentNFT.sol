@@ -16,9 +16,10 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
   Counters.Counter private _tokenIdCounter;
 
   uint public constant LEVEL = 0;
-  uint public constant CRAFT_COUNT = 1;
-  uint public constant REPAIR_COUNT = 2;
-  uint public constant REPAIR_TS = 3;
+  uint public constant ORIGIN = 1;
+  uint public constant CRAFT_COUNT = 2;
+  uint public constant REPAIR_COUNT = 3;
+  uint public constant REPAIR_TS = 4;
 
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
   bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
@@ -28,15 +29,17 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
   /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
   /// @param name Name of the contract
   /// @param symbol Symbol of the contract
+  /// @param admin Adress -> DEFAULT_ADMIN_ROLE Role
   /// @param minter Adress -> MINTER Role
   /// @param game Adress -> GAME Role
   constructor(
     string memory name,
     string memory symbol,
+    address admin,
     address minter,
     address game
   ) ERC721(name, symbol) {
-    _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    _setupRole(DEFAULT_ADMIN_ROLE, admin);
     _setupRole(MINTER_ROLE, minter);
     _setupRole(GAME_ROLE, game);
   }
@@ -46,7 +49,8 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
   /// @param number The number of NFTs to Mint
   /// @param to The address receiving the NFTs
   /// @param defaultURI the default URI when the NFT is not set yet.
-  function safeMint(uint256 number, address to, string memory defaultURI)
+  /// @param origin Origin for the NFTs.
+  function safeMint(uint256 number, address to, string memory defaultURI, uint origin)
     external
     onlyRole(MINTER_ROLE)
   {
@@ -56,6 +60,7 @@ contract BlastEquipmentNFT is ERC721, ERC721URIStorage, ERC721Burnable, Pausable
       _safeMint(to, tokenId);
       _setTokenURI(tokenId, defaultURI);
       attributes[tokenId][LEVEL] = 0;
+      attributes[tokenId][ORIGIN] = origin;
       attributes[tokenId][REPAIR_COUNT] = 0;
       attributes[tokenId][REPAIR_TS] = block.timestamp;
       attributes[tokenId][CRAFT_COUNT] = 0;

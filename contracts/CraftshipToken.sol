@@ -46,8 +46,8 @@ contract CraftshipToken is ERC20, ERC20Pausable, AccessControl, EIP712 {
   /// @param signature Signature of who can mint the tokens
   function mint(uint256 amount, bytes calldata signature) external {
     verify(signature, msg.sender, amount);
-    _mint(msg.sender, amount);
     _nonces[msg.sender].increment();
+    _mint(msg.sender, amount);
   }
 
   /// @notice Verifications before Token Transfer

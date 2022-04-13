@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
  */
 interface IEquipmentNFT is IERC721 {
   function attributes(uint256 tokenId, uint256 index) external returns(uint256 value);
-  function safeMint(uint256 number, address to, string memory defaultURI) external;
-  function setTokenURI(uint256[] memory tokenIds, string[] memory newURIs) external;
+  function safeMint(uint256 number, address to, string memory defaultURI, uint origin) external;
+  function settokenuri(uint256[] memory tokenids, string[] memory newuris) external;
   function repair(uint256 tokenId) external;
   function setAttribute(uint256 tokenId, uint index, uint value) external;
   function incAttribute(uint256 tokenId, uint index) external;

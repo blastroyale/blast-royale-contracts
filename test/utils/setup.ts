@@ -18,9 +18,12 @@ interface IBlast {
   equipment?: any;
   factory?: any;
   market?: any;
+  lootbox?: any;
   MINTER_ROLE?: string;
   GAME_ROLE?: string;
+  constants: any;
 }
+
 async function deployTokens(blast: IBlast) {
   const BlastToken = await ethers.getContractFactory("BlastRoyaleToken");
   blast.blt = await BlastToken.deploy(
@@ -60,6 +63,7 @@ async function deployEquipmentNFT(blast: IBlast) {
   blast.equipment = await BlastEquipmentNFT.connect(blast.minter).deploy(
     defaultName,
     defaultSymbol,
+    blast.owner.address,
     blast.minter.address,
     blast.game.address
   );
@@ -88,8 +92,12 @@ async function deployFactory(blast: IBlast) {
   );
 
   // Factory Needs MINTER ROLE (Craft new Items) and GAME (Repair -> set attributes).
-  await blast.equipment.grantRole(blast.MINTER_ROLE, blast.factory.address);
-  await blast.equipment.grantRole(blast.GAME_ROLE, blast.factory.address);
+  await blast.equipment
+    .connect(blast.owner)
+    .grantRole(blast.MINTER_ROLE, blast.factory.address);
+  await blast.equipment
+    .connect(blast.owner)
+    .grantRole(blast.GAME_ROLE, blast.factory.address);
   await blast.cs.grantRole(blast.GAME_ROLE, blast.factory.address);
 }
 
@@ -103,6 +111,13 @@ async function setup(): Promise<IBlast> {
     treasury2: wallets[4],
     player1: wallets[5],
     player2: wallets[6],
+    constants: {
+      LEBEL: 0,
+      ORIGIN: 1,
+      CRAFT_COUNT: 2,
+      REPAIR_COUNT: 3,
+      REPAIR_TS: 4,
+    },
   };
 
   // Deploy Tokens : BLT & CS
@@ -112,7 +127,7 @@ async function setup(): Promise<IBlast> {
   await deployEquipmentNFT(blast);
   await blast.equipment
     .connect(blast.minter)
-    .safeMint(10, blast.player1.address, uri1);
+    .safeMint(10, blast.player1.address, uri1, 0);
   await blast.equipment
     .connect(blast.game)
     .setTokenURI([0, 1, 2], ["otherURI1", "otherURI2", "otherURI3"]);
@@ -127,4 +142,54 @@ async function getBalance(token: any, addr: string): Promise<number> {
   return parseInt(balance);
 }
 
-export { setup, IBlast, getBalance };
+async function signCall(
+  domain: any,
+  minter: string,
+  amount: string,
+  signer: any,
+  nonce: any
+) {
+  const types = {
+    "Call": [
+      { name: "minter", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+    ],
+  };
+  const value = {
+    minter,
+    amount: ethers.utils.parseEther(amount),
+    nonce,
+  };
+  const signature = signer._signTypedData(domain, types, value);
+  return signature;
+}
+
+async function signBuy(
+  domain: any,
+  minter: string,
+  amount: string,
+  price: string,
+  signer: any,
+  nonce: any,
+  isNumber: boolean = false
+) {
+  const types = {
+    "Call": [
+      { name: "minter", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "price", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+    ],
+  };
+  const value = {
+    minter,
+    amount: amount,
+    price: ethers.utils.parseEther(price),
+    nonce,
+  };
+  const signature = signer._signTypedData(domain, types, value);
+  return signature;
+}
+
+export { setup, IBlast, getBalance, signCall, signBuy };
