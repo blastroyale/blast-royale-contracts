@@ -19,7 +19,7 @@ async function main() {
   // Verify BlastLootBox Contract
   await hre.run("verify:verify", {
     address: addresses.BlastLootBox,
-    constructorArguments: ["Blast Token", "BLB"],
+    constructorArguments: ["Blast Lootbox", "BLX", addresses.BlastEquipmentNFT],
     contract: "contracts/BlastLootBox.sol:BlastLootBox",
   });
 

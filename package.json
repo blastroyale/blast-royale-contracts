@@ -9,6 +9,7 @@
     "verify:rinkeby": "hardhat run scripts/verify.ts --network rinkeby",
     "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
     "verify:mumbai": "hardhat run scripts/verify.ts --network mumbai",
+    "test:loot": "hardhat test test/loot.ts",
     "cucumber": "hardhat compile && tsc && cucumber-js"
   },
   "keywords": [],
