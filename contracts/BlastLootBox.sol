@@ -6,23 +6,30 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "./interfaces/IBlastEquipmentNFT.sol";
 
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
 contract BlastLootBox is
     ERC721,
     ERC721URIStorage,
+    IERC721Receiver,
     AccessControl
 {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
     mapping(uint => uint[]) private lootboxDetails;
+    IBlastEquipmentNFT public blastEquipmentNFT;
+
+    event Received();
 
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol, IBlastEquipmentNFT _blastEquipmentNFT) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        blastEquipmentNFT = _blastEquipmentNFT;
     }
 
     /// @notice Creates a new token for `_to`. Its token ID will be automatically
@@ -39,6 +46,17 @@ contract BlastLootBox is
         lootboxDetails[tokenId] = _eqtIds;
     }
 
+    function open(uint _tokenId) external {
+        require(_exists(_tokenId), "nonexist token");
+        require(_msgSender() == ownerOf(_tokenId));
+        uint[] memory _eqtIds = lootboxDetails[_tokenId];
+        for (uint i = 0; i < _eqtIds.length; i++) {
+            // blastEquipmentNFT.approve(_msgSender(), _eqtIds[i]);
+            blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds[i]);
+        }
+        _burn(_tokenId);
+    }
+
     /// @notice Unpauses all token transfers.
     /// @dev The caller must be the Owner (or have approval) of the Token.
     /// @param tokenId Token ID.
@@ -50,7 +68,7 @@ contract BlastLootBox is
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721Burnable: caller is not owner nor approved"
         );
-        _burn(tokenId);
+        super._burn(tokenId);
     }
 
     /// @notice Returns the TokenURI.
@@ -74,5 +92,19 @@ contract BlastLootBox is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        operator;
+        from;
+        tokenId;
+        data;
+        emit Received();
+        return 0x150b7a02;
     }
 }

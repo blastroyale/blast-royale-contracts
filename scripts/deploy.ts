@@ -21,7 +21,11 @@ async function main() {
 
   // BlastLootBox
   const BlastLootBox = await ethers.getContractFactory("BlastLootBox");
-  const blastLootBox = await BlastLootBox.deploy("Blast Token", "BLB");
+  const blastLootBox = await BlastLootBox.deploy(
+    "Blast Lootbox",
+    "BLX",
+    blastEqtNFT.address
+  );
   console.log("BlastLootBox address:", blastLootBox.address);
 
   // BLT
