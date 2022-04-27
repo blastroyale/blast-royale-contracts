@@ -40,9 +40,17 @@ describe("Blast LootBox Contract", function () {
     await mintTx.wait();
 
     // Lootbox Minting to address with Equipment NFT ids [0, 1, 2]
-    const tx = await blb
-      .connect(owner)
-      .safeMint(owner.address, "ipfs://111", [0, 1, 2]);
+    const tx = await blb.connect(owner).safeMint(
+      [owner.address],
+      ["ipfs://111"],
+      [
+        {
+          token0: ethers.BigNumber.from("0"),
+          token1: ethers.BigNumber.from("1"),
+          token2: ethers.BigNumber.from("2"),
+        },
+      ]
+    );
     await tx.wait();
 
     // Lootbox contract has 3 Equipment NFT items

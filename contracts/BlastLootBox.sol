@@ -19,8 +19,14 @@ contract BlastLootBox is
 {
     using Counters for Counters.Counter;
 
+    struct LootBox {
+        uint token0;
+        uint token1;
+        uint token2;
+    }
+
     Counters.Counter private _tokenIdCounter;
-    mapping(uint => uint[]) private lootboxDetails;
+    mapping(uint => LootBox) private lootboxDetails;
     IBlastEquipmentNFT public blastEquipmentNFT;
 
     event Received();
@@ -34,26 +40,29 @@ contract BlastLootBox is
 
     /// @notice Creates a new token for `_to`. Its token ID will be automatically
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function safeMint(address _to, string memory _uri, uint[] memory _eqtIds)
+    function safeMint(address[] memory _to, string[] memory _uri, LootBox[] memory _eqtIds)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_eqtIds.length == 3);
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-        _safeMint(_to, tokenId);
-        _setTokenURI(tokenId, _uri);
-        lootboxDetails[tokenId] = _eqtIds;
+        require(_to.length == _uri.length);
+        require(_to.length == _eqtIds.length);
+        for (uint i = 0; i < _to.length; i++) {
+            uint256 tokenId = _tokenIdCounter.current();
+            _tokenIdCounter.increment();
+            _safeMint(_to[i], tokenId);
+            _setTokenURI(tokenId, _uri[i]);
+            lootboxDetails[tokenId] = _eqtIds[i];
+        }
     }
 
     function open(uint _tokenId) external {
         require(_exists(_tokenId), "nonexist token");
         require(_msgSender() == ownerOf(_tokenId));
-        uint[] memory _eqtIds = lootboxDetails[_tokenId];
-        for (uint i = 0; i < _eqtIds.length; i++) {
-            // blastEquipmentNFT.approve(_msgSender(), _eqtIds[i]);
-            blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds[i]);
-        }
+        LootBox memory _eqtIds = lootboxDetails[_tokenId];
+        // blastEquipmentNFT.approve(_msgSender(), _eqtIds[i]);
+        blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token0);
+        blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token1);
+        blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token2);
         _burn(_tokenId);
     }
 
