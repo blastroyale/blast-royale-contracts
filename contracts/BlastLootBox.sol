@@ -58,11 +58,16 @@ contract BlastLootBox is
     function open(uint _tokenId) external {
         require(_exists(_tokenId), "nonexist token");
         require(_msgSender() == ownerOf(_tokenId));
+
         LootBox memory _eqtIds = lootboxDetails[_tokenId];
-        // blastEquipmentNFT.approve(_msgSender(), _eqtIds[i]);
         blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token0);
         blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token1);
         blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token2);
+
+        blastEquipmentNFT.revealRealTokenURI(_eqtIds.token0);
+        blastEquipmentNFT.revealRealTokenURI(_eqtIds.token1);
+        blastEquipmentNFT.revealRealTokenURI(_eqtIds.token2);
+
         _burn(_tokenId);
     }
 

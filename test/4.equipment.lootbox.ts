@@ -35,9 +35,13 @@ describe("Blast LootBox Contract", function () {
           ethers.utils.keccak256("0x1000"),
           ethers.utils.keccak256("0x2000"),
           ethers.utils.keccak256("0x3000"),
-        ]
+        ],
+        ["ipfs://111_real", "ipfs://222_real", "ipfs://333_real"]
       );
     await mintTx.wait();
+    // Grant REVEAL_ROLE to Lootbox contract
+    const REVEAL_ROLE = await bet.REVEAL_ROLE();
+    await bet.connect(owner).grantRole(REVEAL_ROLE, blb.address);
 
     // Lootbox Minting to address with Equipment NFT ids [0, 1, 2]
     const tx = await blb.connect(owner).safeMint(
@@ -70,5 +74,11 @@ describe("Blast LootBox Contract", function () {
     expect(await bet.balanceOf(owner.address)).to.equal(3);
     // Owner has no Lootbox NFT because it's already burnt
     expect(await blb.balanceOf(owner.address)).to.equal(0);
+
+    // Reveal test
+
+    expect(await bet.tokenURI(0)).to.equal("ipfs://111_real");
+    expect(await bet.tokenURI(1)).to.equal("ipfs://222_real");
+    expect(await bet.tokenURI(2)).to.equal("ipfs://333_real");
   });
 });

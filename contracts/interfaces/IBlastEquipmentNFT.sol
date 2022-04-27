@@ -27,8 +27,11 @@ interface IBlastEquipmentNFT is IERC721 {
     function safeMint(
         address _to,
         string[] memory _uri,
-        bytes32[] memory _hash
+        bytes32[] memory _hash,
+        string[] memory _realUri
     ) external;
+
+    function revealRealTokenURI(uint _tokenId) external;
 
     function setLevel(uint256 _tokenId, uint256 _newLevel) external;
 

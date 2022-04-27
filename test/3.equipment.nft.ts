@@ -22,7 +22,8 @@ describe("Blast Equipment NFT", function () {
       .safeMint(
         addr1.address,
         ["ipfs://111", "ipfs://222"],
-        [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")]
+        [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
+        ["ipfs://111_real", "ipfs://222_real"]
       );
     await tx.wait();
 
