@@ -71,6 +71,10 @@ contract BlastEquipmentNFT is
         }
     }
 
+    function setTokenURI(uint _id, string memory _tokenURI) external onlyRole(MINTER_ROLE) {
+        _setTokenURI(_id, _tokenURI);
+    }
+
     function setLevel(uint _tokenId, uint _newLevel) external override hasGameRole {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
