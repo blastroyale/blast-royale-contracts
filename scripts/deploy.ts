@@ -28,6 +28,14 @@ async function main() {
   );
   console.log("BlastLootBox address:", blastLootBox.address);
 
+  // Grant REVEAL_ROLE to lootbox contract address
+  const REVEAL_ROLE = await blastEqtNFT.REVEAL_ROLE();
+  const grantTx = await blastEqtNFT.grantRole(
+    REVEAL_ROLE,
+    blastLootBox.address
+  );
+  await grantTx.wait();
+
   // BLT
   console.log("Deploying primary token");
   const PrimaryToken = await ethers.getContractFactory("PrimaryToken");
