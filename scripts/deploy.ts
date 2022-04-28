@@ -35,9 +35,9 @@ async function main() {
     blastLootBox.address
   );
   await grantTx.wait();
+  console.log("Granted REVEAL_ROLE to Lootbox contract");
 
   // BLT
-  console.log("Deploying primary token");
   const PrimaryToken = await ethers.getContractFactory("PrimaryToken");
   const primaryToken = await PrimaryToken.deploy(
     "Blast Token",
