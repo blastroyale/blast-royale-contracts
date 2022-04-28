@@ -78,6 +78,7 @@ contract BlastEquipmentNFT is
 
     function revealRealTokenURI(uint _tokenId) external override onlyRole(REVEAL_ROLE) {
         _setTokenURI(_tokenId, realTokenURI[_tokenId]);
+        emit PermanentURI(realTokenURI[_tokenId], _tokenId);
     }
 
     function setLevel(uint _tokenId, uint _newLevel) external override hasGameRole {
