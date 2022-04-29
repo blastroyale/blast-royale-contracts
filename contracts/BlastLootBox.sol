@@ -25,6 +25,8 @@ contract BlastLootBox is
         uint token2;
     }
 
+    bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
+
     Counters.Counter private _tokenIdCounter;
     mapping(uint => LootBox) private lootboxDetails;
     IBlastEquipmentNFT public blastEquipmentNFT;
@@ -35,6 +37,7 @@ contract BlastLootBox is
     /// @param symbol Symbol of the contract
     constructor(string memory name, string memory symbol, IBlastEquipmentNFT _blastEquipmentNFT) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(GAME_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
     }
 
@@ -59,10 +62,21 @@ contract BlastLootBox is
         require(_exists(_tokenId), "nonexist token");
         require(_msgSender() == ownerOf(_tokenId));
 
+        _open(_tokenId, _msgSender());
+    }
+
+    function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
+        require(_exists(_tokenId), "nonexist token");
+        require(_msgSender() == ownerOf(_tokenId));
+
+        _open(_tokenId, _to);
+    }
+
+    function _open(uint _tokenId, address _to) internal {
         LootBox memory _eqtIds = lootboxDetails[_tokenId];
-        blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token0);
-        blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token1);
-        blastEquipmentNFT.transferFrom(address(this), _msgSender(), _eqtIds.token2);
+        blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token0);
+        blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token1);
+        blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token2);
 
         blastEquipmentNFT.revealRealTokenURI(_eqtIds.token0);
         blastEquipmentNFT.revealRealTokenURI(_eqtIds.token1);
