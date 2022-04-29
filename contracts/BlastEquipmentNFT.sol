@@ -32,10 +32,12 @@ contract BlastEquipmentNFT is
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
+    bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
 
     Counters.Counter public _tokenIdCounter;
     mapping(uint => bytes32) public hashValue;
     mapping(uint => VariableAttributes) public attributes;
+    mapping(uint => string) private realTokenURI;
 
     modifier hasGameRole() {
         require(hasRole(GAME_ROLE, _msgSender()) || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "AccessControl: Missing role");
@@ -56,9 +58,11 @@ contract BlastEquipmentNFT is
     function safeMint(
         address _to,
         string[] memory _uri,
-        bytes32[] memory _hash
+        bytes32[] memory _hash,
+        string[] memory _realUri
     ) external override onlyRole(MINTER_ROLE) {
         require(_uri.length == _hash.length, "Invalid params");
+        require(_uri.length == _realUri.length, "Invalid params");
 
         for (uint256 i = 0; i < _uri.length; i = i + 1) {
             uint256 tokenId = _tokenIdCounter.current();
@@ -66,9 +70,15 @@ contract BlastEquipmentNFT is
             _safeMint(_to, tokenId);
             _setTokenURI(tokenId, _uri[i]);
             hashValue[tokenId] = _hash[i];
+            realTokenURI[tokenId] = _realUri[i];
             attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
             emit AttributeAdded(tokenId, 1, 0, 0, 0);
         }
+    }
+
+    function revealRealTokenURI(uint _tokenId) external override onlyRole(REVEAL_ROLE) {
+        _setTokenURI(_tokenId, realTokenURI[_tokenId]);
+        emit PermanentURI(realTokenURI[_tokenId], _tokenId);
     }
 
     function setLevel(uint _tokenId, uint _newLevel) external override hasGameRole {

@@ -42,7 +42,7 @@ describe("Blast LootBox Contract", function () {
       const chunkUri = _uris.slice(i, i + chunkSize);
       const chunkHash = _hash.slice(i, i + chunkSize);
 
-      const tx = await bet.safeMint(blb.address, chunkUri, chunkHash);
+      const tx = await bet.safeMint(blb.address, chunkUri, chunkHash, chunkUri);
       await tx.wait();
     }
   });
