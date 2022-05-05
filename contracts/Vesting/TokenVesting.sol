@@ -20,11 +20,15 @@ error NotEnoughTokens();
 error ScheduleRevoked();
 /// Vesting is not revocable
 error NotRevocable();
+/// In case the address is zero
+error ZeroAddress();
 
 contract TokenVesting is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     /// <=============== STATE VARIABLES ===============>
+
+    uint public constant DECIMAL_FACTOR = 10 ** 6;
 
     /// Blast TOKEN
     IERC20 public blastToken;
@@ -80,9 +84,12 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         uint256 _immediateReleaseAmount,
         bool _revocable
     ) public onlyOwner {
+        if (_beneficiary == address(0)) revert ZeroAddress();
         if (getWithdrawableAmount() < _amount) revert InsufficientTokens();
         if (_duration <= 0) revert DurationInvalid();
         if (_amount <= 0) revert AmountInvalid();
+        if (_immediateReleaseAmount > _amount) revert AmountInvalid();
+
         bytes32 vestingScheduleId = computeNextVestingScheduleIdForHolder(
             _beneficiary
         );
@@ -93,7 +100,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             cliff,
             _duration,
             _amount,
-            0,
+            _immediateReleaseAmount,
             _revocable,
             false
         );
@@ -101,6 +108,9 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         vestingSchedulesIds.push(vestingScheduleId);
         uint256 currentVestingCount = holdersVestingCount[_beneficiary];
         holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
+
+        // Transfer TGE
+        blastToken.transfer(_beneficiary, _immediateReleaseAmount);
     }
 
     /**
@@ -203,7 +213,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         if (currentTime < vestingSchedule.cliffStart) {
             return 0;
         } else if (
-            currentTime >= vestingSchedule.start.add(vestingSchedule.duration)
+            currentTime >= vestingSchedule.cliffStart.add(vestingSchedule.duration)
         ) {
             return vestingSchedule.amountTotal.sub(vestingSchedule.released);
         } else {
