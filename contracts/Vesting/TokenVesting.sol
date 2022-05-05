@@ -28,7 +28,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
 
     /// <=============== STATE VARIABLES ===============>
 
-    uint public constant DECIMAL_FACTOR = 10 ** 6;
+    // uint public constant DECIMAL_FACTOR = 10 ** 6;
 
     /// Blast TOKEN
     IERC20 public blastToken;
