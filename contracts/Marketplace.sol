@@ -13,6 +13,7 @@ struct Listing {
   bool isActive;
   uint256 tokenId;
   uint256 price;
+  IERC20 tokenAddress;
 }
 
 /// @title Blast Royale Token - $BLT
@@ -30,14 +31,14 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
 
   mapping (uint256 => Listing) public listings;
   IERC721 private erc721Contract;
-  IERC20 private erc20Contract;
 
   /// @notice Event Listed 
   event ItemListed(
 		uint256 listingId,
 		uint256 tokenId,
 		address seller,
-		uint256 price
+		uint256 price,
+    address payTokenAddress
 	);
 
   /// @notice Event Delisted 
@@ -70,10 +71,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @notice Token constructor
   /// @dev Setup the two contracts it will interact with : ERC721 and ERC20
   /// @param erc721Address Address of the NFT Contract.
-  /// @param erc20Address Address of the Primary Token Contract.
-  constructor(IERC721 erc721Address, IERC20 erc20Address) {
+  constructor(IERC721 erc721Address) {
     erc721Contract = erc721Address;
-    erc20Contract = erc20Address;
     fee1 = 0;
     fee2 = 0;
   }
@@ -82,7 +81,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @dev Creates a new entry for a Listing object and transfers the Token to the contract
   /// @param tokenId NFT TokenId.
   /// @param price Price in NFTs.
-  function addListing(uint256 tokenId, uint256 price) public nonReentrant whenNotPaused
+  function addListing(uint256 tokenId, uint256 price, IERC20 payTokenAddress) public nonReentrant whenNotPaused
   {
     require(price > 0, "Price must be > 0");
     uint256 listingId = listingCount;
@@ -90,7 +89,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       _msgSender(),
       true,
       tokenId,
-      price
+      price,
+      payTokenAddress
     );
     listingCount = listingCount.add(1);
     activeListingCount = activeListingCount.add(1);
@@ -99,7 +99,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       address(this),
       tokenId);
 
-    emit ItemListed(listingId, tokenId, _msgSender(), price );   
+    emit ItemListed(listingId, tokenId, _msgSender(), price, address(payTokenAddress));   
   }
 
   /// @notice Remove a Listing from the Marketplace
@@ -126,9 +126,10 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   {
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
+    IERC20 payTokenAddress = listings[listingId].tokenAddress;
     uint256 buyingFee1 = (fee1 * listings[listingId].price / 10000);
     if (buyingFee1 > 0 ) {
-      erc20Contract.transferFrom(
+      payTokenAddress.transferFrom(
         _msgSender(),
         treasury1,
         buyingFee1
@@ -136,7 +137,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     }
     uint256 buyingFee2 = (fee2 * listings[listingId].price / 10000);
     if (buyingFee2 > 0 ) {
-      erc20Contract.transferFrom(
+      payTokenAddress.transferFrom(
         _msgSender(),
         treasury2,
         buyingFee2
@@ -147,7 +148,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       _msgSender(),
       listings[listingId].tokenId
     );
-    erc20Contract.transferFrom(
+    payTokenAddress.transferFrom(
       _msgSender(),
       listings[listingId].owner,
       listings[listingId].price - buyingFee1 - buyingFee2
