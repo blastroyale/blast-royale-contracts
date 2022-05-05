@@ -38,7 +38,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         address beneficiary;
         // start time of the vesting period
         uint256 start;
-        // cliff period in seconds
+        // cliffStart time in seconds
         uint256 cliffStart;
         // duration of the vesting period in seconds
         uint256 duration;
@@ -50,6 +50,8 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bool revocable;
         // whether or not the vesting has been revoked
         bool revoked;
+        // whether or not the beneficiary address got amount
+        bool gotImmediateAmount;
     }
 
     bytes32[] private vestingSchedulesIds;
@@ -80,15 +82,15 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         uint256 _start,
         uint256 _cliff,
         uint256 _duration,
-        uint256 _amount,
+        uint256 _amountTotal,
         uint256 _immediateReleaseAmount,
         bool _revocable
     ) public onlyOwner {
         if (_beneficiary == address(0)) revert ZeroAddress();
-        if (getWithdrawableAmount() < _amount) revert InsufficientTokens();
+        if (getWithdrawableAmount() < _amountTotal) revert InsufficientTokens();
         if (_duration <= 0) revert DurationInvalid();
-        if (_amount <= 0) revert AmountInvalid();
-        if (_immediateReleaseAmount > _amount) revert AmountInvalid();
+        if (_amountTotal <= 0) revert AmountInvalid();
+        if (_immediateReleaseAmount > _amountTotal) revert AmountInvalid();
 
         bytes32 vestingScheduleId = computeNextVestingScheduleIdForHolder(
             _beneficiary
@@ -99,12 +101,13 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             _start,
             cliff,
             _duration,
-            _amount,
+            _amountTotal,
             _immediateReleaseAmount,
             _revocable,
+            false,
             false
         );
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(_amount);
+        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(_amountTotal);
         vestingSchedulesIds.push(vestingScheduleId);
         uint256 currentVestingCount = holdersVestingCount[_beneficiary];
         holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
@@ -153,13 +156,19 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();
         if (!(isBeneficiary || isOwner)) revert BeneficiayrOrOwner();
-        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
-        if (vestedAmount < amount) revert NotEnoughTokens();
-        vestingSchedule.released = vestingSchedule.released.add(amount);
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(amount);
-        blastToken.transfer(vestingSchedule.beneficiary, amount);
+        if (vestingSchedule.gotImmediateAmount) {
+            uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+            if (vestedAmount < amount) revert NotEnoughTokens();
+            vestingSchedule.released = vestingSchedule.released.add(amount);
+            vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(amount);
+            blastToken.transfer(vestingSchedule.beneficiary, amount);
 
-        emit Released(msg.sender, vestingScheduleId, amount);
+            emit Released(msg.sender, vestingScheduleId, amount);
+        } else {
+            if (vestingSchedule.released > 0) {
+                blastToken.transfer(vestingSchedule.beneficiary, vestingSchedule.released);
+            }
+        }
     }
 
     /// <=============== VIEWS ===============>
