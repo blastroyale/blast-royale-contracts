@@ -111,9 +111,6 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         vestingSchedulesIds.push(vestingScheduleId);
         uint256 currentVestingCount = holdersVestingCount[_beneficiary];
         holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
-
-        // Transfer TGE
-        blastToken.transfer(_beneficiary, _immediateReleaseAmount);
     }
 
     /**
@@ -156,6 +153,10 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();
         if (!(isBeneficiary || isOwner)) revert BeneficiayrOrOwner();
+
+        if (vestingSchedule.gotImmediateAmount == false && vestingSchedule.released == 0) {
+            vestingSchedule.gotImmediateAmount = true;
+        }
         if (vestingSchedule.gotImmediateAmount) {
             uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
             if (vestedAmount < amount) revert NotEnoughTokens();
@@ -165,6 +166,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
 
             emit Released(msg.sender, vestingScheduleId, amount);
         } else {
+            vestingSchedule.gotImmediateAmount = true;
             if (vestingSchedule.released > 0) {
                 blastToken.transfer(vestingSchedule.beneficiary, vestingSchedule.released);
             }
