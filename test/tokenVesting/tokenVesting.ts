@@ -2,16 +2,21 @@
  * Allocation of 15% of total supply (76,800,000 $BLST)
  * 4% unlocked at the TGE, then 6 months cliff, then unlock 4% more each month
  */
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
+import { PrimaryToken, TokenVesting } from "../../typechain";
 
 describe("TokenVesting", function () {
-  it("Test TokenVesting", async function () {
-    const [owner, addr1] = await ethers.getSigners();
+  let owner: SignerWithAddress, addr1: SignerWithAddress;
+  let blt: PrimaryToken;
+  let vesting: TokenVesting;
+  beforeEach(async () => {
+    [owner, addr1] = await ethers.getSigners();
 
     // Blast Token vesting
     const BlastToken = await ethers.getContractFactory("PrimaryToken");
-    const blt = await BlastToken.connect(owner).deploy(
+    blt = await BlastToken.connect(owner).deploy(
       "Blast Royale",
       "$BLT",
       owner.address,
@@ -20,9 +25,10 @@ describe("TokenVesting", function () {
     await blt.deployed();
 
     const TokenVesting = await ethers.getContractFactory("TokenVesting");
-    const vesting = await TokenVesting.connect(owner).deploy(blt.address);
+    vesting = await TokenVesting.connect(owner).deploy(blt.address);
     await vesting.deployed();
-
+  });
+  it("Test TokenVesting", async function () {
     // Transfer blast Token to vesting contract
     const transferTx = await blt
       .connect(owner)
