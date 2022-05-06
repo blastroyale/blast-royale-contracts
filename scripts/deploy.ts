@@ -56,16 +56,22 @@ async function main() {
   await marketplace.deployed();
   console.log("Marketplace address address:", marketplace.address);
 
-  // // CS
-  // console.log("Deploying Secondary token");
-  // const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
-  // const secondaryToken = await SecondaryToken.deploy(
-  //   "Craft Spice",
-  //   "CS",
-  //   deployer.address,
-  //   BigNumber.from("10000000000000000000000")
-  // );
-  // console.log("Secondary token address:", secondaryToken.address);
+  // Token vesting
+  const TokenVesting = await ethers.getContractFactory("TokenVesting");
+  const vesting = await TokenVesting.deploy(primaryToken.address);
+  await vesting.deployed();
+  console.log("TokenVesting address address:", vesting.address);
+
+  // CS
+  console.log("Deploying Secondary token");
+  const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
+  const secondaryToken = await SecondaryToken.deploy(
+    "Craft Spice",
+    "CS",
+    deployer.address,
+    BigNumber.from("10000000000000000000000")
+  );
+  console.log("Secondary token address:", secondaryToken.address);
 
   fs.writeFileSync(
     "./scripts/address.json",
