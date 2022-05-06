@@ -42,7 +42,9 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         uint256 cliffStart;
         // duration of the vesting period in seconds
         uint256 duration;
-        // total amount of tokens to be released at the end of the vesting
+        // the amount that is immediately vested at grant
+        uint256 immediateVestedAmount;
+        // total amount of tokens to be released at the end of the vesting EXCLUDING immediateVestedAmount
         uint256 amountTotal;
         // amount of tokens released
         uint256 released;
@@ -50,8 +52,6 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bool revocable;
         // whether or not the vesting has been revoked
         bool revoked;
-        // whether or not the beneficiary address got amount
-        bool gotImmediateAmount;
     }
 
     bytes32[] private vestingSchedulesIds;
@@ -80,10 +80,10 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     function createVestingSchedule(
         address _beneficiary,
         uint256 _start,
-        uint256 _cliff,
+        uint256 _cliffDuration,
         uint256 _duration,
-        uint256 _amountTotal,
         uint256 _immediateReleaseAmount,
+        uint256 _amountTotal,
         bool _revocable
     ) public onlyOwner {
         if (_beneficiary == address(0)) revert ZeroAddress();
@@ -95,19 +95,19 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bytes32 vestingScheduleId = computeNextVestingScheduleIdForHolder(
             _beneficiary
         );
-        uint256 cliff = _start.add(_cliff);
+        uint256 cliff = _start.add(_cliffDuration);
         vestingSchedules[vestingScheduleId] = VestingSchedule(
             _beneficiary,
             _start,
             cliff,
             _duration,
-            _amountTotal,
             _immediateReleaseAmount,
+            _amountTotal,
+            0,
             _revocable,
-            false,
             false
         );
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(_amountTotal);
+        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(_amountTotal).add(_immediateReleaseAmount);
         vestingSchedulesIds.push(vestingScheduleId);
         uint256 currentVestingCount = holdersVestingCount[_beneficiary];
         holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
@@ -117,11 +117,9 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      * @notice Revokes the vesting schedule for given identifier.
      * @param vestingScheduleId the vesting schedule identifier
      */
-    function revoke(bytes32 vestingScheduleId)
-        public
-        onlyOwner
-    {
-        if (vestingSchedules[vestingScheduleId].revoked) revert ScheduleRevoked();
+    function revoke(bytes32 vestingScheduleId) public onlyOwner {
+        if (vestingSchedules[vestingScheduleId].revoked)
+            revert ScheduleRevoked();
         VestingSchedule storage vestingSchedule = vestingSchedules[
             vestingScheduleId
         ];
@@ -146,31 +144,20 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         public
         nonReentrant
     {
-        if (vestingSchedules[vestingScheduleId].revoked) revert ScheduleRevoked();
+        if (vestingSchedules[vestingScheduleId].revoked)
+            revert ScheduleRevoked();
         VestingSchedule storage vestingSchedule = vestingSchedules[
             vestingScheduleId
         ];
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();
         if (!(isBeneficiary || isOwner)) revert BeneficiayrOrOwner();
-
-        if (vestingSchedule.gotImmediateAmount == false && vestingSchedule.released == 0) {
-            vestingSchedule.gotImmediateAmount = true;
-        }
-        if (vestingSchedule.gotImmediateAmount) {
-            uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
-            if (vestedAmount < amount) revert NotEnoughTokens();
-            vestingSchedule.released = vestingSchedule.released.add(amount);
-            vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(amount);
-            blastToken.transfer(vestingSchedule.beneficiary, amount);
-
-            emit Released(msg.sender, vestingScheduleId, amount);
-        } else {
-            vestingSchedule.gotImmediateAmount = true;
-            if (vestingSchedule.released > 0) {
-                blastToken.transfer(vestingSchedule.beneficiary, vestingSchedule.released);
-            }
-        }
+        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        if (vestedAmount < amount) revert NotEnoughTokens();
+        vestingSchedule.released = vestingSchedule.released.add(amount);
+        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(amount);
+        blastToken.transfer(vestingSchedule.beneficiary, amount);
+        emit Released(msg.sender, vestingScheduleId, amount);
     }
 
     /// <=============== VIEWS ===============>
@@ -212,6 +199,23 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Computes the vested amount of tokens for the given vesting schedule identifier.
+     * @return the vested amount
+     */
+    function computeReleasableAmount(bytes32 vestingScheduleId)
+        public
+        view
+        returns (uint256)
+    {
+        if (vestingSchedules[vestingScheduleId].revoked)
+            revert ScheduleRevoked();
+        VestingSchedule storage vestingSchedule = vestingSchedules[
+            vestingScheduleId
+        ];
+        return _computeReleasableAmount(vestingSchedule);
+    }
+
+    /**
      * @dev Computes the releasable amount of tokens for a vesting schedule.
      * @return the amount of releasable tokens
      */
@@ -222,18 +226,24 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     {
         uint256 currentTime = block.timestamp;
         if (currentTime < vestingSchedule.cliffStart) {
-            return 0;
+            return vestingSchedule.immediateVestedAmount;
         } else if (
-            currentTime >= vestingSchedule.cliffStart.add(vestingSchedule.duration)
+            currentTime >=
+            vestingSchedule.cliffStart.add(vestingSchedule.duration)
         ) {
-            return vestingSchedule.amountTotal.sub(vestingSchedule.released);
+            return
+                vestingSchedule.amountTotal.sub(vestingSchedule.released).add(
+                    vestingSchedule.immediateVestedAmount
+                );
         } else {
             uint256 timeFromStart = currentTime.sub(vestingSchedule.cliffStart);
             uint256 vestedAmount = vestingSchedule
                 .amountTotal
                 .mul(timeFromStart)
                 .div(vestingSchedule.duration);
-            vestedAmount = vestedAmount.sub(vestingSchedule.released);
+            vestedAmount = vestedAmount
+                .add(vestingSchedule.immediateVestedAmount)
+                .sub(vestingSchedule.released);
             return vestedAmount;
         }
     }
