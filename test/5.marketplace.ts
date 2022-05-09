@@ -37,27 +37,45 @@ describe("Blast Royale Marketplace", function () {
   });
 
   it("Deploy NFT", async function () {
-    const BlastNFT = await ethers.getContractFactory("BlastNFT");
+    const BlastNFT = await ethers.getContractFactory("BlastEquipmentNFT");
     nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
     await nft.deployed();
-    nft.connect(admin).safeMint(player1.address, "ipfs://1");
-    nft.connect(admin).safeMint(player1.address, "ipfs://2");
-    nft.connect(admin).safeMint(player1.address, "ipfs://3");
+    const mintTx = await nft
+      .connect(admin)
+      .safeMint(
+        player1.address,
+        ["ipfs://111", "ipfs://222", "ipfs://333"],
+        [
+          ethers.utils.keccak256("0x1000"),
+          ethers.utils.keccak256("0x2000"),
+          ethers.utils.keccak256("0x3000"),
+        ],
+        ["ipfs://111_real", "ipfs://222_real", "ipfs://333_real"]
+      );
+    await mintTx.wait();
   });
 
   it("Deploy Marketplace", async function () {
     const BlastNFT = await ethers.getContractFactory("Marketplace");
-    market = await BlastNFT.connect(admin).deploy(nft.address, blt.address);
+    market = await BlastNFT.connect(admin).deploy(nft.address);
     await market.deployed();
   });
 
   it("List an NFT to sell", async function () {
     await nft.connect(player1).approve(market.address, 0);
     await expect(
-      market.connect(player1).addListing(0, ethers.utils.parseUnits("10"))
+      market
+        .connect(player1)
+        .addListing(0, ethers.utils.parseUnits("10"), blt.address)
     )
       .to.emit(market, "ItemListed")
-      .withArgs(0, 0, player1.address, ethers.utils.parseUnits("10"));
+      .withArgs(
+        0,
+        0,
+        player1.address,
+        ethers.utils.parseUnits("10"),
+        blt.address
+      );
 
     const listingId = 0;
     const totalListings = await market.activeListingCount();
@@ -79,9 +97,13 @@ describe("Blast Royale Marketplace", function () {
   it("Buy an NFT", async function () {
     // Add a new isting
     await nft.connect(player1).approve(market.address, 0);
-    await market.connect(player1).addListing(0, ethers.utils.parseUnits("5"));
+    await market
+      .connect(player1)
+      .addListing(0, ethers.utils.parseUnits("5"), blt.address);
     await nft.connect(player1).approve(market.address, 1);
-    await market.connect(player1).addListing(1, ethers.utils.parseUnits("10"));
+    await market
+      .connect(player1)
+      .addListing(1, ethers.utils.parseUnits("10"), blt.address);
 
     // Get the total count of listings.
     let totalListings = await market.activeListingCount();
@@ -151,13 +173,17 @@ describe("Blast Royale Marketplace", function () {
   it("Pause contract", async () => {
     await market.connect(admin).pause(true);
     await expect(
-      market.connect(player1).addListing(2, ethers.utils.parseUnits("2"))
-    ).to.be.revertedWith("Contract paused");
-    await expect(market.connect(player1).buy(2)).to.be.revertedWith(
-      "Contract paused"
+      market
+        .connect(player1)
+        .addListing(0, ethers.utils.parseUnits("2"), blt.address)
+    ).to.be.revertedWith("Pausable: paused");
+    await expect(market.connect(player1).buy(0)).to.be.revertedWith(
+      "Pausable: paused"
     );
     await market.connect(admin).pause(false);
     await nft.connect(player1).approve(market.address, 2);
-    await market.connect(player1).addListing(2, ethers.utils.parseUnits("10"));
+    await market
+      .connect(player1)
+      .addListing(2, ethers.utils.parseUnits("10"), blt.address);
   });
 });
