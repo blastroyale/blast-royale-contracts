@@ -47,6 +47,42 @@ async function main() {
   );
   console.log("Primary token address:", primaryToken.address);
 
+  // NFT MARKETPLACE
+  const Marketplace = await ethers.getContractFactory("Marketplace");
+  const marketplace = await Marketplace.deploy(
+    blastEqtNFT.address,
+    primaryToken.address
+  );
+  await marketplace.deployed();
+  console.log("Marketplace address address:", marketplace.address);
+
+  // Token vesting
+  const TokenVesting = await ethers.getContractFactory("TokenVesting");
+  const vesting = await TokenVesting.deploy(primaryToken.address);
+  await vesting.deployed();
+  console.log("TokenVesting address address:", vesting.address);
+
+  // CS
+  console.log("Deploying Secondary token");
+  const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
+  const secondaryToken = await SecondaryToken.deploy(
+    "Craft Spice",
+    "CS",
+    deployer.address,
+    BigNumber.from("10000000000000000000000")
+  );
+  console.log("Secondary token address:", secondaryToken.address);
+
+  fs.writeFileSync(
+    "./scripts/address.json",
+    JSON.stringify({
+      deployerAddress: deployer.address,
+      BlastEquipmentNFT: blastEqtNFT.address,
+      BlastLootBox: blastLootBox.address,
+      PrimaryToken: primaryToken.address,
+      Marketplace: marketplace.address,
+    })
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
