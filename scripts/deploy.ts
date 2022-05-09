@@ -80,6 +80,7 @@ async function main() {
       BlastEquipmentNFT: blastEqtNFT.address,
       BlastLootBox: blastLootBox.address,
       PrimaryToken: primaryToken.address,
+      SecondaryToken: secondaryToken.address,
       Marketplace: marketplace.address,
     })
   );
