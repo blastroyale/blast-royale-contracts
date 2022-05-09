@@ -11,7 +11,6 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 /// @dev Based on OpenZeppelin Contracts.
 contract SecondaryToken is ERC20, ERC20Pausable, Ownable, EIP712 {
 
-  uint256 public nonce;
 
   /// @notice Token constructor
   /// @dev Creates the token and setup the initial supply and the Admin Role.
@@ -23,8 +22,7 @@ contract SecondaryToken is ERC20, ERC20Pausable, Ownable, EIP712 {
     EIP712(name, "1")
     ERC20(name, symbol) {
     transferOwnership(admin);
-    _mint(admin, _supply);
-    nonce = 1;
+    _mint(admin, _supply); 
   }
 
   /// @notice Pauses the contract 
@@ -39,13 +37,8 @@ contract SecondaryToken is ERC20, ERC20Pausable, Ownable, EIP712 {
     _unpause();
   }
 
-  /// @notice Mint new tokens
-  /// @param amount Supply of tokens to be minted
-  /// @param signature Signature of who can mint the tokens
-  function mint(uint256 amount, bytes calldata signature) external {
-    verify(signature, msg.sender, amount);
-    _mint(msg.sender, amount);
-    nonce = nonce + 1;
+  function claim(uint256 amount, address wallet) public onlyOwner {
+     _mint(wallet, amount);
   }
 
   /// @notice Verifications before Token Transfer
@@ -58,22 +51,6 @@ contract SecondaryToken is ERC20, ERC20Pausable, Ownable, EIP712 {
     uint256 amount
   ) internal virtual override(ERC20, ERC20Pausable) {
     super._beforeTokenTransfer(from, to, amount);
-  }
-
-  /// @notice Verify Signature by the owner of the contract
-  /// @param signature Operation Signature
-  /// @param minter Address of the Minter
-  /// @param amount Ammount to mint
-  function verify(
-    bytes memory signature,
-    address minter,
-    uint256 amount
-  ) public view {
-    bytes32 digest = _hashTypedDataV4(
-      keccak256(abi.encode(keccak256("Call(address minter,uint256 amount,uint256 nonce)"), minter, amount, nonce ))
-    );
-    address recoveredSigner = ECDSA.recover(digest, signature);
-    require(owner() == recoveredSigner, "Invalid signature");
   }
 
   function getChainId() external view returns (uint256) {
