@@ -66,6 +66,7 @@ async function main() {
     "CS",
     BigNumber.from("10000000000000000000000")
   );
+  await secondaryToken.deployed();
   console.log("Secondary token address:", secondaryToken.address);
 
   fs.writeFileSync(
@@ -75,6 +76,7 @@ async function main() {
       BlastEquipmentNFT: blastEqtNFT.address,
       BlastLootBox: blastLootBox.address,
       PrimaryToken: primaryToken.address,
+      SecondaryToken: secondaryToken.address,
       Marketplace: marketplace.address,
       Vesting: vesting.address,
     })
