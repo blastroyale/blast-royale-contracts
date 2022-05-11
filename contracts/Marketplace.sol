@@ -83,13 +83,13 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   {
     require(price > 0, "Price must be > 0");
     uint256 listingId = listingCount;
-    listings[listingId] = Listing(
-      _msgSender(),
-      true,
-      tokenId,
-      price,
-      payTokenAddress
-    );
+    listings[listingId] = Listing({
+      owner: _msgSender(),
+      isActive: true,
+      tokenId: tokenId,
+      price: price,
+      tokenAddress: payTokenAddress
+    });
     listingCount = listingCount + 1;
     activeListingCount = activeListingCount + 1;
     erc721Contract.transferFrom(

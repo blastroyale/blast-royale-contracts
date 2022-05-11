@@ -27,7 +27,6 @@ describe("Blast Royale Marketplace", function () {
     blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
-      admin.address,
       ethers.utils.parseEther("100000000")
     );
     await blt.deployed();
