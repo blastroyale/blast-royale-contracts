@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -18,6 +19,9 @@ struct Listing {
 /// @title Blast Royale Token - $BLT
 /// @dev Based on OpenZeppelin Contracts.
 contract Marketplace is ReentrancyGuard, Ownable, Pausable {
+  using SafeERC20 for IERC20;
+
+  uint public constant DECIMAL_FACTOR = 100_00;
 
   uint256 public listingCount;
   uint256 public activeListingCount;
@@ -125,17 +129,17 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
     IERC20 payTokenAddress = listings[listingId].tokenAddress;
-    uint256 buyingFee1 = (fee1 * listings[listingId].price / 100_00);
+    uint256 buyingFee1 = (fee1 * listings[listingId].price / DECIMAL_FACTOR);
     if (buyingFee1 > 0 ) {
-      payTokenAddress.transferFrom(
+      payTokenAddress.safeTransferFrom(
         _msgSender(),
         treasury1,
         buyingFee1
       );
     }
-    uint256 buyingFee2 = (fee2 * listings[listingId].price / 100_00);
+    uint256 buyingFee2 = (fee2 * listings[listingId].price / DECIMAL_FACTOR);
     if (buyingFee2 > 0 ) {
-      payTokenAddress.transferFrom(
+      payTokenAddress.safeTransferFrom(
         _msgSender(),
         treasury2,
         buyingFee2
@@ -146,7 +150,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       _msgSender(),
       listings[listingId].tokenId
     );
-    payTokenAddress.transferFrom(
+    payTokenAddress.safeTransferFrom(
       _msgSender(),
       listings[listingId].owner,
       listings[listingId].price - buyingFee1 - buyingFee2
@@ -170,8 +174,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param _treasury2 New treasury2 address.
   function setFee(uint256 _fee1, address _treasury1, uint256 _fee2, address _treasury2) public onlyOwner
   {
-    require(_fee1 < 10000);
-    require(_fee2 < 10000);
+    require(_fee1 < DECIMAL_FACTOR);
+    require(_fee2 < DECIMAL_FACTOR);
     fee1 = _fee1;
     treasury1 = _treasury1;
     fee2 = _fee2;
