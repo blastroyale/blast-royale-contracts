@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -20,10 +19,8 @@ struct Listing {
 /// @dev Based on OpenZeppelin Contracts.
 contract Marketplace is ReentrancyGuard, Ownable, Pausable {
 
-  using SafeMath for uint256;
-
-  uint256 public listingCount = 0;
-  uint256 public activeListingCount = 0;
+  uint256 public listingCount;
+  uint256 public activeListingCount;
   uint256 private fee1;
   address private treasury1;
   uint256 private fee2;
@@ -72,6 +69,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @dev Setup the two contracts it will interact with : ERC721 and ERC20
   /// @param erc721Address Address of the NFT Contract.
   constructor(IERC721 erc721Address) {
+    require(address(erc721Address) != address(0));
     erc721Contract = erc721Address;
     fee1 = 0;
     fee2 = 0;
@@ -92,8 +90,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       price,
       payTokenAddress
     );
-    listingCount = listingCount.add(1);
-    activeListingCount = activeListingCount.add(1);
+    listingCount = listingCount + 1;
+    activeListingCount = activeListingCount + 1;
     erc721Contract.transferFrom(
       _msgSender(),
       address(this),
@@ -115,7 +113,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       _msgSender(),
       listings[listingId].tokenId
     );
-    activeListingCount = activeListingCount.sub(1);
+    activeListingCount = activeListingCount - 1;
     emit ItemDelisted(listingId, listings[listingId].tokenId, _msgSender() );   
   }
 
@@ -127,7 +125,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     require(listings[listingId].isActive, "Must be active");
     listings[listingId].isActive = false;
     IERC20 payTokenAddress = listings[listingId].tokenAddress;
-    uint256 buyingFee1 = (fee1 * listings[listingId].price / 10000);
+    uint256 buyingFee1 = (fee1 * listings[listingId].price / 100_00);
     if (buyingFee1 > 0 ) {
       payTokenAddress.transferFrom(
         _msgSender(),
@@ -135,7 +133,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
         buyingFee1
       );
     }
-    uint256 buyingFee2 = (fee2 * listings[listingId].price / 10000);
+    uint256 buyingFee2 = (fee2 * listings[listingId].price / 100_00);
     if (buyingFee2 > 0 ) {
       payTokenAddress.transferFrom(
         _msgSender(),
@@ -153,7 +151,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       listings[listingId].owner,
       listings[listingId].price - buyingFee1 - buyingFee2
     );
-    activeListingCount = activeListingCount.sub(1);
+    activeListingCount = activeListingCount - 1;
     emit ItemSold(
       listingId,
       listings[listingId].tokenId,
@@ -172,6 +170,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param _treasury2 New treasury2 address.
   function setFee(uint256 _fee1, address _treasury1, uint256 _fee2, address _treasury2) public onlyOwner
   {
+    require(_fee1 < 10000);
+    require(_fee2 < 10000);
     fee1 = _fee1;
     treasury1 = _treasury1;
     fee2 = _fee2;

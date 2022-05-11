@@ -13,12 +13,11 @@ contract PrimaryToken is ERC20, ERC20Pausable, Ownable {
   /// @dev Creates the token and setup the initial supply and the Admin Role.
   /// @param name Name of the Token
   /// @param symbol Symbol of the token
-  /// @param admin The Admin (owner) of the contract
   /// @param _supply Initial Supply
-  constructor(string memory name, string memory symbol, address admin, uint256 _supply)
+  constructor(string memory name, string memory symbol, uint256 _supply)
     ERC20(name, symbol) {
-    transferOwnership(admin);
-    _mint(admin, _supply);
+    _transferOwnership(_msgSender());
+    _mint(_msgSender(), _supply);
   }
 
   /// @notice Pauses the contract 
