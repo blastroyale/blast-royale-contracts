@@ -48,8 +48,9 @@ contract BlastLootBox is
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_to.length == _uri.length);
-        require(_to.length == _eqtIds.length);
+        require(_to.length == _uri.length, "Invalid Param");
+        require(_to.length == _eqtIds.length, "Invalid Param");
+
         for (uint i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
