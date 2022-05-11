@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 
-/// @title Blast Royale Token - Secondary Tokeb
+/// @title Blast Royale Token - Secondary Token
 /// @dev Based on OpenZeppelin Contracts.
 contract SecondaryToken is ERC20, ERC20Pausable, AccessControl {
 
