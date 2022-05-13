@@ -9,6 +9,11 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
 
+error NoZeroAddress();
+error InvalidParams();
+error NotOwner();
+error NonExistToken();
+
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
 contract BlastLootBox is
@@ -36,7 +41,7 @@ contract BlastLootBox is
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
     constructor(string memory name, string memory symbol, IBlastEquipmentNFT _blastEquipmentNFT) ERC721(name, symbol) {
-        require(address(_blastEquipmentNFT) != address(0));
+        if (address(_blastEquipmentNFT) == address(0)) revert NoZeroAddress();
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
@@ -48,8 +53,7 @@ contract BlastLootBox is
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_to.length == _uri.length, "Invalid Param");
-        require(_to.length == _eqtIds.length, "Invalid Param");
+        if (_to.length != _uri.length || _to.length != _eqtIds.length) revert InvalidParams();
 
         for (uint i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
@@ -61,15 +65,14 @@ contract BlastLootBox is
     }
 
     function open(uint _tokenId) external {
-        require(_exists(_tokenId), "nonexist token");
-        require(_msgSender() == ownerOf(_tokenId));
+        if (!_exists(_tokenId)) revert NonExistToken();
+        if (_msgSender() != ownerOf(_tokenId)) revert NotOwner();
 
         _open(_tokenId, _msgSender());
     }
 
     function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
-        require(_exists(_tokenId), "nonexist token");
-        // require(_msgSender() == ownerOf(_tokenId));
+        if (!_exists(_tokenId)) revert NonExistToken();
 
         _open(_tokenId, _to);
     }

@@ -8,6 +8,12 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
+error NoZeroAddress();
+error NoZeroPrice();
+error NotOwner();
+error NotActived();
+error InvalidParam();
+
 struct Listing {
   address owner;
   bool isActive;
@@ -73,7 +79,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @dev Setup the two contracts it will interact with : ERC721 and ERC20
   /// @param erc721Address Address of the NFT Contract.
   constructor(IERC721 erc721Address) {
-    require(address(erc721Address) != address(0));
+    if (address(erc721Address) == address(0)) revert NoZeroAddress();
     erc721Contract = erc721Address;
     fee1 = 0;
     fee2 = 0;
@@ -85,7 +91,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param price Price in NFTs.
   function addListing(uint256 tokenId, uint256 price, IERC20 payTokenAddress) public nonReentrant whenNotPaused
   {
-    require(price > 0, "Price must be > 0");
+    if (price == 0) revert NoZeroPrice();
     uint256 listingId = listingCount;
     listings[listingId] = Listing({
       owner: _msgSender(),
@@ -109,8 +115,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param listingId NFT Listing Id.
   function removeListing(uint256 listingId) public nonReentrant
   {
-    require(listings[listingId].owner == _msgSender(), "Must be owner");
-    require(listings[listingId].isActive, "Must be active");
+    if (listings[listingId].owner != _msgSender()) revert NotOwner();
+    if (!listings[listingId].isActive) revert NotActived();
     listings[listingId].isActive = false;
     erc721Contract.transferFrom(
       address(this),
@@ -126,7 +132,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param listingId NFT Listing Id.
   function buy(uint256 listingId) public nonReentrant whenNotPaused
   {
-    require(listings[listingId].isActive, "Must be active");
+    if (!listings[listingId].isActive) revert NotActived();
+
     listings[listingId].isActive = false;
     IERC20 payTokenAddress = listings[listingId].tokenAddress;
     uint256 buyingFee1 = (fee1 * listings[listingId].price / DECIMAL_FACTOR);
@@ -156,6 +163,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       listings[listingId].price - buyingFee1 - buyingFee2
     );
     activeListingCount = activeListingCount - 1;
+    
     emit ItemSold(
       listingId,
       listings[listingId].tokenId,
@@ -174,13 +182,15 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param _treasury2 New treasury2 address.
   function setFee(uint256 _fee1, address _treasury1, uint256 _fee2, address _treasury2) public onlyOwner
   {
-    require(_fee1 < DECIMAL_FACTOR);
-    require(_fee2 < DECIMAL_FACTOR);
-    require(_fee1 + _fee2 < DECIMAL_FACTOR);
+    if (_fee1 >= DECIMAL_FACTOR) revert InvalidParam();
+    if (_fee2 >= DECIMAL_FACTOR) revert InvalidParam();
+    if (_fee1 + _fee2 >= DECIMAL_FACTOR) revert InvalidParam();
+
     fee1 = _fee1;
     treasury1 = _treasury1;
     fee2 = _fee2;
     treasury2 = _treasury2;
+
     emit FeesChanged(
       fee1,
       treasury1,
