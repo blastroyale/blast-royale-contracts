@@ -176,6 +176,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   {
     require(_fee1 < DECIMAL_FACTOR);
     require(_fee2 < DECIMAL_FACTOR);
+    require(_fee1 + _fee2 < DECIMAL_FACTOR);
     fee1 = _fee1;
     treasury1 = _treasury1;
     fee2 = _fee2;
