@@ -69,7 +69,7 @@ contract BlastLootBox is
 
     function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
         require(_exists(_tokenId), "nonexist token");
-        require(_msgSender() == ownerOf(_tokenId));
+        // require(_msgSender() == ownerOf(_tokenId));
 
         _open(_tokenId, _to);
     }
@@ -94,10 +94,6 @@ contract BlastLootBox is
         internal
         override(ERC721, ERC721URIStorage)
     {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721Burnable: caller is not owner nor approved"
-        );
         super._burn(tokenId);
     }
 

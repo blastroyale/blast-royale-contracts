@@ -4,13 +4,25 @@ import { ethers } from "hardhat";
 // const uri = "https://blastroyale.com/nft/";
 
 describe("Blast LootBox Contract", function () {
+  let owner: any;
+  let player1: any;
+  let player2: any;
+  let bet: any;
+  let blb: any;
+
+  before("deploying", async () => {
+    const signers = await ethers.getSigners();
+    owner = signers[0];
+    player1 = signers[1];
+    player2 = signers[2];
+  });
+
   it("Open function test", async function () {
-    const [owner] = await ethers.getSigners();
     // BlastEquipment NFT Deploying
     const BlastEquipmentToken = await ethers.getContractFactory(
       "BlastEquipmentNFT"
     );
-    const bet = await BlastEquipmentToken.connect(owner).deploy(
+    bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
       "BLT"
     );
@@ -18,7 +30,7 @@ describe("Blast LootBox Contract", function () {
 
     // BlastLootbox NFT Deploying
     const BlastLootBox = await ethers.getContractFactory("BlastLootBox");
-    const blb = await BlastLootBox.connect(owner).deploy(
+    blb = await BlastLootBox.connect(owner).deploy(
       "Blast LootBox",
       "BLB",
       bet.address
@@ -80,5 +92,62 @@ describe("Blast LootBox Contract", function () {
     expect(await bet.tokenURI(0)).to.equal("ipfs://111_real");
     expect(await bet.tokenURI(1)).to.equal("ipfs://222_real");
     expect(await bet.tokenURI(2)).to.equal("ipfs://333_real");
+  });
+
+  it("Open multiple lootbox items", async () => {
+    // Equipment NFT minting process
+    const mintTx1 = await bet
+      .connect(owner)
+      .safeMint(
+        blb.address,
+        [
+          "ipfs://111",
+          "ipfs://222",
+          "ipfs://333",
+          "ipfs://444",
+          "ipfs://555",
+          "ipfs://666",
+        ],
+        [
+          ethers.utils.keccak256("0x1000"),
+          ethers.utils.keccak256("0x2000"),
+          ethers.utils.keccak256("0x3000"),
+          ethers.utils.keccak256("0x4000"),
+          ethers.utils.keccak256("0x5000"),
+          ethers.utils.keccak256("0x6000"),
+        ],
+        [
+          "ipfs://111_real",
+          "ipfs://222_real",
+          "ipfs://333_real",
+          "ipfs://444_real",
+          "ipfs://555_real",
+          "ipfs://666_real",
+        ]
+      );
+    await mintTx1.wait();
+
+    const tx = await blb.connect(owner).safeMint(
+      [player1.address, player1.address],
+      ["ipfs://111", "ipfs://222"],
+      [
+        {
+          token0: ethers.BigNumber.from("3"),
+          token1: ethers.BigNumber.from("4"),
+          token2: ethers.BigNumber.from("5"),
+        },
+        {
+          token0: ethers.BigNumber.from("6"),
+          token1: ethers.BigNumber.from("7"),
+          token2: ethers.BigNumber.from("8"),
+        },
+      ]
+    );
+    await tx.wait();
+
+    expect(await blb.balanceOf(player1.address)).to.eq(2);
+
+    const openTx = await blb.connect(owner).openTo(1, player1.address);
+    await openTx.wait();
   });
 });
