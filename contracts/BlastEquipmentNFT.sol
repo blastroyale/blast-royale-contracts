@@ -57,21 +57,22 @@ contract BlastEquipmentNFT is
     /// @dev The caller must have the `MINTER_ROLE`.
     function safeMint(
         address _to,
-        string[] memory _uri,
-        bytes32[] memory _hash,
-        string[] memory _realUri
+        string[] calldata _uri,
+        bytes32[] calldata _hash,
+        string[] calldata _realUri
     ) external override onlyRole(MINTER_ROLE) {
+        require(_to != address(0));
         require(_uri.length == _hash.length, "Invalid params");
         require(_uri.length == _realUri.length, "Invalid params");
 
         for (uint256 i = 0; i < _uri.length; i = i + 1) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
-            _safeMint(_to, tokenId);
-            _setTokenURI(tokenId, _uri[i]);
             hashValue[tokenId] = _hash[i];
             realTokenURI[tokenId] = _realUri[i];
             attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
+            _mint(_to, tokenId);
+            _setTokenURI(tokenId, _uri[i]);
             emit AttributeAdded(tokenId, 1, 0, 0, 0);
         }
     }
@@ -106,13 +107,13 @@ contract BlastEquipmentNFT is
     }
 
     /// @notice Pauses all token transfers.
-    /// @dev The caller must have the `MINTER_ROLE`.
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function pause() public onlyRole(DEFAULT_ADMIN_ROLE) {
         _pause();
     }
 
     /// @notice Unpauses all token transfers.
-    /// @dev The caller must have the `MINTER_ROLE`.
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function unpause() public onlyRole(DEFAULT_ADMIN_ROLE) {
         _unpause();
     }
@@ -133,7 +134,7 @@ contract BlastEquipmentNFT is
         override(ERC721, ERC721URIStorage)
     {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Not the owner");
-        _burn(tokenId);
+        super._burn(tokenId);
     }
 
     /// @notice Returns the TokenURI.

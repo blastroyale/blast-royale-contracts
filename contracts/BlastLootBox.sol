@@ -3,18 +3,23 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
+
+error NoZeroAddress();
+error InvalidParams();
+error NotOwner();
+error NonExistToken();
 
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
 contract BlastLootBox is
     ERC721,
     ERC721URIStorage,
-    IERC721Receiver,
+    ERC721Holder,
     AccessControl
 {
     using Counters for Counters.Counter;
@@ -36,6 +41,7 @@ contract BlastLootBox is
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
     constructor(string memory name, string memory symbol, IBlastEquipmentNFT _blastEquipmentNFT) ERC721(name, symbol) {
+        if (address(_blastEquipmentNFT) == address(0)) revert NoZeroAddress();
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
@@ -43,31 +49,30 @@ contract BlastLootBox is
 
     /// @notice Creates a new token for `_to`. Its token ID will be automatically
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function safeMint(address[] memory _to, string[] memory _uri, LootBox[] memory _eqtIds)
-        public
+    function safeMint(address[] calldata _to, string[] calldata _uri, LootBox[] calldata _eqtIds)
+        external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_to.length == _uri.length);
-        require(_to.length == _eqtIds.length);
+        if (_to.length != _uri.length || _to.length != _eqtIds.length) revert InvalidParams();
+
         for (uint i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
-            _safeMint(_to[i], tokenId);
-            _setTokenURI(tokenId, _uri[i]);
             lootboxDetails[tokenId] = _eqtIds[i];
+            _mint(_to[i], tokenId);
+            _setTokenURI(tokenId, _uri[i]);
         }
     }
 
     function open(uint _tokenId) external {
-        require(_exists(_tokenId), "nonexist token");
-        require(_msgSender() == ownerOf(_tokenId));
+        if (!_exists(_tokenId)) revert NonExistToken();
+        if (_msgSender() != ownerOf(_tokenId)) revert NotOwner();
 
         _open(_tokenId, _msgSender());
     }
 
     function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
-        require(_exists(_tokenId), "nonexist token");
-        require(_msgSender() == ownerOf(_tokenId));
+        if (!_exists(_tokenId)) revert NonExistToken();
 
         _open(_tokenId, _to);
     }
@@ -92,10 +97,6 @@ contract BlastLootBox is
         internal
         override(ERC721, ERC721URIStorage)
     {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721Burnable: caller is not owner nor approved"
-        );
         super._burn(tokenId);
     }
 
@@ -120,19 +121,5 @@ contract BlastLootBox is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
-    }
-
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external override returns (bytes4) {
-        operator;
-        from;
-        tokenId;
-        data;
-        emit Received();
-        return 0x150b7a02;
     }
 }
