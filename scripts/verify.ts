@@ -26,7 +26,7 @@ async function main() {
   // Verify Marketplace Contract
   await hre.run("verify:verify", {
     address: addresses.Marketplace,
-    constructorArguments: [addresses.BlastEquipmentNFT, addresses.PrimaryToken],
+    constructorArguments: [addresses.BlastEquipmentNFT],
     contract: "contracts/Marketplace.sol:Marketplace",
   });
 
@@ -42,17 +42,16 @@ async function main() {
     contract: "contracts/PrimaryToken.sol:PrimaryToken",
   });
 
-  // // Verify Secondary Token Contract
-  // await hre.run("verify:verify", {
-  //   address: addresses.secondaryToken,
-  //   constructorArguments: [
-  //     "Craft Spice",
-  //     "CS",
-  //     addresses.deployerAddress,
-  //     BigNumber.from("10000000000000000000000"),
-  //   ],
-  //   contract: "contracts/SecondaryToken.sol:SecondaryToken",
-  // });
+  // Verify Secondary Token Contract
+  await hre.run("verify:verify", {
+    address: addresses.secondaryToken,
+    constructorArguments: [
+      "Craft Spice",
+      "CS",
+      BigNumber.from("10000000000000000000000"),
+    ],
+    contract: "contracts/SecondaryToken.sol:SecondaryToken",
+  });
 }
 
 main().catch((error) => {

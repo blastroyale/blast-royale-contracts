@@ -49,23 +49,25 @@ async function main() {
 
   // NFT MARKETPLACE
   const Marketplace = await ethers.getContractFactory("Marketplace");
-  const marketplace = await Marketplace.deploy(
-    blastEqtNFT.address,
-    primaryToken.address
-  );
+  const marketplace = await Marketplace.deploy(blastEqtNFT.address);
   await marketplace.deployed();
   console.log("Marketplace address address:", marketplace.address);
 
-  // // CS
-  // console.log("Deploying Secondary token");
-  // const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
-  // const secondaryToken = await SecondaryToken.deploy(
-  //   "Craft Spice",
-  //   "CS",
-  //   deployer.address,
-  //   BigNumber.from("10000000000000000000000")
-  // );
-  // console.log("Secondary token address:", secondaryToken.address);
+  // Token vesting
+  const TokenVesting = await ethers.getContractFactory("TokenVesting");
+  const vesting = await TokenVesting.deploy(primaryToken.address);
+  await vesting.deployed();
+  console.log("TokenVesting address address:", vesting.address);
+
+  // CS
+  const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
+  const secondaryToken = await SecondaryToken.deploy(
+    "Craft Spice",
+    "CS",
+    BigNumber.from("10000000000000000000000")
+  );
+  await secondaryToken.deployed();
+  console.log("Secondary token address:", secondaryToken.address);
 
   fs.writeFileSync(
     "./scripts/address.json",
@@ -74,7 +76,9 @@ async function main() {
       BlastEquipmentNFT: blastEqtNFT.address,
       BlastLootBox: blastLootBox.address,
       PrimaryToken: primaryToken.address,
+      SecondaryToken: secondaryToken.address,
       Marketplace: marketplace.address,
+      Vesting: vesting.address,
     })
   );
 }

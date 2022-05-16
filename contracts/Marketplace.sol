@@ -3,26 +3,34 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+
+error NoZeroAddress();
+error NoZeroPrice();
+error NotOwner();
+error NotActived();
+error InvalidParam();
 
 struct Listing {
   address owner;
   bool isActive;
   uint256 tokenId;
   uint256 price;
+  IERC20 tokenAddress;
 }
 
 /// @title Blast Royale Token - $BLT
 /// @dev Based on OpenZeppelin Contracts.
 contract Marketplace is ReentrancyGuard, Ownable, Pausable {
+  using SafeERC20 for IERC20;
 
-  using SafeMath for uint256;
+  uint public constant DECIMAL_FACTOR = 100_00;
 
-  uint256 public listingCount = 0;
-  uint256 public activeListingCount = 0;
+  uint256 public listingCount;
+  uint256 public activeListingCount;
   uint256 private fee1;
   address private treasury1;
   uint256 private fee2;
@@ -30,14 +38,14 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
 
   mapping (uint256 => Listing) public listings;
   IERC721 private erc721Contract;
-  IERC20 private erc20Contract;
 
   /// @notice Event Listed 
   event ItemListed(
 		uint256 listingId,
 		uint256 tokenId,
 		address seller,
-		uint256 price
+		uint256 price,
+    address payTokenAddress
 	);
 
   /// @notice Event Delisted 
@@ -70,10 +78,9 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @notice Token constructor
   /// @dev Setup the two contracts it will interact with : ERC721 and ERC20
   /// @param erc721Address Address of the NFT Contract.
-  /// @param erc20Address Address of the Primary Token Contract.
-  constructor(IERC721 erc721Address, IERC20 erc20Address) {
+  constructor(IERC721 erc721Address) {
+    if (address(erc721Address) == address(0)) revert NoZeroAddress();
     erc721Contract = erc721Address;
-    erc20Contract = erc20Address;
     fee1 = 0;
     fee2 = 0;
   }
@@ -82,24 +89,25 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @dev Creates a new entry for a Listing object and transfers the Token to the contract
   /// @param tokenId NFT TokenId.
   /// @param price Price in NFTs.
-  function addListing(uint256 tokenId, uint256 price) public nonReentrant whenNotPaused
+  function addListing(uint256 tokenId, uint256 price, IERC20 payTokenAddress) public nonReentrant whenNotPaused
   {
-    require(price > 0, "Price must be > 0");
+    if (price == 0) revert NoZeroPrice();
     uint256 listingId = listingCount;
-    listings[listingId] = Listing(
-      _msgSender(),
-      true,
-      tokenId,
-      price
-    );
-    listingCount = listingCount.add(1);
-    activeListingCount = activeListingCount.add(1);
+    listings[listingId] = Listing({
+      owner: _msgSender(),
+      isActive: true,
+      tokenId: tokenId,
+      price: price,
+      tokenAddress: payTokenAddress
+    });
+    listingCount = listingCount + 1;
+    activeListingCount = activeListingCount + 1;
     erc721Contract.transferFrom(
       _msgSender(),
       address(this),
       tokenId);
 
-    emit ItemListed(listingId, tokenId, _msgSender(), price );   
+    emit ItemListed(listingId, tokenId, _msgSender(), price, address(payTokenAddress));   
   }
 
   /// @notice Remove a Listing from the Marketplace
@@ -107,15 +115,15 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param listingId NFT Listing Id.
   function removeListing(uint256 listingId) public nonReentrant
   {
-    require(listings[listingId].owner == _msgSender(), "Must be owner");
-    require(listings[listingId].isActive, "Must be active");
+    if (listings[listingId].owner != _msgSender()) revert NotOwner();
+    if (!listings[listingId].isActive) revert NotActived();
     listings[listingId].isActive = false;
     erc721Contract.transferFrom(
       address(this),
       _msgSender(),
       listings[listingId].tokenId
     );
-    activeListingCount = activeListingCount.sub(1);
+    activeListingCount = activeListingCount - 1;
     emit ItemDelisted(listingId, listings[listingId].tokenId, _msgSender() );   
   }
 
@@ -124,19 +132,21 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param listingId NFT Listing Id.
   function buy(uint256 listingId) public nonReentrant whenNotPaused
   {
-    require(listings[listingId].isActive, "Must be active");
+    if (!listings[listingId].isActive) revert NotActived();
+
     listings[listingId].isActive = false;
-    uint256 buyingFee1 = (fee1 * listings[listingId].price / 10000);
+    IERC20 payTokenAddress = listings[listingId].tokenAddress;
+    uint256 buyingFee1 = (fee1 * listings[listingId].price / DECIMAL_FACTOR);
     if (buyingFee1 > 0 ) {
-      erc20Contract.transferFrom(
+      payTokenAddress.safeTransferFrom(
         _msgSender(),
         treasury1,
         buyingFee1
       );
     }
-    uint256 buyingFee2 = (fee2 * listings[listingId].price / 10000);
+    uint256 buyingFee2 = (fee2 * listings[listingId].price / DECIMAL_FACTOR);
     if (buyingFee2 > 0 ) {
-      erc20Contract.transferFrom(
+      payTokenAddress.safeTransferFrom(
         _msgSender(),
         treasury2,
         buyingFee2
@@ -147,12 +157,13 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       _msgSender(),
       listings[listingId].tokenId
     );
-    erc20Contract.transferFrom(
+    payTokenAddress.safeTransferFrom(
       _msgSender(),
       listings[listingId].owner,
       listings[listingId].price - buyingFee1 - buyingFee2
     );
-    activeListingCount = activeListingCount.sub(1);
+    activeListingCount = activeListingCount - 1;
+    
     emit ItemSold(
       listingId,
       listings[listingId].tokenId,
@@ -171,10 +182,15 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param _treasury2 New treasury2 address.
   function setFee(uint256 _fee1, address _treasury1, uint256 _fee2, address _treasury2) public onlyOwner
   {
+    if (_fee1 >= DECIMAL_FACTOR) revert InvalidParam();
+    if (_fee2 >= DECIMAL_FACTOR) revert InvalidParam();
+    if (_fee1 + _fee2 >= DECIMAL_FACTOR) revert InvalidParam();
+
     fee1 = _fee1;
     treasury1 = _treasury1;
     fee2 = _fee2;
     treasury2 = _treasury2;
+
     emit FeesChanged(
       fee1,
       treasury1,

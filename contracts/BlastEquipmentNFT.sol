@@ -8,12 +8,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
-import "hardhat/console.sol";
-
-error NotOwner();
-error NotExist();
-error NotReadyToMorph();
-error InvalidParams();
 
 /// @title Blast Equipment NFT
 /// @dev BlastNFT ERC721 token
@@ -36,11 +30,6 @@ contract BlastEquipmentNFT is
         uint replicationCount;
     }
 
-    struct Parents {
-        uint f1;
-        uint f2;
-    }
-
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
@@ -49,10 +38,6 @@ contract BlastEquipmentNFT is
     mapping(uint => bytes32) public hashValue;
     mapping(uint => VariableAttributes) public attributes;
     mapping(uint => string) private realTokenURI;
-    // Replication Related Variables
-    mapping(uint => bool) public isReplicating;
-    mapping(uint => uint64) private morphLimitTimestamp;
-    mapping(uint => Parents) public parentsInfo;
 
     modifier hasGameRole() {
         require(hasRole(GAME_ROLE, _msgSender()) || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "AccessControl: Missing role");
@@ -72,21 +57,22 @@ contract BlastEquipmentNFT is
     /// @dev The caller must have the `MINTER_ROLE`.
     function safeMint(
         address _to,
-        string[] memory _uri,
-        bytes32[] memory _hash,
-        string[] memory _realUri
+        string[] calldata _uri,
+        bytes32[] calldata _hash,
+        string[] calldata _realUri
     ) external override onlyRole(MINTER_ROLE) {
-        if(_uri.length != _hash.length) revert InvalidParams();
-        if(_uri.length != _realUri.length) revert InvalidParams();
+        require(_to != address(0));
+        require(_uri.length == _hash.length, "Invalid params");
+        require(_uri.length == _realUri.length, "Invalid params");
 
         for (uint256 i = 0; i < _uri.length; i = i + 1) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
-            _safeMint(_to, tokenId);
-            _setTokenURI(tokenId, _uri[i]);
             hashValue[tokenId] = _hash[i];
             realTokenURI[tokenId] = _realUri[i];
             attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
+            _mint(_to, tokenId);
+            _setTokenURI(tokenId, _uri[i]);
             emit AttributeAdded(tokenId, 1, 0, 0, 0);
         }
     }
@@ -120,48 +106,14 @@ contract BlastEquipmentNFT is
         emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _newReplicationCount);
     }
 
-    function getAttributes(uint _tokenId) external view returns (uint, uint, uint, uint) {
-        VariableAttributes memory _attribute = attributes[_tokenId];
-        return (_attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
-    }
-
-    function isReadyToMorph(uint _tokenId) public view returns (bool) {
-        return isReplicating[_tokenId] && (morphLimitTimestamp[_tokenId] <= uint64(block.timestamp));
-    }
-
-    function replicate(address _to, string memory _uri, string memory _realUri, bytes32 _hash, uint _f1, uint _f2) external override hasGameRole {
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-        _safeMint(_to, tokenId);
-        _setTokenURI(tokenId, _uri);
-        hashValue[tokenId] = _hash;
-        realTokenURI[tokenId] = _realUri;
-        attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
-
-        parentsInfo[tokenId] = Parents(_f1, _f2);
-        isReplicating[tokenId] = true;
-        morphLimitTimestamp[tokenId] = uint64(block.timestamp + 5 days);
-
-        emit AttributeAdded(tokenId, 1, 0, 0, 0);
-    }
-
-    function morphTo(uint _tokenId) external {
-        if (_exists(_tokenId) == false) revert NotExist();
-        if (ownerOf(_tokenId) != _msgSender()) revert NotOwner();
-        if (isReadyToMorph(_tokenId) != true) revert NotReadyToMorph();
-
-        isReplicating[_tokenId] = false;
-        _setTokenURI(_tokenId, realTokenURI[_tokenId]);
-    }
-
     /// @notice Pauses all token transfers.
-    /// @dev The caller must have the `MINTER_ROLE`.
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function pause() public onlyRole(DEFAULT_ADMIN_ROLE) {
         _pause();
     }
 
     /// @notice Unpauses all token transfers.
-    /// @dev The caller must have the `MINTER_ROLE`.
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function unpause() public onlyRole(DEFAULT_ADMIN_ROLE) {
         _unpause();
     }
@@ -182,7 +134,7 @@ contract BlastEquipmentNFT is
         override(ERC721, ERC721URIStorage)
     {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Not the owner");
-        _burn(tokenId);
+        super._burn(tokenId);
     }
 
     /// @notice Returns the TokenURI.
