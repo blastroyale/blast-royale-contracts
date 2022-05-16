@@ -12,7 +12,7 @@ contract Replicator is AccessControl {
     uint8 public constant INIT_REPLICATION_COUNT = 7;
     uint public constant REPLICATION_TIMER = 5 days;
 
-    event Replicated(uint indexed f1, uint indexed f2, address owner);
+    event Replicated(uint indexed f1, uint indexed f2, address owner, uint timestamp);
 
     IBlastEquipmentNFT public blastEquipmentNFT;
     IERC20 public blastToken;
@@ -49,8 +49,8 @@ contract Replicator is AccessControl {
     }
 
     function replicate(uint _f1, uint _f2) external {
-        if(blastEquipmentNFT.ownerOf(_f1) != msg.sender) revert NotOwner();
-        if(blastEquipmentNFT.ownerOf(_f2) != msg.sender) revert NotOwner();
+        if (blastEquipmentNFT.ownerOf(_f1) != msg.sender) revert NotOwner();
+        if (blastEquipmentNFT.ownerOf(_f2) != msg.sender) revert NotOwner();
 
         uint currentReplicationCountF1;
         uint currentReplicationCountF2;
@@ -61,6 +61,6 @@ contract Replicator is AccessControl {
         uint totalBltAmount = bltPrices[currentReplicationCountF1] + bltPrices[currentReplicationCountF2];
         blastToken.transferFrom(msg.sender, address(this), totalBltAmount);
 
-        emit Replicated(_f1, _f2, msg.sender);
+        emit Replicated(_f1, _f2, msg.sender, block.timestamp);
     }
 }

@@ -106,6 +106,11 @@ contract BlastEquipmentNFT is
         emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _newReplicationCount);
     }
 
+    function getAttributes(uint _tokenId) external override view returns (uint, uint, uint, uint) {
+        VariableAttributes memory _attribute = attributes[_tokenId];
+        return (_attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
+    }
+
     /// @notice Pauses all token transfers.
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function pause() public onlyRole(DEFAULT_ADMIN_ROLE) {

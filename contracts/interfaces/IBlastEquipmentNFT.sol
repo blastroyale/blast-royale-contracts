@@ -48,7 +48,7 @@ interface IBlastEquipmentNFT is IERC721 {
     function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
         external;
 
-    function replicate(address _to, string memory _uri, string memory _realUri, bytes32 _hash, uint _f1, uint _f2) external;
+    // function replicate(address _to, string memory _uri, string memory _realUri, bytes32 _hash, uint _f1, uint _f2) external;
 
     function getAttributes(uint _tokenId) external view returns (uint, uint, uint, uint);
 }

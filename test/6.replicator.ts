@@ -19,7 +19,6 @@ describe("Replicator Contract", function () {
     const blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
-      addr1.address,
       ethers.utils.parseEther("100000000")
     );
     await blt.deployed();
@@ -29,7 +28,6 @@ describe("Replicator Contract", function () {
     const cs = await CraftToken.deploy(
       "Craftship",
       "$BLT",
-      addr1.address,
       ethers.utils.parseEther("100000000")
     );
     await cs.deployed();
@@ -80,7 +78,7 @@ describe("Replicator Contract", function () {
       "0x8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d";
     const replicateTxFrom = await bet
       .connect(addr1)
-      .replicate(addr1.address, eggMetadataUrl, realMetadataUrl, hash, 0, 1);
+      .replicate(0, 1);
     await replicateTxFrom.wait();
 
     expect(await bet.tokenURI(2)).to.eq(eggMetadataUrl);
