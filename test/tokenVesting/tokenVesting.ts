@@ -19,7 +19,6 @@ describe("TokenVesting", function () {
     blt = await BlastToken.connect(owner).deploy(
       "Blast Royale",
       "$BLT",
-      owner.address,
       ethers.utils.parseEther("512000000")
     );
     await blt.deployed();
