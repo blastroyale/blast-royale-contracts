@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IBlastLootbox.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
 
 error NoZeroAddress();
@@ -17,6 +18,7 @@ error NonExistToken();
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
 contract BlastLootBox is
+    IBlastLootbox,
     ERC721,
     ERC721URIStorage,
     ERC721Holder,
@@ -34,9 +36,8 @@ contract BlastLootBox is
 
     Counters.Counter private _tokenIdCounter;
     mapping(uint => LootBox) private lootboxDetails;
+    mapping(uint => uint8) private tokenTypes;
     IBlastEquipmentNFT public blastEquipmentNFT;
-
-    event Received();
 
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
@@ -49,16 +50,19 @@ contract BlastLootBox is
 
     /// @notice Creates a new token for `_to`. Its token ID will be automatically
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function safeMint(address[] calldata _to, string[] calldata _uri, LootBox[] calldata _eqtIds)
+    /// _tokenType should be 1 or 2 (In case of 1, it's normal box. In case of 2, it's gw box)
+    function safeMint(address[] calldata _to, string[] calldata _uri, LootBox[] calldata _eqtIds, uint8 _tokenType)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (_to.length != _uri.length || _to.length != _eqtIds.length) revert InvalidParams();
+        if (!(_tokenType == 1 || _tokenType == 2)) revert InvalidParams();
 
         for (uint i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
             lootboxDetails[tokenId] = _eqtIds[i];
+            tokenTypes[tokenId] = _tokenType;
             _mint(_to[i], tokenId);
             _setTokenURI(tokenId, _uri[i]);
         }
@@ -90,6 +94,10 @@ contract BlastLootBox is
         _burn(_tokenId);
     }
 
+    function getTokenType(uint _tokenId) external view override returns (uint8) {
+        return tokenTypes[_tokenId];
+    }
+
     /// @notice Unpauses all token transfers.
     /// @dev The caller must be the Owner (or have approval) of the Token.
     /// @param tokenId Token ID.
@@ -117,7 +125,7 @@ contract BlastLootBox is
         public
         view
         virtual
-        override(AccessControl, ERC721)
+        override(AccessControl, IERC165, ERC721)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

@@ -26,6 +26,8 @@ error ZeroAddress();
 contract TokenVesting is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
+    event CreatedVestingSchedule(address user, bytes32 scheduleId);
+
     /// <=============== STATE VARIABLES ===============>
 
     // uint public constant DECIMAL_FACTOR = 10 ** 6;
@@ -111,6 +113,8 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         vestingSchedulesIds.push(vestingScheduleId);
         uint256 currentVestingCount = holdersVestingCount[_beneficiary];
         holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
+
+        emit CreatedVestingSchedule(_beneficiary, vestingScheduleId);
     }
 
     /**
