@@ -40,7 +40,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
 
   mapping (uint256 => Listing) public listings;
   // user => tokenType => count
-  mapping (address => mapping (uint8 => uint)) private ownedCount;
+  mapping (address => mapping (uint8 => uint)) private boughtCount;
   IBlastLootbox private lootboxContract;
 
   /// @notice Event Listed 
@@ -122,10 +122,10 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
   {
     uint8 tokenType = lootboxContract.getTokenType(_tokenId);
     if (tokenType == 0) revert NotAbleToBuy();
-    if (ownedCount[_msgSender()][tokenType] >= MAX_PURCHASE_COUNT) revert ReachedMaxLimit();
+    if (boughtCount[_msgSender()][tokenType] >= MAX_PURCHASE_COUNT) revert ReachedMaxLimit();
     if (!listings[_tokenId].isActive) revert NotActived();
 
-    ownedCount[_msgSender()][tokenType] += 1;
+    boughtCount[_msgSender()][tokenType] += 1;
 
     listings[_tokenId].isActive = false;
     IERC20 payTokenAddress = listings[_tokenId].tokenAddress;
@@ -154,7 +154,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
   }
 
   function getOwnedCount(address _address, uint8 _tokenType) public view returns (uint) {
-    return ownedCount[_address][_tokenType];
+    return boughtCount[_address][_tokenType];
   }
 
   // @notice Pauses/Unpauses the contract

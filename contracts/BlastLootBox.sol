@@ -50,19 +50,19 @@ contract BlastLootBox is
 
     /// @notice Creates a new token for `_to`. Its token ID will be automatically
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    /// _tokeType should be 1 or 2 (In case of 1, it's normal box. In case of 2, it's gw box)
-    function safeMint(address[] calldata _to, string[] calldata _uri, LootBox[] calldata _eqtIds, uint8 _tokeType)
+    /// _tokenType should be 1 or 2 (In case of 1, it's normal box. In case of 2, it's gw box)
+    function safeMint(address[] calldata _to, string[] calldata _uri, LootBox[] calldata _eqtIds, uint8 _tokenType)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (_to.length != _uri.length || _to.length != _eqtIds.length) revert InvalidParams();
-        if (!(_tokeType == 1 || _tokeType == 2)) revert InvalidParams();
+        if (!(_tokenType == 1 || _tokenType == 2)) revert InvalidParams();
 
         for (uint i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
             lootboxDetails[tokenId] = _eqtIds[i];
-            tokenTypes[tokenId] = _tokeType;
+            tokenTypes[tokenId] = _tokenType;
             _mint(_to[i], tokenId);
             _setTokenURI(tokenId, _uri[i]);
         }
