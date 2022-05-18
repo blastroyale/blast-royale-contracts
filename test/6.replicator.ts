@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 
 describe("Replicator Contract", function () {
-  it("Open function test", async function () {
+  it("Replicate function test", async function () {
     const [owner, addr1] = await ethers.getSigners();
     // BlastEquipment NFT Deploying
     const BlastEquipmentToken = await ethers.getContractFactory(
@@ -22,6 +22,9 @@ describe("Replicator Contract", function () {
       ethers.utils.parseEther("100000000")
     );
     await blt.deployed();
+    await (
+      await blt.transfer(addr1.address, ethers.utils.parseEther("200"))
+    ).wait();
 
     // CS Token deploying
     const CraftToken = await ethers.getContractFactory("SecondaryToken");
@@ -31,6 +34,9 @@ describe("Replicator Contract", function () {
       ethers.utils.parseEther("100000000")
     );
     await cs.deployed();
+    await (
+      await cs.transfer(addr1.address, ethers.utils.parseEther("45000"))
+    ).wait();
 
     // Replicator Contract Deploying
     const replicator = await ethers.getContractFactory("Replicator");
@@ -38,6 +44,14 @@ describe("Replicator Contract", function () {
       .connect(owner)
       .deploy(bet.address, blt.address, cs.address);
     await replicatorContract.deployed();
+
+    // Granting Replicator role to replicator contract address
+    const REPLICATOR_ROLE = await bet.REPLICATOR_ROLE();
+    await bet.grantRole(REPLICATOR_ROLE, replicatorContract.address);
+
+    // Granting Replicator role to replicator contract address
+    const REVEAL_ROLE = await bet.REVEAL_ROLE();
+    await bet.grantRole(REVEAL_ROLE, replicatorContract.address);
 
     // NFT equipment items minting
     const tx = await bet
@@ -60,35 +74,35 @@ describe("Replicator Contract", function () {
       .approve(replicatorContract.address, ethers.utils.parseEther("200"));
     await approveTx2.wait();
 
-    // Replicate in Replicator Contract
-    const replicateTx = await replicatorContract.connect(addr1).replicate(0, 1);
-    await replicateTx.wait();
-
-    // There should be backend logic here after emitting replicated event
-    // Will simulate how it works
-    // Grant GameRole to addr1
-    const GAME_ROLE = await bet.GAME_ROLE();
-    await bet.connect(owner).grantRole(GAME_ROLE, addr1.address);
-
     const eggMetadataUrl =
       "https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/replicator/egg_metadata_preview.json";
     const realMetadataUrl =
       "https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json";
     const hash =
       "0x8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d";
-    const replicateTxFrom = await bet
-      .connect(addr1)
-      .replicate(0, 1);
-    await replicateTxFrom.wait();
+    // Replicate in Replicator Contract
+    await (
+      await replicatorContract
+        .connect(addr1)
+        .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1)
+    ).wait();
+
+    // There should be backend logic here after emitting replicated event
+    // Will simulate how it works
+
+    // const replicateTxFrom = await bet
+    //   .connect(addr1)
+    //   .replicate(0, 1);
+    // await replicateTxFrom.wait();
 
     expect(await bet.tokenURI(2)).to.eq(eggMetadataUrl);
 
     // Time increase to test morphTo function
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 5]);
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 6]);
     await network.provider.send("evm_mine");
 
     // Executing morphTo function
-    const morphTx = await bet.connect(addr1).morphTo(2);
+    const morphTx = await replicatorContract.connect(addr1).morph(2);
     await morphTx.wait();
 
     expect(await bet.tokenURI(2)).to.eq(realMetadataUrl);
