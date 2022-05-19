@@ -34,9 +34,9 @@ describe("TokenVesting", function () {
       .transfer(vesting.address, ethers.utils.parseEther("76800000"));
     await transferTx.wait();
 
-    // Fri, 15 May 2022 00:00:00 GMT. It's TGE
+    // Friday, May 20, 2022 4:24:52 PM. It's TGE
     // https://www.epochconverter.com/
-    const startTimestamp = 1652572800;
+    const startTimestamp = 1652808504;
     const cliffDurationInSeconds = 3600 * 24 * 30 * 6; // 6 months
     const durationInSeconds = 3600 * 24 * 30 * 24; // 24 months
     const createTx = await vesting.createVestingSchedule(
@@ -68,7 +68,7 @@ describe("TokenVesting", function () {
     await releaseTx.wait();
 
     // 6 month forward
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 30 * 6]);
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 30 * 5]);
     await network.provider.send("evm_mine");
 
     const amount1 = await vesting.computeReleasableAmount(scheduleId);
@@ -83,7 +83,7 @@ describe("TokenVesting", function () {
     );
 
     // 24 month forward
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 30 * 24]);
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 30 * 25]);
     await network.provider.send("evm_mine");
 
     const amount2 = await vesting.computeReleasableAmount(scheduleId);
