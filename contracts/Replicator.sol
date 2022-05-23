@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
-import "hardhat/console.sol";
 
 error NotOwner();
 error NotReadyMorph();
@@ -61,7 +60,6 @@ contract Replicator is AccessControl {
         if (blastEquipmentNFT.ownerOf(_f1) != msg.sender) revert NotOwner();
         if (blastEquipmentNFT.ownerOf(_f2) != msg.sender) revert NotOwner();
 
-        // (uint parent0, uint parent1) = _f1 < _f2 ? (_f1, _f2) : (_f2, _f1);
         uint currentReplicationCountF1;
         uint currentReplicationCountF2;
         (, , , currentReplicationCountF1) = blastEquipmentNFT.getAttributes(_f1);
@@ -82,8 +80,6 @@ contract Replicator is AccessControl {
     }
 
     function morph(uint _tokenId) external {
-        console.log(morphTimestamp[_tokenId]);
-        console.log(block.timestamp);
         if (blastEquipmentNFT.ownerOf(_tokenId) != msg.sender) revert NotOwner();
         if (morphTimestamp[_tokenId] > block.timestamp) revert NotReadyMorph();
 
