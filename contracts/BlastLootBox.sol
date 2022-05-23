@@ -83,6 +83,7 @@ contract BlastLootBox is
 
     function _open(uint _tokenId, address _to) internal {
         LootBox memory _eqtIds = lootboxDetails[_tokenId];
+
         blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token0);
         blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token1);
         blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token2);
@@ -91,6 +92,7 @@ contract BlastLootBox is
         blastEquipmentNFT.revealRealTokenURI(_eqtIds.token1);
         blastEquipmentNFT.revealRealTokenURI(_eqtIds.token2);
 
+        emit Open(_tokenId, _eqtIds.token0, _eqtIds.token1, _eqtIds.token2);
         _burn(_tokenId);
     }
 
