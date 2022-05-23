@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
-import fs from "fs";
-import { BigNumber } from "ethers";
+import { writeAddress } from "./helper";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -37,15 +36,12 @@ async function main() {
   await grantTx.wait();
   console.log("Granted REVEAL_ROLE to Lootbox contract");
 
-  // BLT
-  const PrimaryToken = await ethers.getContractFactory("PrimaryToken");
-  const primaryToken = await PrimaryToken.deploy(
-    "Blast Token",
-    "BLT",
-    deployer.address,
-    BigNumber.from("10000000000000000000000")
+  // MarketplaceLootbox Deploying
+  const MarketplaceLootbox = await ethers.getContractFactory(
+    "MarketplaceLootbox"
   );
-  console.log("Primary token address:", primaryToken.address);
+  const lootboxMarket = await MarketplaceLootbox.deploy(blastLootBox.address);
+  console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
 
   // NFT MARKETPLACE
   const Marketplace = await ethers.getContractFactory("Marketplace");
@@ -53,34 +49,13 @@ async function main() {
   await marketplace.deployed();
   console.log("Marketplace address address:", marketplace.address);
 
-  // Token vesting
-  const TokenVesting = await ethers.getContractFactory("TokenVesting");
-  const vesting = await TokenVesting.deploy(primaryToken.address);
-  await vesting.deployed();
-  console.log("TokenVesting address address:", vesting.address);
-
-  // CS
-  const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
-  const secondaryToken = await SecondaryToken.deploy(
-    "Craft Spice",
-    "CS",
-    BigNumber.from("10000000000000000000000")
-  );
-  await secondaryToken.deployed();
-  console.log("Secondary token address:", secondaryToken.address);
-
-  fs.writeFileSync(
-    "./scripts/address.json",
-    JSON.stringify({
-      deployerAddress: deployer.address,
-      BlastEquipmentNFT: blastEqtNFT.address,
-      BlastLootBox: blastLootBox.address,
-      PrimaryToken: primaryToken.address,
-      SecondaryToken: secondaryToken.address,
-      Marketplace: marketplace.address,
-      Vesting: vesting.address,
-    })
-  );
+  writeAddress({
+    deployerAddress: deployer.address,
+    BlastEquipmentNFT: blastEqtNFT.address,
+    BlastLootBox: blastLootBox.address,
+    Marketplace: marketplace.address,
+    LootboxMarketplace: lootboxMarket.address,
+  });
 }
 
 // We recommend this pattern to be able to use async/await everywhere
