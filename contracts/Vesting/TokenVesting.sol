@@ -66,9 +66,10 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     event Released(
         address beneficiary,
         bytes32 vestingScheduleId,
-        uint256 amount
+        uint256 amount,
+        uint256 releaseTimestamp
     );
-    event Revoked(bytes32 vestingScheduleId);
+    event Revoked(bytes32 vestingScheduleId, uint256 revokeTimestamp);
 
     constructor(IERC20 _blastToken) {
         blastToken = _blastToken;
@@ -87,7 +88,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bool _revocable
     ) public onlyOwner {
         if (_beneficiary == address(0)) revert ZeroAddress();
-        if (getWithdrawableAmount() < _amountTotal) revert InsufficientTokens();
+        if (getWithdrawableAmount() < (_amountTotal + _immediateReleaseAmount)) revert InsufficientTokens();
         if (_duration == 0) revert DurationInvalid();
         if (_amountTotal == 0) revert AmountInvalid();
         if (_start <= block.timestamp) revert StartTimeInvalid();
@@ -136,7 +137,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - unreleased;
         vestingSchedule.revoked = true;
 
-        emit Revoked(vestingScheduleId);
+        emit Revoked(vestingScheduleId, block.timestamp);
     }
 
     /// @notice Release vested amount of tokens.
@@ -156,8 +157,8 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         if (releasableAmount < amount) revert NotEnoughTokens();
         vestingSchedule.released = vestingSchedule.released + amount;
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - amount;
-        blastToken.transfer(vestingSchedule.beneficiary, amount);
-        emit Released(msg.sender, vestingScheduleId, amount);
+        blastToken.safeTransfer(vestingSchedule.beneficiary, amount);
+        emit Released(msg.sender, vestingScheduleId, amount, block.timestamp);
     }
 
     /// <=============== VIEWS ===============>
@@ -224,7 +225,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     {
         uint256 currentTime = block.timestamp;
         if (currentTime < vestingSchedule.cliffStart) {
-            return vestingSchedule.immediateVestedAmount;
+            return vestingSchedule.immediateVestedAmount - vestingSchedule.released;
         } else if (
             currentTime >= vestingSchedule.cliffStart + vestingSchedule.duration
         ) {
