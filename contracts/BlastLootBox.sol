@@ -77,6 +77,7 @@ contract BlastLootBox is
 
     function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
         if (!_exists(_tokenId)) revert NonExistToken();
+        if (_to != ownerOf(_tokenId)) revert NotOwner();
 
         _open(_tokenId, _to);
     }
