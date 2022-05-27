@@ -48,7 +48,6 @@ async function main() {
   const marketplace = await Marketplace.deploy(blastEqtNFT.address);
   await marketplace.deployed();
 
-  await (await marketplace.setWhitelistTokens([blastEqtNFT.address])).wait();
   console.log("Marketplace address address:", marketplace.address);
 
   writeAddress({

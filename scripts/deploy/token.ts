@@ -13,7 +13,7 @@ async function main() {
   const primaryToken = await PrimaryToken.deploy(
     "Blast Token",
     "BLT",
-    BigNumber.from("10000000000000000000000")
+    ethers.utils.parseEther("512000000") // fixed supply 512M
   );
   console.log("Primary token address:", primaryToken.address);
 

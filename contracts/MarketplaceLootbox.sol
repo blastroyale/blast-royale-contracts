@@ -87,7 +87,9 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
   {
     if (price == 0) revert NoZeroPrice();
     if (listings[tokenId].owner != address(0)) revert NotAbleToAdd();
-    if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+    if (address(payTokenAddress) != address(0)) {
+      if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+    }
 
     listings[tokenId] = Listing({
       owner: _msgSender(),

@@ -98,7 +98,9 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   function addListing(uint256 tokenId, uint256 price, IERC20 payTokenAddress) public nonReentrant whenNotPaused
   {
     if (price == 0) revert NoZeroPrice();
-    if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+    if (address(payTokenAddress) != address(0)) {
+      if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+    }
 
     uint256 listingId = listingCount;
     listings[listingId] = Listing({
