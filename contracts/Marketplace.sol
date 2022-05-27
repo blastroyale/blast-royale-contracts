@@ -13,6 +13,7 @@ error NoZeroPrice();
 error NotOwner();
 error NotActived();
 error InvalidParam();
+error NotWhitelisted();
 
 struct Listing {
   address owner;
@@ -36,6 +37,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   uint256 private fee2;
   address private treasury2;
 
+  mapping (address => bool) public whitelistedTokens;
   mapping (uint256 => Listing) public listings;
   IERC721 private erc721Contract;
 
@@ -92,6 +94,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   function addListing(uint256 tokenId, uint256 price, IERC20 payTokenAddress) public nonReentrant whenNotPaused
   {
     if (price == 0) revert NoZeroPrice();
+    if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+
     uint256 listingId = listingCount;
     listings[listingId] = Listing({
       owner: _msgSender(),
@@ -198,6 +202,18 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       treasury2,
       _msgSender()
     );
+  }
+
+  function setWhitelistTokens(address[] memory _whitelist) public onlyOwner {
+    for (uint i = 0; i < _whitelist.length; i++) {
+      whitelistedTokens[_whitelist[i]] = true;
+    }
+  }
+
+  function removeWhitelistTokens(address[] memory _whitelist) public onlyOwner {
+    for (uint i = 0; i < _whitelist.length; i++) {
+      whitelistedTokens[_whitelist[i]] = false;
+    }
   }
 
   // @notice Pauses/Unpauses the contract

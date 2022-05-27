@@ -18,6 +18,7 @@ error ReachedMaxLimit();
 error NotEnough();
 error NotAbleToAdd();
 error NotAbleToBuy();
+error NotWhitelisted();
 
 struct Listing {
   address owner;
@@ -38,6 +39,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
   uint256 public listingCount;
   uint256 public activeListingCount;
 
+  mapping (address => bool) public whitelistedTokens;
   mapping (uint256 => Listing) public listings;
   // user => tokenType => count
   mapping (address => mapping (uint8 => uint)) private boughtCount;
@@ -81,6 +83,8 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
   {
     if (price == 0) revert NoZeroPrice();
     if (listings[tokenId].owner != address(0)) revert NotAbleToAdd();
+    if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+
     listings[tokenId] = Listing({
       owner: _msgSender(),
       isActive: true,
@@ -155,6 +159,18 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
 
   function getOwnedCount(address _address, uint8 _tokenType) public view returns (uint) {
     return boughtCount[_address][_tokenType];
+  }
+
+  function setWhitelistTokens(address[] memory _whitelist) public onlyOwner {
+    for (uint i = 0; i < _whitelist.length; i++) {
+      whitelistedTokens[_whitelist[i]] = true;
+    }
+  }
+
+  function removeWhitelistTokens(address[] memory _whitelist) public onlyOwner {
+    for (uint i = 0; i < _whitelist.length; i++) {
+      whitelistedTokens[_whitelist[i]] = false;
+    }
   }
 
   // @notice Pauses/Unpauses the contract
