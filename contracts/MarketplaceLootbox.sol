@@ -67,6 +67,10 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     uint256 price
 	);
  
+  event WhitelistAdded(address[] whitelists);
+
+  event WhitelistRemoved(address[] whitelists);
+ 
   /// @notice Token constructor
   /// @dev Setup the blastlootbox contract
   /// @param lootboxAddress Address of the NFT Contract.
@@ -163,14 +167,20 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
 
   function setWhitelistTokens(address[] memory _whitelist) public onlyOwner {
     for (uint i = 0; i < _whitelist.length; i++) {
+      if (_whitelist[i] == address(0)) revert NoZeroAddress();
       whitelistedTokens[_whitelist[i]] = true;
     }
+
+    emit WhitelistAdded(_whitelist);
   }
 
   function removeWhitelistTokens(address[] memory _whitelist) public onlyOwner {
     for (uint i = 0; i < _whitelist.length; i++) {
+      if (_whitelist[i] == address(0)) revert NoZeroAddress();
       whitelistedTokens[_whitelist[i]] = false;
     }
+
+    emit WhitelistRemoved(_whitelist);
   }
 
   // @notice Pauses/Unpauses the contract
