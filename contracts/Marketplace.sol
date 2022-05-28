@@ -14,6 +14,7 @@ error NotOwner();
 error NotActived();
 error InvalidParam();
 error NotWhitelisted();
+error NotEnough();
 
 struct Listing {
   address owner;
@@ -140,37 +141,53 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @notice Buys a listed NFT
   /// @dev Trabsfers both the ERC20 token (price) and the NFT.
   /// @param listingId NFT Listing Id.
-  function buy(uint256 listingId) public nonReentrant whenNotPaused
+  function buy(uint256 listingId) public payable nonReentrant whenNotPaused
   {
     if (!listings[listingId].isActive) revert NotActived();
 
     listings[listingId].isActive = false;
     IERC20 payTokenAddress = listings[listingId].tokenAddress;
-    uint256 buyingFee1 = (fee1 * listings[listingId].price / DECIMAL_FACTOR);
-    if (buyingFee1 > 0 ) {
+    uint listedPrice = listings[listingId].price;
+    uint256 buyingFee1 = (fee1 * listedPrice / DECIMAL_FACTOR);
+    uint256 buyingFee2 = (fee2 * listedPrice / DECIMAL_FACTOR);
+
+    if (address(payTokenAddress) == address(0)) {
+      if (msg.value < listedPrice) revert NotEnough();
+      if (buyingFee1 > 0) {
+        (bool sent1, ) = payable(treasury1).call{value: buyingFee1}("");
+        require(sent1, "Failed to send Ether to treasury1");
+      }
+      if (buyingFee2 > 0) {
+        (bool sent2, ) = payable(treasury2).call{value: buyingFee2}("");
+        require(sent2, "Failed to send Ether to treasury2");
+      }
+      (bool sent, ) = payable(listings[listingId].owner).call{value: listedPrice - buyingFee1 - buyingFee2}("");
+      require(sent, "Failed to send Ether");
+    } else {
+      if (buyingFee1 > 0) {
+        payTokenAddress.safeTransferFrom(
+          _msgSender(),
+          treasury1,
+          buyingFee1
+        );
+      }
+      if (buyingFee2 > 0) {
+        payTokenAddress.safeTransferFrom(
+          _msgSender(),
+          treasury2,
+          buyingFee2
+        );
+      }
       payTokenAddress.safeTransferFrom(
         _msgSender(),
-        treasury1,
-        buyingFee1
-      );
-    }
-    uint256 buyingFee2 = (fee2 * listings[listingId].price / DECIMAL_FACTOR);
-    if (buyingFee2 > 0 ) {
-      payTokenAddress.safeTransferFrom(
-        _msgSender(),
-        treasury2,
-        buyingFee2
+        listings[listingId].owner,
+        listedPrice - buyingFee1 - buyingFee2
       );
     }
     erc721Contract.transferFrom(
       address(this),
       _msgSender(),
       listings[listingId].tokenId
-    );
-    payTokenAddress.safeTransferFrom(
-      _msgSender(),
-      listings[listingId].owner,
-      listings[listingId].price - buyingFee1 - buyingFee2
     );
     activeListingCount = activeListingCount - 1;
     
@@ -179,7 +196,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       listings[listingId].tokenId,
       listings[listingId].owner,
       _msgSender(),
-      listings[listingId].price,
+      listedPrice,
       buyingFee1,
       buyingFee2
     );
@@ -195,6 +212,8 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     if (_fee1 >= DECIMAL_FACTOR) revert InvalidParam();
     if (_fee2 >= DECIMAL_FACTOR) revert InvalidParam();
     if (_fee1 + _fee2 >= DECIMAL_FACTOR) revert InvalidParam();
+    if (_treasury1 == address(0)) revert NoZeroAddress();
+    if (_treasury2 == address(0)) revert NoZeroAddress();
 
     fee1 = _fee1;
     treasury1 = _treasury1;
