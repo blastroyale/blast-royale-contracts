@@ -33,13 +33,6 @@ contract PrimaryToken is ERC20, ERC20Pausable, Ownable {
         _unpause();
     }
 
-    /// @notice Mint new tokens
-    /// @param account new tokens owner
-    /// @param amount Supply of tokens to be minted
-    function mint(address account, uint256 amount) external onlyOwner {
-        _mint(account, amount);
-    }
-
     /// @notice Verifications before Token Transfer
     /// @param from Address from
     /// @param from to Address from

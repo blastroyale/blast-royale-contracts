@@ -47,6 +47,7 @@ async function main() {
   const Marketplace = await ethers.getContractFactory("Marketplace");
   const marketplace = await Marketplace.deploy(blastEqtNFT.address);
   await marketplace.deployed();
+
   console.log("Marketplace address address:", marketplace.address);
 
   writeAddress({
