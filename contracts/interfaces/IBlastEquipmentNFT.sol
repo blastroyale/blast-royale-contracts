@@ -34,6 +34,8 @@ interface IBlastEquipmentNFT is IERC721 {
         string[] memory _realUri
     ) external;
 
+    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri) external returns (uint);
+
     function revealRealTokenURI(uint _tokenId) external;
 
     function setLevel(uint256 _tokenId, uint256 _newLevel) external;
@@ -47,4 +49,8 @@ interface IBlastEquipmentNFT is IERC721 {
 
     function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
         external;
+
+    // function replicate(address _to, string memory _uri, string memory _realUri, bytes32 _hash, uint _f1, uint _f2) external;
+
+    function getAttributes(uint _tokenId) external view returns (uint, uint, uint, uint);
 }

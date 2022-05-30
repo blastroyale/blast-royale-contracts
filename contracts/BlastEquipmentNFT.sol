@@ -33,6 +33,7 @@ contract BlastEquipmentNFT is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
+    bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
 
     Counters.Counter public _tokenIdCounter;
     mapping(uint => bytes32) public hashValue;
@@ -49,6 +50,7 @@ contract BlastEquipmentNFT is
     /// @param symbol Symbol of the contract
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(REPLICATOR_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
     }
@@ -75,6 +77,22 @@ contract BlastEquipmentNFT is
             _setTokenURI(tokenId, _uri[i]);
             emit AttributeAdded(tokenId, 1, 0, 0, 0);
         }
+    }
+
+    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri) external override onlyRole(REPLICATOR_ROLE) returns (uint) {
+        require(_to != address(0));
+
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        hashValue[tokenId] = _hash;
+        realTokenURI[tokenId] = _realUri;
+        attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
+        _mint(_to, tokenId);
+        _setTokenURI(tokenId, _uri);
+
+        emit AttributeAdded(tokenId, 1, 0, 0, 0);
+
+        return tokenId;
     }
 
     function revealRealTokenURI(uint _tokenId) external override onlyRole(REVEAL_ROLE) {
@@ -104,6 +122,11 @@ contract BlastEquipmentNFT is
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.replicationCount = _newReplicationCount;
         emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _newReplicationCount);
+    }
+
+    function getAttributes(uint _tokenId) external override view returns (uint, uint, uint, uint) {
+        VariableAttributes memory _attribute = attributes[_tokenId];
+        return (_attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
     }
 
     /// @notice Pauses all token transfers.

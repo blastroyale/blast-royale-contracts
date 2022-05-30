@@ -141,7 +141,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     IERC20 payTokenAddress = listings[_tokenId].tokenAddress;
 
     if (address(payTokenAddress) == address(0)) {
-      if (msg.value < listings[_tokenId].price) revert NotEnough();
+      if (msg.value != listings[_tokenId].price) revert NotEnough();
       (bool sent, ) = payable(owner()).call{value: msg.value}("");
       require(sent, "Failed to send Ether");
     } else {
