@@ -1,5 +1,7 @@
 import { expect } from "chai";
+import { Signer } from "ethers";
 import { ethers } from "hardhat";
+import { MerkleTree } from "merkletreejs";
 
 describe("Blast Royale Marketplace Lootbox", function () {
   let blt: any;
@@ -8,13 +10,17 @@ describe("Blast Royale Marketplace Lootbox", function () {
   let market: any;
   let admin: any;
   let player1: any;
-  let player2: any;
+  let whitelisted: Signer[];
+  let notWhitelisted: Signer[];
+  let tree: any;
 
   before("deploying", async () => {
     const signers = await ethers.getSigners();
     admin = signers[0];
     player1 = signers[1];
-    player2 = signers[2];
+
+    whitelisted = signers.slice(0, 5);
+    notWhitelisted = signers.slice(5, 10);
   });
 
   it("Deploy Primary Token", async function () {
@@ -106,9 +112,29 @@ describe("Blast Royale Marketplace Lootbox", function () {
   });
 
   it("Deploy Marketplace", async function () {
-    const BlastNFT = await ethers.getContractFactory("MarketplaceLootbox");
-    market = await BlastNFT.connect(admin).deploy(lootbox.address);
+    const leaves = await Promise.all(
+      whitelisted.map(async (account) => {
+        const address = await account.getAddress();
+        return ethers.utils.keccak256(address);
+      })
+    );
+    tree = new MerkleTree(leaves, ethers.utils.keccak256, {
+      sortPairs: true,
+    });
+    const merkleRoot = tree.getHexRoot();
+
+    const LootboxMarketplce = await ethers.getContractFactory(
+      "MarketplaceLootbox"
+    );
+    market = await LootboxMarketplce.connect(admin).deploy(
+      lootbox.address,
+      merkleRoot
+    );
     await market.deployed();
+
+    await (
+      await market.connect(admin).setWhitelistTokens([blt.address])
+    ).wait();
   });
 
   it("List an Lootbox to sell", async function () {
@@ -152,9 +178,12 @@ describe("Blast Royale Marketplace Lootbox", function () {
     const tokenId = 0;
     const listing = await market.listings(tokenId);
 
+    const adminAddress = await whitelisted[1].getAddress();
+    const merkleProof = tree.getHexProof(ethers.utils.keccak256(adminAddress));
+
     // Approve BLT and But NFT from the marketplace.
     await blt.connect(player1).approve(market.address, listing.price);
-    await expect(market.connect(player1).buy(tokenId))
+    await expect(market.connect(player1).buy(tokenId, merkleProof))
       .to.emit(market, "LootboxSold")
       .withArgs(0, admin.address, player1.address, listing.price);
 
@@ -167,18 +196,19 @@ describe("Blast Royale Marketplace Lootbox", function () {
     );
   });
 
-  it("Buy an NFT again", async () => {
+  it("Buy an NFT again with not whitelisted user", async () => {
     const tokenId = 1;
     const listing = await market.listings(tokenId);
 
+    const invalidAddress = await notWhitelisted[1].getAddress();
+    const invalidMerkleProof = tree.getHexProof(
+      ethers.utils.keccak256(invalidAddress)
+    );
     // Approve BLT and But NFT from the marketplace.
-    await blt.connect(player1).approve(market.address, listing.price);
+    await blt.connect(notWhitelisted[1]).approve(market.address, listing.price);
 
-    await expect(market.connect(player1).buy(tokenId))
-      .to.emit(market, "LootboxSold")
-      .withArgs(1, admin.address, player1.address, listing.price);
-
-    expect(await market.getOwnedCount(player1.address, 1)).to.eq(1);
-    expect(await market.getOwnedCount(player1.address, 2)).to.eq(1);
+    await expect(
+      market.connect(notWhitelisted[1]).buy(tokenId, invalidMerkleProof)
+    ).to.be.revertedWith("InvalidMerkleProof");
   });
 });

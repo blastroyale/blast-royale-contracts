@@ -1,3 +1,4 @@
+/* eslint-disable node/no-missing-import */
 import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
