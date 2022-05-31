@@ -21,6 +21,7 @@ error NotAbleToAdd();
 error NotAbleToBuy();
 error NotWhitelisted();
 error InvalidMerkleProof();
+error FailedToSendEther();
 
 struct Listing {
     address owner;
@@ -28,6 +29,11 @@ struct Listing {
     uint256 tokenId;
     uint256 price;
     IERC20 tokenAddress;
+}
+
+struct PurchaseLimit {
+    uint gwbLimit;
+    uint nbLimit;
 }
 
 /// @title Marketplace contract to trade Lootbox
@@ -40,6 +46,9 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
 
     bytes32 public merkleRoot;
 
+    bool public publicSale;
+    PurchaseLimit private whitelistLimit;
+    PurchaseLimit private notWhitelistLimit;
     uint256 public listingCount;
     uint256 public activeListingCount;
 
@@ -79,6 +88,15 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         if (address(lootboxAddress) == address(0)) revert NoZeroAddress();
         lootboxContract = lootboxAddress;
         merkleRoot = _merkleRoot;
+
+        whitelistLimit = PurchaseLimit({
+            gwbLimit: 1,
+            nbLimit: 1
+        });
+        notWhitelistLimit = PurchaseLimit({
+            gwbLimit: 0,
+            nbLimit: 1
+        });
     }
 
     /// @notice add a Listing to the Marketplace
@@ -135,8 +153,8 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     /// @notice Buys a listed NFT
     /// @dev Transfers both the ERC20 token (price) and the NFT.
     /// @param _tokenId NFT Token Id.
-    /// @param merkleProof MerkleProof value
-    function buy(uint256 _tokenId, bytes32[] calldata merkleProof)
+    /// @param _merkleProof MerkleProof value
+    function buy(uint256 _tokenId, bytes32[] calldata _merkleProof)
         external
         payable
         nonReentrant
@@ -144,16 +162,20 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     {
         uint8 tokenType = lootboxContract.getTokenType(_tokenId);
         if (tokenType == 0) revert NotAbleToBuy();
-        if (boughtCount[_msgSender()][tokenType] >= MAX_PURCHASE_COUNT)
-            revert ReachedMaxLimit();
-        if (
-            !MerkleProof.verify(
-                merkleProof,
-                merkleRoot,
-                keccak256(abi.encodePacked(_msgSender()))
-            )
-        ) revert InvalidMerkleProof();
         if (!listings[_tokenId].isActive) revert NotActived();
+
+        bool userWhitelisted = MerkleProof.verify(_merkleProof, merkleRoot, keccak256(abi.encodePacked(_msgSender())));
+        if (userWhitelisted) {
+            if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, true))
+                revert ReachedMaxLimit();
+        } else {
+            if (publicSale) {
+                if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, false))
+                    revert ReachedMaxLimit();
+            } else {
+                revert InvalidMerkleProof();
+            }
+        }
 
         boughtCount[_msgSender()][tokenType] += 1;
         listings[_tokenId].isActive = false;
@@ -161,8 +183,8 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
 
         if (address(payTokenAddress) == address(0)) {
             if (msg.value != listings[_tokenId].price) revert NotEnough();
-            (bool sent, ) = payable(owner()).call{value: msg.value}("");
-            require(sent, "Failed to send Ether");
+            (bool sent, ) = payable(listings[_tokenId].owner).call{value: msg.value}("");
+            if (!sent) revert FailedToSendEther();
         } else {
             payTokenAddress.safeTransferFrom(
                 _msgSender(),
@@ -190,6 +212,58 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         return boughtCount[_address][_tokenType];
     }
 
+    /// @notice Get limitation value
+    /// @dev This function will return limit value whether whitelisted or not and tokenType
+    /// @param _tokenType Token Type (1 or 2)
+    /// @param _whitelist Whitelist or not
+    function getLimit(uint _tokenType, bool _whitelist) internal view returns (uint) {
+        if (_tokenType == 1) {
+            if (_whitelist) {
+                return whitelistLimit.gwbLimit;
+            } else {
+                return notWhitelistLimit.gwbLimit;
+            }
+        } else if (_tokenType == 2) {
+            if (_whitelist) {
+                return whitelistLimit.nbLimit;
+            } else {
+                return notWhitelistLimit.nbLimit;
+            }
+        }
+        return 0;
+    }
+
+    /// @notice Update MerkleRoot value
+    /// @dev This function will update merkleRoot
+    /// @param _merkleRoot root of merkle Tree
+    function updateMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
+        merkleRoot = _merkleRoot;
+    }
+
+    /// @notice Set PublicSale status
+    /// @dev This function will set public sale status. It will affect to buy function
+    /// @param _sale Sale or not
+    function setPublicSale(bool _sale) public onlyOwner {
+        publicSale = _sale;
+    }
+
+    /// @notice Set the limitation for whitelist users
+    /// @dev This will set whitelist users limitation for GWB and NB
+    /// @param _limit gwbLimit & nbLimit
+    function setWhitelistLimit(PurchaseLimit memory _limit) public onlyOwner {
+        whitelistLimit = _limit;
+    }
+
+    /// @notice Set the limitation for non-whitelist users
+    /// @dev This will set non-whitelist users limitation for GWB and NB
+    /// @param _limit gwbLimit & nbLimit
+    function setNotWhitelistLimit(PurchaseLimit memory _limit) public onlyOwner {
+        notWhitelistLimit = _limit;
+    }
+
+    /// @notice Set whitelist tokens for paying
+    /// @dev This will create whitelisting of stable token for Lootbox trading
+    /// @param _whitelist whitelist erc20 token array
     function setWhitelistTokens(address[] memory _whitelist) public onlyOwner {
         for (uint256 i = 0; i < _whitelist.length; i++) {
             if (_whitelist[i] == address(0)) revert NoZeroAddress();
@@ -199,6 +273,9 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         emit WhitelistAdded(_whitelist);
     }
 
+    /// @notice Remove whitelist tokens for paying
+    /// @dev This will remove whitelisting of stable token for Lootbox trading
+    /// @param _whitelist whitelist erc20 token array
     function removeWhitelistTokens(address[] memory _whitelist)
         public
         onlyOwner
