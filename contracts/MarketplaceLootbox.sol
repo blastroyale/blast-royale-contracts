@@ -263,14 +263,14 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     /// @notice Set the limitation for whitelist users
     /// @dev This will set whitelist users limitation for GWB and NB
     /// @param _limit gwbLimit & nbLimit
-    function setWhitelistLimit(PurchaseLimit memory _limit) public onlyOwner {
+    function setWhitelistPurchaseLimit(PurchaseLimit memory _limit) public onlyOwner {
         whitelistLimit = _limit;
     }
 
     /// @notice Set the limitation for non-whitelist users
     /// @dev This will set non-whitelist users limitation for GWB and NB
     /// @param _limit gwbLimit & nbLimit
-    function setNotWhitelistLimit(PurchaseLimit memory _limit) public onlyOwner {
+    function setNotWhitelistPurchaseLimit(PurchaseLimit memory _limit) public onlyOwner {
         notWhitelistLimit = _limit;
     }
 
