@@ -10,6 +10,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
   let market: any;
   let admin: any;
   let player1: any;
+  let player2: any;
   let whitelisted: Signer[];
   let notWhitelisted: Signer[];
   let tree: any;
@@ -18,6 +19,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     const signers = await ethers.getSigners();
     admin = signers[0];
     player1 = signers[1];
+    player2 = signers[2];
 
     whitelisted = signers.slice(0, 5);
     notWhitelisted = signers.slice(5, 10);
@@ -40,36 +42,6 @@ describe("Blast Royale Marketplace Lootbox", function () {
     const BlastNFT = await ethers.getContractFactory("BlastEquipmentNFT");
     nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
     await nft.deployed();
-    const mintTx = await nft
-      .connect(admin)
-      .safeMint(
-        player1.address,
-        [
-          "ipfs://111",
-          "ipfs://222",
-          "ipfs://333",
-          "ipfs://111",
-          "ipfs://222",
-          "ipfs://333",
-        ],
-        [
-          ethers.utils.keccak256("0x1000"),
-          ethers.utils.keccak256("0x2000"),
-          ethers.utils.keccak256("0x3000"),
-          ethers.utils.keccak256("0x1000"),
-          ethers.utils.keccak256("0x2000"),
-          ethers.utils.keccak256("0x3000"),
-        ],
-        [
-          "ipfs://111_real",
-          "ipfs://222_real",
-          "ipfs://333_real",
-          "ipfs://111_real",
-          "ipfs://222_real",
-          "ipfs://333_real",
-        ]
-      );
-    await mintTx.wait();
   });
 
   it("Deploy Lootbox", async () => {
@@ -80,15 +52,64 @@ describe("Blast Royale Marketplace Lootbox", function () {
       nft.address
     );
     await lootbox.deployed();
+
+    // Equipment NFT mint to blast Lootbox contract
+    await (
+      await nft
+        .connect(admin)
+        .safeMint(
+          lootbox.address,
+          [
+            "ipfs://111",
+            "ipfs://222",
+            "ipfs://333",
+            "ipfs://111",
+            "ipfs://222",
+            "ipfs://333",
+            "ipfs://111",
+            "ipfs://222",
+            "ipfs://333",
+          ],
+          [
+            ethers.utils.keccak256("0x1000"),
+            ethers.utils.keccak256("0x2000"),
+            ethers.utils.keccak256("0x3000"),
+            ethers.utils.keccak256("0x1000"),
+            ethers.utils.keccak256("0x2000"),
+            ethers.utils.keccak256("0x3000"),
+            ethers.utils.keccak256("0x1000"),
+            ethers.utils.keccak256("0x2000"),
+            ethers.utils.keccak256("0x3000"),
+          ],
+          [
+            "ipfs://111_real",
+            "ipfs://222_real",
+            "ipfs://333_real",
+            "ipfs://111_real",
+            "ipfs://222_real",
+            "ipfs://333_real",
+            "ipfs://111_real",
+            "ipfs://222_real",
+            "ipfs://333_real",
+          ]
+        )
+    ).wait();
+
+    // Lootbox SafeMint
     await (
       await lootbox.connect(admin).safeMint(
-        [admin.address],
-        ["ipfs://lootbox_111"],
+        [player1.address, player1.address],
+        ["ipfs://lootbox_111", "ipfs://lootbox_333"],
         [
           {
             token0: 0,
             token1: 1,
             token2: 2,
+          },
+          {
+            token0: 6,
+            token1: 7,
+            token2: 8,
           },
         ],
         1
@@ -97,8 +118,8 @@ describe("Blast Royale Marketplace Lootbox", function () {
 
     await (
       await lootbox.connect(admin).safeMint(
-        [admin.address],
-        ["ipfs://lootbox_2"],
+        [player2.address],
+        ["ipfs://lootbox_222"],
         [
           {
             token0: 3,
@@ -167,11 +188,11 @@ describe("Blast Royale Marketplace Lootbox", function () {
     expect(listing.tokenId.toNumber()).to.equal(0);
   });
 
-  // it("Delist an NFT from the marketplace", async function () {
-  //   await expect(market.connect(admin).removeListing(0))
-  //     .to.emit(market, "LootboxDelisted")
-  //     .withArgs(0, player1.address);
-  // });
+  it("Delist an NFT from the marketplace", async function () {
+    await expect(market.connect(admin).removeListing(0))
+      .to.emit(market, "LootboxDelisted")
+      .withArgs(0, admin.address);
+  });
 
   it("Buy an NFT", async function () {
     // Get the total count of listings.

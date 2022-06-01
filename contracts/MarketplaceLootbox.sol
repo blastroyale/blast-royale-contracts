@@ -22,6 +22,7 @@ error NotAbleToBuy();
 error NotWhitelisted();
 error InvalidMerkleProof();
 error FailedToSendEther();
+error StartTimeInvalid();
 
 struct Listing {
     address owner;
@@ -42,11 +43,11 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     uint256 public constant DECIMAL_FACTOR = 100_00;
-    uint256 public constant MAX_PURCHASE_COUNT = 1;
+    uint256 public constant TIME_LIMIT = 2 days;
 
     bytes32 public merkleRoot;
 
-    bool public publicSale;
+    uint public saleStartTimestamp;
     PurchaseLimit private whitelistLimit;
     PurchaseLimit private notWhitelistLimit;
     uint256 public listingCount;
@@ -169,7 +170,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, true))
                 revert ReachedMaxLimit();
         } else {
-            if (publicSale) {
+            if (isPublicSale()) {
                 if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, false))
                     revert ReachedMaxLimit();
             } else {
@@ -204,6 +205,10 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         );
     }
 
+    /// @notice Get purchased count
+    /// @dev This function will return purchased count with tokenType
+    /// @param _address owner Address
+    /// @param _tokenType Token Type (1 or 2), (1 is NB, 2 is GWB)
     function getOwnedCount(address _address, uint8 _tokenType)
         public
         view
@@ -214,23 +219,30 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
 
     /// @notice Get limitation value
     /// @dev This function will return limit value whether whitelisted or not and tokenType
-    /// @param _tokenType Token Type (1 or 2)
+    /// @param _tokenType Token Type (1 or 2), (1 is NB, 2 is GWB)
     /// @param _whitelist Whitelist or not
     function getLimit(uint _tokenType, bool _whitelist) internal view returns (uint) {
         if (_tokenType == 1) {
-            if (_whitelist) {
-                return whitelistLimit.gwbLimit;
-            } else {
-                return notWhitelistLimit.gwbLimit;
-            }
-        } else if (_tokenType == 2) {
             if (_whitelist) {
                 return whitelistLimit.nbLimit;
             } else {
                 return notWhitelistLimit.nbLimit;
             }
+        } else if (_tokenType == 2) {
+            if (_whitelist) {
+                return whitelistLimit.gwbLimit;
+            } else {
+                return notWhitelistLimit.gwbLimit;
+            }
         }
         return 0;
+    }
+
+    /// @notice Get Public sale Status
+    /// @dev This function will return status whether now is public sale or not
+    /// @return bool
+    function isPublicSale() public view returns (bool) {
+        return saleStartTimestamp < block.timestamp && (saleStartTimestamp + TIME_LIMIT) > block.timestamp;
     }
 
     /// @notice Update MerkleRoot value
@@ -240,11 +252,12 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         merkleRoot = _merkleRoot;
     }
 
-    /// @notice Set PublicSale status
-    /// @dev This function will set public sale status. It will affect to buy function
-    /// @param _sale Sale or not
-    function setPublicSale(bool _sale) public onlyOwner {
-        publicSale = _sale;
+    /// @notice Setting public sale start timestamp
+    /// @dev This function will set saleStartTimestamp
+    /// @param _timestamp sale Start Timestamp
+    function startPublicSale(uint _timestamp) public onlyOwner {
+        if (_timestamp <= block.timestamp) revert StartTimeInvalid();
+        saleStartTimestamp = _timestamp;
     }
 
     /// @notice Set the limitation for whitelist users

@@ -6,7 +6,6 @@ import { ethers } from "hardhat";
 describe("Blast LootBox Contract", function () {
   let owner: any;
   let player1: any;
-  let player2: any;
   let bet: any;
   let blb: any;
 
@@ -14,7 +13,6 @@ describe("Blast LootBox Contract", function () {
     const signers = await ethers.getSigners();
     owner = signers[0];
     player1 = signers[1];
-    player2 = signers[2];
   });
 
   it("Open function test", async function () {
@@ -65,7 +63,8 @@ describe("Blast LootBox Contract", function () {
           token1: ethers.BigNumber.from("1"),
           token2: ethers.BigNumber.from("2"),
         },
-      ]
+      ],
+      1
     );
     await tx.wait();
 
@@ -141,7 +140,8 @@ describe("Blast LootBox Contract", function () {
           token1: ethers.BigNumber.from("7"),
           token2: ethers.BigNumber.from("8"),
         },
-      ]
+      ],
+      1
     );
     await tx.wait();
 

@@ -62,6 +62,7 @@ describe("Blast Royale Marketplace", function () {
 
   it("List an NFT to sell", async function () {
     await nft.connect(player1).approve(market.address, 0);
+    await market.connect(admin).setWhitelistTokens([blt.address]);
     await expect(
       market
         .connect(player1)
@@ -96,6 +97,7 @@ describe("Blast Royale Marketplace", function () {
   it("Buy an NFT", async function () {
     // Add a new isting
     await nft.connect(player1).approve(market.address, 0);
+    await market.connect(admin).setWhitelistTokens([blt.address]);
     await market
       .connect(player1)
       .addListing(0, ethers.utils.parseUnits("5"), blt.address);
