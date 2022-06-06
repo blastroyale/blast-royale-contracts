@@ -11,6 +11,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
   let admin: any;
   let player1: any;
   let player2: any;
+  let player3: any;
   let whitelisted: Signer[];
   let notWhitelisted: Signer[];
   let tree: any;
@@ -20,6 +21,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     admin = signers[0];
     player1 = signers[1];
     player2 = signers[2];
+    player3 = signers[3];
 
     whitelisted = signers.slice(0, 5);
     notWhitelisted = signers.slice(5, 10);
@@ -30,12 +32,18 @@ describe("Blast Royale Marketplace Lootbox", function () {
     blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
-      ethers.utils.parseEther("100000000")
+      ethers.utils.parseEther("512000000") // fixed supply 512M
     );
     await blt.deployed();
     await blt
       .connect(admin)
-      .transfer(player1.address, ethers.utils.parseUnits("100"));
+      .transfer(player1.address, ethers.utils.parseUnits("1000"));
+    await blt
+      .connect(admin)
+      .transfer(player2.address, ethers.utils.parseUnits("1000"));
+    await blt
+      .connect(admin)
+      .transfer(player3.address, ethers.utils.parseUnits("1000"));
   });
 
   it("Deploy NFT", async function () {
@@ -98,7 +106,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     // Lootbox SafeMint
     await (
       await lootbox.connect(admin).safeMint(
-        [player1.address, player1.address],
+        [admin.address, admin.address],
         ["ipfs://lootbox_111", "ipfs://lootbox_333"],
         [
           {
@@ -118,7 +126,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
 
     await (
       await lootbox.connect(admin).safeMint(
-        [player2.address],
+        [admin.address],
         ["ipfs://lootbox_222"],
         [
           {
@@ -177,9 +185,18 @@ describe("Blast Royale Marketplace Lootbox", function () {
       .to.emit(market, "LootboxListed")
       .withArgs(1, admin.address, ethers.utils.parseUnits("20"), blt.address);
 
+    await lootbox.connect(admin).approve(market.address, 2);
+    await expect(
+      market
+        .connect(admin)
+        .addListing(2, ethers.utils.parseUnits("30"), blt.address)
+    )
+      .to.emit(market, "LootboxListed")
+      .withArgs(2, admin.address, ethers.utils.parseUnits("30"), blt.address);
+
     const tokenId = 0;
     const totalListings = await market.activeListingCount();
-    expect(totalListings.toNumber()).to.equal(2);
+    expect(totalListings.toNumber()).to.equal(3);
 
     // Get listing_id
     const listing = await market.listings(tokenId);
@@ -196,29 +213,31 @@ describe("Blast Royale Marketplace Lootbox", function () {
 
   it("Buy an NFT", async function () {
     // Get the total count of listings.
-    const tokenId = 0;
+    const tokenId = 1;
     const listing = await market.listings(tokenId);
 
-    const adminAddress = await whitelisted[1].getAddress();
-    const merkleProof = tree.getHexProof(ethers.utils.keccak256(adminAddress));
+    const player3Address = await whitelisted[3].getAddress();
+    const merkleProof = tree.getHexProof(
+      ethers.utils.keccak256(player3Address)
+    );
 
-    // Approve BLT and But NFT from the marketplace.
-    await blt.connect(player1).approve(market.address, listing.price);
-    await expect(market.connect(player1).buy(tokenId, merkleProof))
+    // Approve BLT and Buy NFT from the marketplace.
+    await blt.connect(player3).approve(market.address, listing.price);
+    expect(await market.connect(player3).buy(tokenId, merkleProof))
       .to.emit(market, "LootboxSold")
-      .withArgs(0, admin.address, player1.address, listing.price);
+      .withArgs(tokenId, player3Address, admin.address, listing.price);
 
     // Check NFT was exchanged.
-    expect(await lootbox.ownerOf(0)).to.equal(player1.address);
+    expect(await lootbox.ownerOf(tokenId)).to.equal(player3Address);
 
     // Check BLT was paid from player2 to player1
-    expect(await blt.balanceOf(player1.address)).to.equal(
-      ethers.utils.parseUnits("90")
+    expect(await blt.balanceOf(player3.address)).to.equal(
+      ethers.utils.parseUnits("980")
     );
   });
 
   it("Buy an NFT again with not whitelisted user", async () => {
-    const tokenId = 1;
+    const tokenId = 2;
     const listing = await market.listings(tokenId);
 
     const invalidAddress = await notWhitelisted[1].getAddress();
