@@ -57,6 +57,7 @@
     "@types/cucumber": "^7.0.0",
     "axios": "^0.26.1",
     "eth-sig-util": "^3.0.1",
-    "ethereumjs-wallet": "^1.0.2"
+    "ethereumjs-wallet": "^1.0.2",
+    "merkletreejs": "^0.2.31"
   }
 }

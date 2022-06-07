@@ -11,3 +11,14 @@ export const writeAddress = (params: any) => {
   );
   fs.writeFileSync(filePath, JSON.stringify(Object.assign(addresses, params)));
 };
+
+export const getAddress = () => {
+  const filePath = path.resolve(__dirname, "../address.json");
+  const addresses = JSON.parse(
+    fs.readFileSync(filePath, {
+      encoding: "utf8",
+      flag: "r",
+    })
+  );
+  return addresses;
+};

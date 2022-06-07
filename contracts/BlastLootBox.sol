@@ -97,6 +97,9 @@ contract BlastLootBox is
         _burn(_tokenId);
     }
 
+    /// @notice Get Token Type. (GWB or NB)
+    /// @dev Returned value should be 1 or 2
+    /// @param _tokenId Token ID.
     function getTokenType(uint _tokenId) external view override returns (uint8) {
         return tokenTypes[_tokenId];
     }
