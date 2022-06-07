@@ -12,13 +12,16 @@ contract PrimaryToken is ERC20, ERC20Pausable, Ownable {
     /// @dev Creates the token and setup the initial supply and the Admin Role.
     /// @param name Name of the Token
     /// @param symbol Symbol of the token
+    /// @param _treasury Treasury address
     /// @param _supply Initial Supply
     constructor(
         string memory name,
         string memory symbol,
+        address _treasury,
         uint256 _supply
     ) ERC20(name, symbol) {
-        _mint(_msgSender(), _supply);
+        require(_treasury != address(0), "Treasury can't be zero address");
+        _mint(_treasury, _supply);
     }
 
     /// @notice Pauses the contract
