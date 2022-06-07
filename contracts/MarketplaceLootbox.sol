@@ -43,7 +43,6 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     uint256 public constant DECIMAL_FACTOR = 100_00;
-    uint256 public constant TIME_LIMIT = 2 days;
 
     bytes32 public merkleRoot;
 
@@ -170,12 +169,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, true))
                 revert ReachedMaxLimit();
         } else {
-            if (isPublicSale()) {
-                if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, false))
-                    revert ReachedMaxLimit();
-            } else {
-                revert InvalidMerkleProof();
-            }
+            revert InvalidMerkleProof();
         }
 
         boughtCount[_msgSender()][tokenType] += 1;
@@ -236,13 +230,6 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             }
         }
         return 0;
-    }
-
-    /// @notice Get Public sale Status
-    /// @dev This function will return status whether now is public sale or not
-    /// @return bool
-    function isPublicSale() public view returns (bool) {
-        return saleStartTimestamp < block.timestamp && (saleStartTimestamp + TIME_LIMIT) > block.timestamp;
     }
 
     /// @notice Update MerkleRoot value
