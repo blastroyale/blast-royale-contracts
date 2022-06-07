@@ -14,6 +14,7 @@ async function main() {
   const primaryToken = await PrimaryToken.deploy(
     "Blast Token",
     "BLT",
+    "0x59B5591494653Eafd3dA02B0f1Bc25D828A4191D",
     ethers.utils.parseEther("512000000") // fixed supply 512M
   );
   console.log("Primary token address:", primaryToken.address);
@@ -31,7 +32,7 @@ async function main() {
   writeAddress({
     deployerAddress: deployer.address,
     PrimaryToken: primaryToken.address,
-    SecondaryToken: secondaryToken.address,
+    // SecondaryToken: secondaryToken.address,
   });
 }
 
