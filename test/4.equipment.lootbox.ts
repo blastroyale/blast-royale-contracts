@@ -153,40 +153,23 @@ describe("Blast LootBox Contract", function () {
     await openTx.wait();
   });
 
-  it("Only has two Equipment NFTs minted to the loot box contract", async () => {
-    // Equipment NFT minting process
-    const mintTx1 = await bet
-      .connect(owner)
-      .safeMint(
-        blb.address,
-        [
-          "ipfs://111",
-          "ipfs://222",
-        ],
-        [
-          ethers.utils.keccak256("0x1000"),
-          ethers.utils.keccak256("0x2000"),
-        ],
-        [
-          "ipfs://111_real",
-          "ipfs://222_real",
-        ]
-      );
-    await mintTx1.wait();
+  it("Can create an empty lootbox with no Blast Equipment minted", async () => {
 
+    // creating a lootbox with tokens that do not exist  
     const tx = await blb.connect(owner).safeMint(
       [player2.address],
-      ["ipfs://111"],
+      ["ipfs://999"],
       [
         {
-          token0: ethers.BigNumber.from("9"),
-          token1: ethers.BigNumber.from("10"),
-          token2: ethers.BigNumber.from("11"),
+          token0: ethers.BigNumber.from("123"),
+          token1: ethers.BigNumber.from("789"),
+          token2: ethers.BigNumber.from("999"),
         },
       ],
       1
     );
     await tx.wait();
+    
 
     expect(await blb.balanceOf(player2.address)).to.eq(1);
 
