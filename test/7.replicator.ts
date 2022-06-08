@@ -3,7 +3,7 @@ import { ethers, network } from "hardhat";
 
 describe("Replicator Contract", function () {
   it("Replicate function test", async function () {
-    const [owner, addr1] = await ethers.getSigners();
+    const [owner, addr1,treasury] = await ethers.getSigners();
     // BlastEquipment NFT Deploying
     const BlastEquipmentToken = await ethers.getContractFactory(
       "BlastEquipmentNFT"
@@ -19,11 +19,12 @@ describe("Replicator Contract", function () {
     const blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
+      treasury.address,
       ethers.utils.parseEther("100000000")
     );
     await blt.deployed();
     await (
-      await blt.transfer(addr1.address, ethers.utils.parseEther("200"))
+      await blt.connect(treasury).transfer(addr1.address, ethers.utils.parseEther("200"))
     ).wait();
 
     // CS Token deploying

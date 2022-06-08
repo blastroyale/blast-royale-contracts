@@ -6,6 +6,7 @@ import { ethers } from "hardhat";
 describe("Blast LootBox Contract", function () {
   let owner: any;
   let player1: any;
+  let player2: any;
   let bet: any;
   let blb: any;
 
@@ -13,6 +14,7 @@ describe("Blast LootBox Contract", function () {
     const signers = await ethers.getSigners();
     owner = signers[0];
     player1 = signers[1];
+    player2 = signers[2];
   });
 
   it("Open function test", async function () {
@@ -149,5 +151,47 @@ describe("Blast LootBox Contract", function () {
 
     const openTx = await blb.connect(owner).openTo(1, player1.address);
     await openTx.wait();
+  });
+
+  it("Only has two Equipment NFTs minted to the loot box contract", async () => {
+    // Equipment NFT minting process
+    const mintTx1 = await bet
+      .connect(owner)
+      .safeMint(
+        blb.address,
+        [
+          "ipfs://111",
+          "ipfs://222",
+        ],
+        [
+          ethers.utils.keccak256("0x1000"),
+          ethers.utils.keccak256("0x2000"),
+        ],
+        [
+          "ipfs://111_real",
+          "ipfs://222_real",
+        ]
+      );
+    await mintTx1.wait();
+
+    const tx = await blb.connect(owner).safeMint(
+      [player2.address],
+      ["ipfs://111"],
+      [
+        {
+          token0: ethers.BigNumber.from("9"),
+          token1: ethers.BigNumber.from("10"),
+          token2: ethers.BigNumber.from("11"),
+        },
+      ],
+      1
+    );
+    await tx.wait();
+
+    expect(await blb.balanceOf(player2.address)).to.eq(1);
+
+    expect(blb.connect(owner).openTo(3, player2.address)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+    // player should not receive any equipment NFT
+    expect(await bet.balanceOf(player2.address)).to.equal(0);
   });
 });

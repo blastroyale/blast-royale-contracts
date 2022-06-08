@@ -8,17 +8,18 @@ import { ethers, network } from "hardhat";
 import { PrimaryToken, TokenVesting } from "../../typechain";
 
 describe("TokenVesting", function () {
-  let owner: SignerWithAddress, addr1: SignerWithAddress;
+  let owner: SignerWithAddress, addr1: SignerWithAddress, treasury:SignerWithAddress
   let blt: PrimaryToken;
   let vesting: TokenVesting;
   beforeEach(async () => {
-    [owner, addr1] = await ethers.getSigners();
+    [owner, addr1,treasury] = await ethers.getSigners();
 
     // Blast Token vesting
     const BlastToken = await ethers.getContractFactory("PrimaryToken");
     blt = await BlastToken.connect(owner).deploy(
       "Blast Royale",
       "$BLT",
+      treasury.address,
       ethers.utils.parseEther("512000000")
     );
     await blt.deployed();
@@ -30,7 +31,7 @@ describe("TokenVesting", function () {
   it("Test TokenVesting", async function () {
     // Transfer blast Token to vesting contract
     const transferTx = await blt
-      .connect(owner)
+      .connect(treasury)
       .transfer(vesting.address, ethers.utils.parseEther("76800000"));
     await transferTx.wait();
 

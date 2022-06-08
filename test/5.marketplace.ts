@@ -27,11 +27,12 @@ describe("Blast Royale Marketplace", function () {
     blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
+      treasury1.address,
       ethers.utils.parseEther("100000000")
     );
     await blt.deployed();
     await blt
-      .connect(admin)
+      .connect(treasury1)
       .transfer(player2.address, ethers.utils.parseUnits("100"));
   });
 
@@ -121,7 +122,7 @@ describe("Blast Royale Marketplace", function () {
     expect(totalListings.toNumber()).to.equal(1);
 
     // Check NFT was exchanged.
-    expect(await nft.ownerOf(1)).to.equal(player2.address);
+    expect(await nft.ownerOf(1)).to.equal(player2.address); 
 
     // Check BLT was paid from player2 to player1
     expect(await blt.balanceOf(player1.address)).to.equal(
@@ -164,7 +165,7 @@ describe("Blast Royale Marketplace", function () {
       ethers.utils.parseUnits("85")
     );
     expect(await blt.balanceOf(treasury1.address)).to.equal(
-      ethers.utils.parseUnits("0.1")
+      ethers.utils.parseUnits("99999900.1")
     );
     expect(await blt.balanceOf(treasury2.address)).to.equal(
       ethers.utils.parseUnits("0.025")

@@ -24,10 +24,10 @@ contract BlastEquipmentNFT is
     /// @dev Variable Attributes
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
     struct VariableAttributes {
-        uint level;
-        uint durabilityRemaining;
-        uint repairCount;
-        uint replicationCount;
+        uint256 level;
+        uint256 durabilityRemaining;
+        uint256 repairCount;
+        uint256 replicationCount;
     }
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -36,12 +36,16 @@ contract BlastEquipmentNFT is
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
 
     Counters.Counter public _tokenIdCounter;
-    mapping(uint => bytes32) public hashValue;
-    mapping(uint => VariableAttributes) public attributes;
-    mapping(uint => string) private realTokenURI;
+    mapping(uint256 => bytes32) public hashValue;
+    mapping(uint256 => VariableAttributes) public attributes;
+    mapping(uint256 => string) private realTokenURI;
 
     modifier hasGameRole() {
-        require(hasRole(GAME_ROLE, _msgSender()) || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "AccessControl: Missing role");
+        require(
+            hasRole(GAME_ROLE, _msgSender()) ||
+                hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+            "AccessControl: Missing role"
+        );
         _;
     }
 
@@ -79,7 +83,12 @@ contract BlastEquipmentNFT is
         }
     }
 
-    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri) external override onlyRole(REPLICATOR_ROLE) returns (uint) {
+    function safeMintReplicator(
+        address _to,
+        string calldata _uri,
+        bytes32 _hash,
+        string calldata _realUri
+    ) external override onlyRole(REPLICATOR_ROLE) returns (uint256) {
         require(_to != address(0));
 
         uint256 tokenId = _tokenIdCounter.current();
@@ -95,38 +104,96 @@ contract BlastEquipmentNFT is
         return tokenId;
     }
 
-    function revealRealTokenURI(uint _tokenId) external override onlyRole(REVEAL_ROLE) {
+    function revealRealTokenURI(uint256 _tokenId)
+        external
+        override
+        onlyRole(REVEAL_ROLE)
+    {
         _setTokenURI(_tokenId, realTokenURI[_tokenId]);
         emit PermanentURI(realTokenURI[_tokenId], _tokenId);
     }
 
-    function setLevel(uint _tokenId, uint _newLevel) external override hasGameRole {
+    function setLevel(uint256 _tokenId, uint256 _newLevel)
+        external
+        override
+        hasGameRole
+    {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
-        emit AttributeUpdated(_tokenId, _newLevel, _attribute.durabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
+        emit AttributeUpdated(
+            _tokenId,
+            _newLevel,
+            _attribute.durabilityRemaining,
+            _attribute.repairCount,
+            _attribute.replicationCount
+        );
     }
 
-    function setDurabilityRemaining(uint _tokenId, uint _newDurabilityRemaining) external override hasGameRole {
+    function setDurabilityRemaining(
+        uint256 _tokenId,
+        uint256 _newDurabilityRemaining
+    ) external override hasGameRole {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.durabilityRemaining = _newDurabilityRemaining;
-        emit AttributeUpdated(_tokenId, _attribute.level, _newDurabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
+        emit AttributeUpdated(
+            _tokenId,
+            _attribute.level,
+            _newDurabilityRemaining,
+            _attribute.repairCount,
+            _attribute.replicationCount
+        );
     }
 
-    function setRepairCount(uint _tokenId, uint _newRepairCount) external override hasGameRole {
+    function setRepairCount(uint256 _tokenId, uint256 _newRepairCount)
+        external
+        override
+        hasGameRole
+    {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.repairCount = _newRepairCount;
-        emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _newRepairCount, _attribute.replicationCount);
+        emit AttributeUpdated(
+            _tokenId,
+            _attribute.level,
+            _attribute.durabilityRemaining,
+            _newRepairCount,
+            _attribute.replicationCount
+        );
     }
 
-    function setReplicationCount(uint _tokenId, uint _newReplicationCount) external override hasGameRole {
+    function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
+        external
+        override
+        hasGameRole
+    {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.replicationCount = _newReplicationCount;
-        emit AttributeUpdated(_tokenId, _attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _newReplicationCount);
+        emit AttributeUpdated(
+            _tokenId,
+            _attribute.level,
+            _attribute.durabilityRemaining,
+            _attribute.repairCount,
+            _newReplicationCount
+        );
     }
 
-    function getAttributes(uint _tokenId) external override view returns (uint, uint, uint, uint) {
+    function getAttributes(uint256 _tokenId)
+        external
+        view
+        override
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
         VariableAttributes memory _attribute = attributes[_tokenId];
-        return (_attribute.level, _attribute.durabilityRemaining, _attribute.repairCount, _attribute.replicationCount);
+        return (
+            _attribute.level,
+            _attribute.durabilityRemaining,
+            _attribute.repairCount,
+            _attribute.replicationCount
+        );
     }
 
     /// @notice Pauses all token transfers.
