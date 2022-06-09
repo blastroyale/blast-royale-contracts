@@ -34,7 +34,7 @@ contract BlastLootBox is
 
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
 
-    Counters.Counter private _tokenIdCounter;
+    Counters.Counter public _tokenIdCounter;
     mapping(uint => LootBox) private lootboxDetails;
     mapping(uint => uint8) private tokenTypes;
     IBlastEquipmentNFT public blastEquipmentNFT;

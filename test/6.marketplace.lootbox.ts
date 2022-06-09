@@ -12,6 +12,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
   let player1: any;
   let player2: any;
   let player3: any;
+  let treasury: any;
   let whitelisted: Signer[];
   let notWhitelisted: Signer[];
   let tree: any;
@@ -22,6 +23,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     player1 = signers[1];
     player2 = signers[2];
     player3 = signers[3];
+    treasury = signers[9];
 
     whitelisted = signers.slice(0, 5);
     notWhitelisted = signers.slice(5, 10);
@@ -32,17 +34,18 @@ describe("Blast Royale Marketplace Lootbox", function () {
     blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
+      treasury.address,
       ethers.utils.parseEther("512000000") // fixed supply 512M
     );
     await blt.deployed();
     await blt
-      .connect(admin)
+      .connect(treasury)
       .transfer(player1.address, ethers.utils.parseUnits("1000"));
     await blt
-      .connect(admin)
+      .connect(treasury)
       .transfer(player2.address, ethers.utils.parseUnits("1000"));
     await blt
-      .connect(admin)
+      .connect(treasury)
       .transfer(player3.address, ethers.utils.parseUnits("1000"));
   });
 
@@ -151,6 +154,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
       sortPairs: true,
     });
     const merkleRoot = tree.getHexRoot();
+    console.log(merkleRoot)
 
     const LootboxMarketplce = await ethers.getContractFactory(
       "MarketplaceLootbox"
@@ -217,9 +221,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     const listing = await market.listings(tokenId);
 
     const player3Address = await whitelisted[3].getAddress();
-    const merkleProof = tree.getHexProof(
-      ethers.utils.keccak256(player3Address)
-    );
+    const merkleProof = ['0x5ad2bbe9d835eb0f28a017de1d92239e4d0ad72eb79ea35bdafc3e350e6b49e7', '0x544bbdc069a66bcb6dbe538dda1a25c22494a5de875b8d3ccafc49458cebdb4b'];
 
     // Approve BLT and Buy NFT from the marketplace.
     await blt.connect(player3).approve(market.address, listing.price);
