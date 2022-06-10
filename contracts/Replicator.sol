@@ -46,13 +46,13 @@ contract Replicator is AccessControl {
         22500e18
     ];
     uint256[7] private bltPrices = [
+        7e18,
+        9e18,
+        12e18,
+        15e18,
+        20e18,
         25e18,
-        30e18,
-        40e18,
-        50e18,
-        65e18,
-        80e18,
-        100e18
+        30e18
     ];
 
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
