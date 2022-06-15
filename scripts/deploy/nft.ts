@@ -43,6 +43,7 @@ async function main() {
   );
   const lootboxMarket = await MarketplaceLootbox.deploy(
     blastLootBox.address,
+    "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
     "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84"
   );
   console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
