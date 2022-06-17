@@ -14,6 +14,7 @@ error NoZeroAddress();
 error InvalidParams();
 error NotOwner();
 error NonExistToken();
+error NotAvailableToOpen();
 
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
@@ -38,6 +39,7 @@ contract BlastLootBox is
     mapping(uint => LootBox) private lootboxDetails;
     mapping(uint => uint8) private tokenTypes;
     IBlastEquipmentNFT public blastEquipmentNFT;
+    bool public openAvailable;
 
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
@@ -71,6 +73,7 @@ contract BlastLootBox is
     function open(uint _tokenId) external {
         if (!_exists(_tokenId)) revert NonExistToken();
         if (_msgSender() != ownerOf(_tokenId)) revert NotOwner();
+        if (openAvailable == false) revert NotAvailableToOpen();
 
         _open(_tokenId, _msgSender());
     }
@@ -78,6 +81,7 @@ contract BlastLootBox is
     function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
         if (!_exists(_tokenId)) revert NonExistToken();
         if (_to != ownerOf(_tokenId)) revert NotOwner();
+        if (openAvailable == false) revert NotAvailableToOpen();
 
         _open(_tokenId, _to);
     }
@@ -102,6 +106,10 @@ contract BlastLootBox is
     /// @param _tokenId Token ID.
     function getTokenType(uint _tokenId) external view override returns (uint8) {
         return tokenTypes[_tokenId];
+    }
+
+    function setOpenAvailableStatus(bool _status) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        openAvailable = _status;
     }
 
     /// @notice Unpauses all token transfers.

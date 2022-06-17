@@ -45,10 +45,11 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     uint256 public constant DECIMAL_FACTOR = 100_00;
 
     bytes32 public merkleRoot;
+    bytes32 public luckyMerkleRoot;
 
     uint public saleStartTimestamp;
     PurchaseLimit private whitelistLimit;
-    PurchaseLimit private notWhitelistLimit;
+    PurchaseLimit private luckyUserLimit;
     uint256 public listingCount;
     uint256 public activeListingCount;
 
@@ -84,18 +85,19 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     /// @notice Token constructor
     /// @dev Setup the blastlootbox contract
     /// @param lootboxAddress Address of the NFT Contract.
-    constructor(IBlastLootbox lootboxAddress, bytes32 _merkleRoot) {
+    constructor(IBlastLootbox lootboxAddress, bytes32 _merkleRoot, bytes32 _luckyMerkleRoot) {
         if (address(lootboxAddress) == address(0)) revert NoZeroAddress();
         lootboxContract = lootboxAddress;
         merkleRoot = _merkleRoot;
+        luckyMerkleRoot = _luckyMerkleRoot;
 
         whitelistLimit = PurchaseLimit({
-            gwbLimit: 1,
-            nbLimit: 1
-        });
-        notWhitelistLimit = PurchaseLimit({
             gwbLimit: 0,
             nbLimit: 1
+        });
+        luckyUserLimit = PurchaseLimit({
+            gwbLimit: 1,
+            nbLimit: 0
         });
     }
 
@@ -165,8 +167,12 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         if (!listings[_tokenId].isActive) revert NotActived();
 
         bool userWhitelisted = MerkleProof.verify(_merkleProof, merkleRoot, keccak256(abi.encodePacked(_msgSender())));
+        bool isLuckyUser = MerkleProof.verify(_merkleProof, luckyMerkleRoot, keccak256(abi.encodePacked(_msgSender())));
         if (userWhitelisted) {
             if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, true))
+                revert ReachedMaxLimit();
+        } else if (isLuckyUser) {
+            if (boughtCount[_msgSender()][tokenType] >= getLimit(tokenType, false))
                 revert ReachedMaxLimit();
         } else {
             revert InvalidMerkleProof();
@@ -220,13 +226,13 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             if (_whitelist) {
                 return whitelistLimit.nbLimit;
             } else {
-                return notWhitelistLimit.nbLimit;
+                return luckyUserLimit.nbLimit;
             }
         } else if (_tokenType == 2) {
             if (_whitelist) {
                 return whitelistLimit.gwbLimit;
             } else {
-                return notWhitelistLimit.gwbLimit;
+                return luckyUserLimit.gwbLimit;
             }
         }
         return 0;
@@ -237,6 +243,13 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     /// @param _merkleRoot root of merkle Tree
     function updateMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
         merkleRoot = _merkleRoot;
+    }
+
+    /// @notice Update LuckyMerkleRoot value
+    /// @dev This function will update _luckyMerkleRoot
+    /// @param _luckyMerkleRoot root of merkle Tree
+    function updateLuckyMerkleRoot(bytes32 _luckyMerkleRoot) public onlyOwner {
+        luckyMerkleRoot = _luckyMerkleRoot;
     }
 
     /// @notice Setting public sale start timestamp
@@ -254,11 +267,11 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         whitelistLimit = _limit;
     }
 
-    /// @notice Set the limitation for non-whitelist users
+    /// @notice Set the limitation for whitelisted and lucky users
     /// @dev This will set non-whitelist users limitation for GWB and NB
     /// @param _limit gwbLimit & nbLimit
     function setNotWhitelistPurchaseLimit(PurchaseLimit memory _limit) public onlyOwner {
-        notWhitelistLimit = _limit;
+        luckyUserLimit = _limit;
     }
 
     /// @notice Set whitelist tokens for paying
