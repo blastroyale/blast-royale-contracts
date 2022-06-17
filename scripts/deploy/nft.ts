@@ -1,6 +1,10 @@
 /* eslint-disable node/no-missing-import */
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { writeAddress } from "./helper";
+import NFTArgs from "../../constants/NFTArgs.json";
+import { BigNumber } from "ethers";
+
+const NFT_ARGS: any = NFTArgs;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -9,21 +13,23 @@ async function main() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // BlastEquipmentNFT
+  const equipmentArgs = NFT_ARGS.Equipment[hre.network.name];
   const BlastEquipmentNFT = await ethers.getContractFactory(
     "BlastEquipmentNFT"
   );
   const blastEqtNFT = await BlastEquipmentNFT.deploy(
-    "Blast Equipment NFT",
-    "BEN"
+    equipmentArgs.name,
+    equipmentArgs.symbol
   );
   await blastEqtNFT.deployed();
   console.log("BlastEquipmentNFT address address:", blastEqtNFT.address);
 
   // BlastLootBox
+  const lootboxArgs = NFT_ARGS.Lootbox[hre.network.name];
   const BlastLootBox = await ethers.getContractFactory("BlastLootBox");
   const blastLootBox = await BlastLootBox.deploy(
-    "Blast Lootbox",
-    "BLX",
+    lootboxArgs.name,
+    lootboxArgs.symbol,
     blastEqtNFT.address
   );
   console.log("BlastLootBox address:", blastLootBox.address);
@@ -37,30 +43,42 @@ async function main() {
   await grantTx.wait();
   console.log("Granted REVEAL_ROLE to Lootbox contract");
 
-  // MarketplaceLootbox Deploying
-  const MarketplaceLootbox = await ethers.getContractFactory(
-    "MarketplaceLootbox"
-  );
-  const lootboxMarket = await MarketplaceLootbox.deploy(
+  // // MarketplaceLootbox Deploying
+  // const MarketplaceLootbox = await ethers.getContractFactory(
+  //   "MarketplaceLootbox"
+  // );
+  // const lootboxMarket = await MarketplaceLootbox.deploy(
+  //   blastLootBox.address,
+  //   "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
+  //   "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84"
+  // );
+  // console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
+
+  // BlastLootboxSale Deploying
+  const lootboxSaleArgs = NFT_ARGS.LootboxSale[hre.network.name];
+  const BlastLootboxSale = await ethers.getContractFactory("BlastLootboxSale");
+  const lootboxSale = await BlastLootboxSale.deploy(
     blastLootBox.address,
-    "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
-    "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84"
+    BigNumber.from(lootboxSaleArgs.price),
+    lootboxSaleArgs.treasury,
+    lootboxSaleArgs.merkleRoot,
+    lootboxSaleArgs.luckyMerkleRoot
   );
-  console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
+  console.log("BlastLootbox Marketplace address: ", lootboxSale.address);
 
-  // NFT MARKETPLACE
-  const Marketplace = await ethers.getContractFactory("Marketplace");
-  const marketplace = await Marketplace.deploy(blastEqtNFT.address);
-  await marketplace.deployed();
+  // // NFT MARKETPLACE
+  // const Marketplace = await ethers.getContractFactory("Marketplace");
+  // const marketplace = await Marketplace.deploy(blastEqtNFT.address);
+  // await marketplace.deployed();
 
-  console.log("Marketplace address address:", marketplace.address);
+  // console.log("Marketplace address address:", marketplace.address);
 
-  writeAddress({
+  writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
     BlastEquipmentNFT: blastEqtNFT.address,
     BlastLootBox: blastLootBox.address,
-    Marketplace: marketplace.address,
-    LootboxMarketplace: lootboxMarket.address,
+    // Marketplace: marketplace.address,
+    BlastLootboxSale: lootboxSale.address,
   });
 }
 

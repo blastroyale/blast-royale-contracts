@@ -17,11 +17,13 @@ contract PrimaryToken is ERC20, ERC20Pausable, Ownable {
     constructor(
         string memory name,
         string memory symbol,
+        address _owner,
         address _treasury,
         uint256 _supply
     ) ERC20(name, symbol) {
         require(_treasury != address(0), "Treasury can't be zero address");
         _mint(_treasury, _supply);
+        _transferOwnership(_owner);
     }
 
     /// @notice Pauses the contract

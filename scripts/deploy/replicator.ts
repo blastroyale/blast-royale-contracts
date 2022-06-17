@@ -1,5 +1,5 @@
 /* eslint-disable node/no-missing-import */
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { getAddress, writeAddress } from "./helper";
 
 async function main() {
@@ -9,7 +9,7 @@ async function main() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // Validation processing
-  const addresses = getAddress();
+  const addresses = getAddress(hre.network.name);
   if (!addresses.BlastEquipmentNFT)
     return console.error("No BlastEquipment NFT address");
   if (!addresses.PrimaryToken) return console.error("No Primary Token address");
@@ -26,7 +26,7 @@ async function main() {
   await replicatorInstance.deployed();
   console.log("BlastEquipmentNFT address address:", replicatorInstance.address);
 
-  writeAddress({
+  writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
     Replicator: replicatorInstance.address,
   });
