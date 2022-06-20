@@ -28,16 +28,16 @@ contract BlastLootBox is
     using Counters for Counters.Counter;
 
     struct LootBox {
-        uint token0;
-        uint token1;
-        uint token2;
+        uint256 token0;
+        uint256 token1;
+        uint256 token2;
     }
 
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
 
     Counters.Counter public _tokenIdCounter;
-    mapping(uint => LootBox) private lootboxDetails;
-    mapping(uint => uint8) private tokenTypes;
+    mapping(uint256 => LootBox) private lootboxDetails;
+    mapping(uint256 => uint8) private tokenTypes;
     IBlastEquipmentNFT public blastEquipmentNFT;
     bool public openAvailable;
 
@@ -58,7 +58,7 @@ contract BlastLootBox is
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (_to.length != _uri.length || _to.length != _eqtIds.length) revert InvalidParams();
-        if (!(_tokenType == 1 || _tokenType == 2)) revert InvalidParams();
+        if (_tokenType != 1 && _tokenType != 2) revert InvalidParams();
 
         for (uint i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
