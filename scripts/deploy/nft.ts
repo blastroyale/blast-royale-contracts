@@ -48,18 +48,18 @@ async function main() {
   );
   console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
 
-  // NFT MARKETPLACE
-  const Marketplace = await ethers.getContractFactory("Marketplace");
-  const marketplace = await Marketplace.deploy(blastEqtNFT.address);
-  await marketplace.deployed();
+  // // NFT MARKETPLACE
+  // const Marketplace = await ethers.getContractFactory("Marketplace");
+  // const marketplace = await Marketplace.deploy(blastEqtNFT.address);
+  // await marketplace.deployed();
 
-  console.log("Marketplace address address:", marketplace.address);
+  // console.log("Marketplace address address:", marketplace.address);
 
   writeAddress({
     deployerAddress: deployer.address,
     BlastEquipmentNFT: blastEqtNFT.address,
     BlastLootBox: blastLootBox.address,
-    Marketplace: marketplace.address,
+    // Marketplace: marketplace.address,
     LootboxMarketplace: lootboxMarket.address,
   });
 }
