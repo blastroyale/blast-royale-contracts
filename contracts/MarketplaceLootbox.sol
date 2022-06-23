@@ -50,7 +50,6 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
     uint public saleStartTimestamp;
     PurchaseLimit private whitelistLimit;
     PurchaseLimit private luckyUserLimit;
-    uint256 public listingCount;
     uint256 public activeListingCount;
 
     mapping(address => bool) public whitelistedTokens;
@@ -75,7 +74,9 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         uint256 tokenId,
         address seller,
         address buyer,
-        uint256 price
+        uint256 price,
+        bool whitelisted,
+        bool isLucky
     );
 
     event WhitelistAdded(address[] whitelists);
@@ -113,7 +114,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         if (price == 0) revert NoZeroPrice();
         if (listings[tokenId].owner != address(0)) revert NotAbleToAdd();
         if (address(payTokenAddress) != address(0)) {
-            if (whitelistedTokens[address(payTokenAddress)] == false)
+            if (!whitelistedTokens[address(payTokenAddress)])
                 revert NotWhitelisted();
         }
 
@@ -187,6 +188,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             (bool sent, ) = payable(listings[_tokenId].owner).call{value: msg.value}("");
             if (!sent) revert FailedToSendEther();
         } else {
+            require(msg.value == 0, "Not allowed to deposit native token");
             payTokenAddress.safeTransferFrom(
                 _msgSender(),
                 listings[_tokenId].owner,
@@ -201,7 +203,9 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             listings[_tokenId].tokenId,
             listings[_tokenId].owner,
             _msgSender(),
-            listings[_tokenId].price
+            listings[_tokenId].price,
+            userWhitelisted,
+            isLuckyUser
         );
     }
 
