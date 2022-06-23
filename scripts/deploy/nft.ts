@@ -1,9 +1,10 @@
 /* eslint-disable node/no-missing-import */
 import { ethers } from "hardhat";
-import { writeAddress } from "./helper";
+import { writeAddress, getMerkleRoots, writeMerkleRoots } from "./helper";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
+  const {merkleRoot, luckyMerkleRoot} : any= await getMerkleRoots();
 
   console.log("Deploying contracts with the account:", deployer.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
@@ -43,8 +44,8 @@ async function main() {
   );
   const lootboxMarket = await MarketplaceLootbox.deploy(
     blastLootBox.address,
-    "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
-    "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84"
+     merkleRoot,
+    luckyMerkleRoot
   );
   console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
 
@@ -62,6 +63,7 @@ async function main() {
     // Marketplace: marketplace.address,
     LootboxMarketplace: lootboxMarket.address,
   });
+  writeMerkleRoots({merkleRoot, luckyMerkleRoot})
 }
 
 // We recommend this pattern to be able to use async/await everywhere
