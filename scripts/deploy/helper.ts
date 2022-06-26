@@ -27,14 +27,14 @@ export const getAddress = () => {
 
 
 export const getMerkleRoots = async () => {
-const _whitelist = fs.readFileSync("./scripts/WL.json", {
+const _whitelist = fs.readFileSync("./scripts/whitelistData/WL.json", {
     encoding: "utf8",
     flag: "r",
   });
   const whiltelist = JSON.parse(_whitelist);
   if (!whiltelist) return;
   
-  const _luckyWhitelist = fs.readFileSync("./scripts/luckyWL.json", {
+  const _luckyWhitelist = fs.readFileSync("./scripts/whitelistData/luckyWL.json", {
     encoding: "utf8",
     flag: "r",
   });
@@ -63,18 +63,26 @@ const _whitelist = fs.readFileSync("./scripts/WL.json", {
       sortPairs: true,
     });
     const luckyMerkleRoot = luckyTree.getHexRoot();
-    console.log("luckyMerkleRoot: ",luckyMerkleRoot)
+
+    const filePath = path.resolve(__dirname, "../whitelistData/merkleRoots.json");
+    const merkleRoots = JSON.parse(
+      fs.readFileSync(filePath, {
+        encoding: "utf8",
+        flag: "r",
+      })
+    );
+  fs.writeFileSync(filePath, JSON.stringify(Object.assign(merkleRoots, {merkleRoot,luckyMerkleRoot})));
 
     return {merkleRoot,luckyMerkleRoot}
 };
 
-export const writeMerkleRoots = (params: any) => {
-  const filePath = path.resolve(__dirname, "../merkleRoots.json");
-  const merkleRoots = JSON.parse(
-    fs.readFileSync(filePath, {
-      encoding: "utf8",
-      flag: "r",
-    })
-  );
-  fs.writeFileSync(filePath, JSON.stringify(Object.assign(merkleRoots, params)));
-};
+// export const writeMerkleRoots = (params: any) => {
+//   const filePath = path.resolve(__dirname, "../merkleRoots.json");
+//   const merkleRoots = JSON.parse(
+//     fs.readFileSync(filePath, {
+//       encoding: "utf8",
+//       flag: "r",
+//     })
+//   );
+//   fs.writeFileSync(filePath, JSON.stringify(Object.assign(merkleRoots, params)));
+// };
