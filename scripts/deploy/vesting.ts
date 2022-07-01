@@ -1,8 +1,6 @@
 /* eslint-disable node/no-missing-import */
-import { ethers } from "hardhat";
-import fs from "fs";
-import path from "path";
-import { writeAddress } from "./helper";
+import hre, { ethers } from "hardhat";
+import { getAddress, writeAddress } from "./helper";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -10,12 +8,7 @@ async function main() {
   console.log("Deploying contracts with the account:", deployer.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const addresses = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, "../address.json"), {
-      encoding: "utf8",
-      flag: "r",
-    })
-  );
+  const addresses = getAddress(hre.network.name);
   const primaryTokenAddress = addresses.PrimaryToken;
 
   if (!primaryTokenAddress)
@@ -29,7 +22,7 @@ async function main() {
   await vesting.deployed();
   console.log("TokenVesting address address:", vesting.address);
 
-  writeAddress({
+  writeAddress(hre.network.name, {
     Vesting: vesting.address,
   });
 }
