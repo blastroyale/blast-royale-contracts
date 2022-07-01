@@ -147,12 +147,13 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         nonReentrant
         whenNotPaused
     {
-        if (listings[tokenId].owner != _msgSender()) revert NotOwner();
-        if (!listings[tokenId].isActive) revert NotActived();
-        listings[tokenId].isActive = false;
+        Listing storage listing = listings[tokenId];
+        if (listing.owner != _msgSender()) revert NotOwner();
+        if (!listing.isActive) revert NotActived();
+        listing.isActive = false;
         lootboxContract.transferFrom(address(this), _msgSender(), tokenId);
         activeListingCount = activeListingCount - 1;
-        emit LootboxDelisted(listings[tokenId].tokenId, _msgSender());
+        emit LootboxDelisted(listing.tokenId, _msgSender());
     }
 
     /// @notice Buys a listed NFT

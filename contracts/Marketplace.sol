@@ -126,7 +126,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param listingId NFT Listing Id.
   function removeListing(uint256 listingId) public nonReentrant
   {
-    Listing memory listing = listings[listingId];
+    Listing storage listing = listings[listingId];
     if (listing.owner != _msgSender()) revert NotOwner();
     if (!listing.isActive) revert NotActived();
     listing.isActive = false;
