@@ -161,7 +161,8 @@ describe("Blast Royale Marketplace Lootbox", function () {
     );
     market = await LootboxMarketplce.connect(admin).deploy(
       lootbox.address,
-      merkleRoot
+      merkleRoot,
+
     );
     await market.deployed();
 

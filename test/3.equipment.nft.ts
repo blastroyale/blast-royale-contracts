@@ -4,14 +4,19 @@ import { ethers } from "hardhat";
 // const uri = "https://blastroyale.com/nft/";
 
 describe("Blast Equipment NFT", function () {
+  let owner:any 
+  let addr1:any
+  let blt:any
+  before("deploying", async () => {
+    const signers = await ethers.getSigners();
+    [owner,addr1] = signers
+  });
   it("Test NFT", async function () {
-    // Getting signer
-    const [owner, addr1] = await ethers.getSigners();
 
     const BlastEquipmentToken = await ethers.getContractFactory(
       "BlastEquipmentNFT"
     );
-    const blt = await BlastEquipmentToken.connect(owner).deploy(
+    blt = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
       "BLT"
     );
@@ -36,5 +41,16 @@ describe("Blast Equipment NFT", function () {
     expect(await blt.tokenURI(0)).to.equal("ipfs://111");
     expect(await blt.tokenURI(1)).to.equal("ipfs://222");
     expect(await blt.hashValue(0)).to.equal(ethers.utils.keccak256("0x1000"));
+
+    const nftAttributes = await blt.attributes(0)
+    const level = nftAttributes["level"].toNumber()
+    const durabilityRemaining = nftAttributes["durabilityRemaining"].toNumber()
+    const repairCount = nftAttributes["repairCount"].toNumber()
+    const replicationCount = nftAttributes["replicationCount"].toNumber()
+    expect(level).to.equal(3)
+    expect(durabilityRemaining).to.equal(2)
+    expect(repairCount).to.equal(1)
+    expect(replicationCount).to.equal(4)
   });
+
 });

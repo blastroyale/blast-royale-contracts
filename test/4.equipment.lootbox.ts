@@ -6,6 +6,7 @@ import { ethers } from "hardhat";
 describe("Blast LootBox Contract", function () {
   let owner: any;
   let player1: any;
+  let player2: any;
   let bet: any;
   let blb: any;
 
@@ -13,6 +14,7 @@ describe("Blast LootBox Contract", function () {
     const signers = await ethers.getSigners();
     owner = signers[0];
     player1 = signers[1];
+    player2 = signers[2];
   });
 
   it("Open function test", async function () {
@@ -149,5 +151,30 @@ describe("Blast LootBox Contract", function () {
 
     const openTx = await blb.connect(owner).openTo(1, player1.address);
     await openTx.wait();
+  });
+
+  it("Can create an empty lootbox with no Blast Equipment minted", async () => {
+
+    // creating a lootbox with tokens that do not exist  
+    const tx = await blb.connect(owner).safeMint(
+      [player2.address],
+      ["ipfs://999"],
+      [
+        {
+          token0: ethers.BigNumber.from("123"),
+          token1: ethers.BigNumber.from("789"),
+          token2: ethers.BigNumber.from("999"),
+        },
+      ],
+      1
+    );
+    await tx.wait();
+    
+
+    expect(await blb.balanceOf(player2.address)).to.eq(1);
+
+    expect(blb.connect(owner).openTo(3, player2.address)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+    // player should not receive any equipment NFT
+    expect(await bet.balanceOf(player2.address)).to.equal(0);
   });
 });

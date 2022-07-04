@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 /// @title Blast Royale Token - Secondary Token
 /// @dev Based on OpenZeppelin Contracts.
 contract SecondaryToken is ERC20, ERC20Pausable, AccessControl {
-
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /// @notice Token constructor
@@ -29,7 +28,10 @@ contract SecondaryToken is ERC20, ERC20Pausable, AccessControl {
     /// @notice Mint new tokens
     /// @param _to Target Address
     /// @param _amount Token Amount
-    function claim(address _to, uint256 _amount) external onlyRole(MINTER_ROLE) {
+    function claim(address _to, uint256 _amount)
+        external
+        onlyRole(MINTER_ROLE)
+    {
         _mint(_to, _amount);
     }
 

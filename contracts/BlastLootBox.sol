@@ -43,7 +43,11 @@ contract BlastLootBox is
 
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
-    constructor(string memory name, string memory symbol, IBlastEquipmentNFT _blastEquipmentNFT) ERC721(name, symbol) {
+    constructor(
+        string memory name,
+        string memory symbol,
+        IBlastEquipmentNFT _blastEquipmentNFT
+    ) ERC721(name, symbol) {
         if (address(_blastEquipmentNFT) == address(0)) revert NoZeroAddress();
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
@@ -53,14 +57,17 @@ contract BlastLootBox is
     /// @notice Creates a new token for `_to`. Its token ID will be automatically
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     /// _tokenType should be 1 or 2 (In case of 1, it's normal box. In case of 2, it's gw box)
-    function safeMint(address[] calldata _to, string[] calldata _uri, LootBox[] calldata _eqtIds, uint8 _tokenType)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (_to.length != _uri.length || _to.length != _eqtIds.length) revert InvalidParams();
+    function safeMint(
+        address[] calldata _to,
+        string[] calldata _uri,
+        LootBox[] calldata _eqtIds,
+        uint8 _tokenType
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_to.length != _uri.length || _to.length != _eqtIds.length)
+            revert InvalidParams();
         if (_tokenType != 1 && _tokenType != 2) revert InvalidParams();
 
-        for (uint i = 0; i < _to.length; i++) {
+        for (uint256 i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
             lootboxDetails[tokenId] = _eqtIds[i];
@@ -70,7 +77,7 @@ contract BlastLootBox is
         }
     }
 
-    function open(uint _tokenId) external {
+    function open(uint256 _tokenId) external {
         if (!_exists(_tokenId)) revert NonExistToken();
         if (_msgSender() != ownerOf(_tokenId)) revert NotOwner();
         if (openAvailable == false) revert NotAvailableToOpen();
@@ -78,7 +85,10 @@ contract BlastLootBox is
         _open(_tokenId, _msgSender());
     }
 
-    function openTo(uint _tokenId, address _to) external onlyRole(GAME_ROLE) {
+    function openTo(uint256 _tokenId, address _to)
+        external
+        onlyRole(GAME_ROLE)
+    {
         if (!_exists(_tokenId)) revert NonExistToken();
         if (_to != ownerOf(_tokenId)) revert NotOwner();
         if (openAvailable == false) revert NotAvailableToOpen();
@@ -86,7 +96,7 @@ contract BlastLootBox is
         _open(_tokenId, _to);
     }
 
-    function _open(uint _tokenId, address _to) internal {
+    function _open(uint256 _tokenId, address _to) internal {
         LootBox memory _eqtIds = lootboxDetails[_tokenId];
 
         blastEquipmentNFT.transferFrom(address(this), _to, _eqtIds.token0);
@@ -104,11 +114,19 @@ contract BlastLootBox is
     /// @notice Get Token Type. (GWB or NB)
     /// @dev Returned value should be 1 or 2
     /// @param _tokenId Token ID.
-    function getTokenType(uint _tokenId) external view override returns (uint8) {
+    function getTokenType(uint256 _tokenId)
+        external
+        view
+        override
+        returns (uint8)
+    {
         return tokenTypes[_tokenId];
     }
 
-    function setOpenAvailableStatus(bool _status) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setOpenAvailableStatus(bool _status)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         openAvailable = _status;
     }
 
