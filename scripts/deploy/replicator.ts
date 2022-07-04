@@ -1,6 +1,6 @@
 /* eslint-disable node/no-missing-import */
 import hre, { ethers } from "hardhat";
-import { getAddress, writeAddress } from "./helper";
+import { getAddress, getContractArguments, writeAddress } from "./helper";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -17,11 +17,14 @@ async function main() {
     return console.error("No Secondary Token address");
 
   // Replicator
+  const args = getContractArguments(hre.network.name, "Replicator");
   const Replicator = await ethers.getContractFactory("Replicator");
   const replicatorInstance = await Replicator.deploy(
     addresses.BlastEquipmentNFT,
     addresses.PrimaryToken,
-    addresses.SecondaryToken
+    addresses.SecondaryToken,
+    args.treasuryAddress,
+    args.companyAddress
   );
   await replicatorInstance.deployed();
   console.log("BlastEquipmentNFT address address:", replicatorInstance.address);
