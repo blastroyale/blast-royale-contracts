@@ -1,0 +1,42 @@
+{
+    "PrimaryToken": {
+        "polygon": {
+            "name": "Blast",
+            "symbol": "BLST",
+            "ownerAddress": "0x277293e4854F2668b9679179b71E38438d779213",
+            "treasuryAddress": "0x7404B18a5c49E25051a1F498E4aBD9362E6Ca94a",
+            "supply": "512000000000000000000000000"
+        },
+        "mumbai": {
+            "name": "TestBlast",
+            "symbol": "TestBLST",
+            "ownerAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+            "treasuryAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+            "supply": "512000000000000000000000000"
+        },
+        "hardhat": {
+            "name": "TestBlast",
+            "symbol": "TestBLST",
+            "ownerAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+            "treasuryAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+            "supply": "512000000000000000000000000"
+        }
+    },
+    "SecondaryToken": {
+        "polygon": {
+            "name": "Craft Spice",
+            "symbol": "CS",
+            "supply": "10000000000000000000000"
+        },
+        "mumbai": {
+            "name": "Test Craft Spice",
+            "symbol": "TestCS",
+            "supply": "10000000000000000000000"
+        },
+        "hardhat": {
+            "name": "Test Craft Spice",
+            "symbol": "TestCS",
+            "supply": "10000000000000000000000"
+        }
+    }
+}

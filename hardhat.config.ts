@@ -45,6 +45,11 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    polygon: {
+      url: "https://speedy-nodes-nyc.moralis.io/99e98b2333a911011f42606d/polygon/mainnet",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
   },
 
   gasReporter: {
@@ -54,7 +59,8 @@ const config: HardhatUserConfig = {
 
   etherscan: {
     apiKey: {
-      polygonMumbai: process.env.ETHERSCAN_API_KEY,
+      polygon: process.env.POLYGON_API_KEY,
+      polygonMumbai: process.env.MUMBAI_API_KEY,
     },
   },
 

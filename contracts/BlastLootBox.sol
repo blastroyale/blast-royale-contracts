@@ -14,6 +14,7 @@ error NoZeroAddress();
 error InvalidParams();
 error NotOwner();
 error NonExistToken();
+error NotAvailableToOpen();
 
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
@@ -34,10 +35,11 @@ contract BlastLootBox is
 
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
 
-    Counters.Counter private _tokenIdCounter;
+    Counters.Counter public _tokenIdCounter;
     mapping(uint256 => LootBox) private lootboxDetails;
     mapping(uint256 => uint8) private tokenTypes;
     IBlastEquipmentNFT public blastEquipmentNFT;
+    bool public openAvailable;
 
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
@@ -63,7 +65,7 @@ contract BlastLootBox is
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (_to.length != _uri.length || _to.length != _eqtIds.length)
             revert InvalidParams();
-        if (!(_tokenType == 1 || _tokenType == 2)) revert InvalidParams();
+        if (_tokenType != 1 && _tokenType != 2) revert InvalidParams();
 
         for (uint256 i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
@@ -78,6 +80,7 @@ contract BlastLootBox is
     function open(uint256 _tokenId) external {
         if (!_exists(_tokenId)) revert NonExistToken();
         if (_msgSender() != ownerOf(_tokenId)) revert NotOwner();
+        if (openAvailable == false) revert NotAvailableToOpen();
 
         _open(_tokenId, _msgSender());
     }
@@ -88,6 +91,7 @@ contract BlastLootBox is
     {
         if (!_exists(_tokenId)) revert NonExistToken();
         if (_to != ownerOf(_tokenId)) revert NotOwner();
+        if (openAvailable == false) revert NotAvailableToOpen();
 
         _open(_tokenId, _to);
     }
@@ -117,6 +121,13 @@ contract BlastLootBox is
         returns (uint8)
     {
         return tokenTypes[_tokenId];
+    }
+
+    function setOpenAvailableStatus(bool _status)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        openAvailable = _status;
     }
 
     /// @notice Unpauses all token transfers.

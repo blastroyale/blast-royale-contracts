@@ -67,19 +67,12 @@ contract BlastEquipmentNFT is
         bytes32[] calldata _hash,
         string[] calldata _realUri
     ) external override onlyRole(MINTER_ROLE) {
-        require(_to != address(0));
+        require(_to != address(0), "To address can't be zero");
         require(_uri.length == _hash.length, "Invalid params");
         require(_uri.length == _realUri.length, "Invalid params");
 
         for (uint256 i = 0; i < _uri.length; i = i + 1) {
-            uint256 tokenId = _tokenIdCounter.current();
-            _tokenIdCounter.increment();
-            hashValue[tokenId] = _hash[i];
-            realTokenURI[tokenId] = _realUri[i];
-            attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
-            _mint(_to, tokenId);
-            _setTokenURI(tokenId, _uri[i]);
-            emit AttributeAdded(tokenId, 1, 0, 0, 0);
+            _safeMint(_to, _uri[i], _hash[i], _realUri[i]);
         }
     }
 
@@ -89,8 +82,17 @@ contract BlastEquipmentNFT is
         bytes32 _hash,
         string calldata _realUri
     ) external override onlyRole(REPLICATOR_ROLE) returns (uint256) {
-        require(_to != address(0));
+        require(_to != address(0), "To address can't be zero");
 
+        return _safeMint(_to, _uri, _hash, _realUri);
+    }
+
+    function _safeMint(
+        address _to,
+        string memory _uri,
+        bytes32 _hash,
+        string memory _realUri
+    ) internal returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         hashValue[tokenId] = _hash;

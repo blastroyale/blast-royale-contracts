@@ -25,33 +25,44 @@ async function main() {
 
   // Verify Marketplace Contract
   await hre.run("verify:verify", {
-    address: addresses.Marketplace,
-    constructorArguments: [addresses.BlastEquipmentNFT],
-    contract: "contracts/Marketplace.sol:Marketplace",
+    address: addresses.LootboxMarketplace,
+    constructorArguments: [
+      addresses.BlastLootBox,
+      "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
+      "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
+    ],
+    contract: "contracts/MarketplaceLootbox.sol:MarketplaceLootbox",
   });
 
-  // Verify Primary Token Contract
-  await hre.run("verify:verify", {
-    address: addresses.PrimaryToken,
-    constructorArguments: [
-      "Blast Token",
-      "BLT",
-      addresses.deployerAddress,
-      BigNumber.from("10000000000000000000000"),
-    ],
-    contract: "contracts/PrimaryToken.sol:PrimaryToken",
-  });
+  // // Verify Marketplace Contract
+  // await hre.run("verify:verify", {
+  //   address: addresses.Marketplace,
+  //   constructorArguments: [addresses.BlastEquipmentNFT],
+  //   contract: "contracts/Marketplace.sol:Marketplace",
+  // });
 
-  // Verify Secondary Token Contract
-  await hre.run("verify:verify", {
-    address: addresses.secondaryToken,
-    constructorArguments: [
-      "Craft Spice",
-      "CS",
-      BigNumber.from("10000000000000000000000"),
-    ],
-    contract: "contracts/SecondaryToken.sol:SecondaryToken",
-  });
+  // // Verify Primary Token Contract
+  // await hre.run("verify:verify", {
+  //   address: addresses.PrimaryToken,
+  //   constructorArguments: [
+  //     "Blast Token",
+  //     "BLT",
+  //     addresses.deployerAddress,
+  //     BigNumber.from("10000000000000000000000"),
+  //   ],
+  //   contract: "contracts/PrimaryToken.sol:PrimaryToken",
+  // });
+
+  // // Verify Secondary Token Contract
+  // await hre.run("verify:verify", {
+  //   address: addresses.secondaryToken,
+  //   constructorArguments: [
+  //     "Craft Spice",
+  //     "CS",
+  //     BigNumber.from("10000000000000000000000"),
+  //   ],
+  //   contract: "contracts/SecondaryToken.sol:SecondaryToken",
+  // });
 }
 
 main().catch((error) => {

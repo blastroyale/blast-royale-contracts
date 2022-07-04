@@ -1,7 +1,10 @@
 /* eslint-disable node/no-missing-import */
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { BigNumber } from "ethers";
 import { writeAddress } from "./helper";
+import TokenArgs from "../../constants/TokenArgs.json";
+
+const TOKEN_ARGS: any = TokenArgs;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -10,29 +13,32 @@ async function main() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // BLT
+  const primaryTokenArgs = TOKEN_ARGS.PrimaryToken[hre.network.name];
   const PrimaryToken = await ethers.getContractFactory("PrimaryToken");
   const primaryToken = await PrimaryToken.deploy(
-    "Blast Token",
-    "BLT",
-    "0x59B5591494653Eafd3dA02B0f1Bc25D828A4191D",
-    ethers.utils.parseEther("512000000") // fixed supply 512M
+    primaryTokenArgs.name,
+    primaryTokenArgs.symbol,
+    primaryTokenArgs.ownerAddress, // owner address
+    primaryTokenArgs.treasuryAddress, // treasury address
+    BigNumber.from(primaryTokenArgs.supply) // fixed supply 512M
   );
   console.log("Primary token address:", primaryToken.address);
 
   // CS
+  const secondaryTokenArgs = TOKEN_ARGS.SecondaryToken[hre.network.name];
   const SecondaryToken = await ethers.getContractFactory("SecondaryToken");
   const secondaryToken = await SecondaryToken.deploy(
-    "Craft Spice",
-    "CS",
-    BigNumber.from("10000000000000000000000")
+    secondaryTokenArgs.name,
+    secondaryTokenArgs.symbol,
+    BigNumber.from(secondaryTokenArgs.supply)
   );
   await secondaryToken.deployed();
   console.log("Secondary token address:", secondaryToken.address);
 
-  writeAddress({
+  writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
     PrimaryToken: primaryToken.address,
-    // SecondaryToken: secondaryToken.address,
+    SecondaryToken: secondaryToken.address,
   });
 }
 

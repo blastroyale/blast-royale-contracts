@@ -14,7 +14,7 @@ error NotOwner();
 error NotActived();
 error InvalidParam();
 error NotWhitelisted();
-error NotEnough();
+error InvalidAmount();
 
 struct Listing {
   address owner;
@@ -42,32 +42,32 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   mapping (uint256 => Listing) public listings;
   IERC721 private erc721Contract;
 
-  /// @notice Event Listed 
+  /// @notice Event Listed
   event ItemListed(
-		uint256 listingId,
-		uint256 tokenId,
-		address seller,
-		uint256 price,
+    uint256 listingId,
+    uint256 tokenId,
+    address seller,
+    uint256 price,
     address payTokenAddress
-	);
+  );
 
-  /// @notice Event Delisted 
+  /// @notice Event Delisted
   event ItemDelisted(
-		uint256 listingId,
-		uint256 tokenId,
-		address seller
-	);
+    uint256 listingId,
+    uint256 tokenId,
+    address seller
+  );
 
-  /// @notice EventItem Sold 
+  /// @notice EventItem Sold
   event ItemSold(
-		uint256 listingId,
-		uint256 tokenId,
-		address seller,
-		address buyer,
+    uint256 listingId,
+    uint256 tokenId,
+    address seller,
+    address buyer,
     uint256 price,
     uint256 fee1,
     uint256 fee2
-	);
+  );
 
   /// @notice Event Fee changed
   event FeesChanged(
@@ -81,7 +81,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   event WhitelistAdded(address[] whitelists);
 
   event WhitelistRemoved(address[] whitelists);
- 
+
   /// @notice Token constructor
   /// @dev Setup the two contracts it will interact with : ERC721 and ERC20
   /// @param erc721Address Address of the NFT Contract.
@@ -100,7 +100,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   {
     if (price == 0) revert NoZeroPrice();
     if (address(payTokenAddress) != address(0)) {
-      if (whitelistedTokens[address(payTokenAddress)] == false) revert NotWhitelisted();
+      if (!whitelistedTokens[address(payTokenAddress)]) revert NotWhitelisted();
     }
 
     uint256 listingId = listingCount;
@@ -118,7 +118,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       address(this),
       tokenId);
 
-    emit ItemListed(listingId, tokenId, _msgSender(), price, address(payTokenAddress));   
+    emit ItemListed(listingId, tokenId, _msgSender(), price, address(payTokenAddress));
   }
 
   /// @notice Remove a Listing from the Marketplace
@@ -126,16 +126,17 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param listingId NFT Listing Id.
   function removeListing(uint256 listingId) public nonReentrant
   {
-    if (listings[listingId].owner != _msgSender()) revert NotOwner();
-    if (!listings[listingId].isActive) revert NotActived();
-    listings[listingId].isActive = false;
+    Listing storage listing = listings[listingId];
+    if (listing.owner != _msgSender()) revert NotOwner();
+    if (!listing.isActive) revert NotActived();
+    listing.isActive = false;
     erc721Contract.transferFrom(
       address(this),
       _msgSender(),
-      listings[listingId].tokenId
+      listing.tokenId
     );
     activeListingCount = activeListingCount - 1;
-    emit ItemDelisted(listingId, listings[listingId].tokenId, _msgSender() );   
+    emit ItemDelisted(listingId, listing.tokenId, _msgSender() );
   }
 
   /// @notice Buys a listed NFT
@@ -152,7 +153,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     uint256 buyingFee2 = (fee2 * listedPrice / DECIMAL_FACTOR);
 
     if (address(payTokenAddress) == address(0)) {
-      if (msg.value < listedPrice) revert NotEnough();
+      if (msg.value != listedPrice) revert InvalidAmount();
       if (buyingFee1 > 0) {
         (bool sent1, ) = payable(treasury1).call{value: buyingFee1}("");
         require(sent1, "Failed to send Ether to treasury1");
@@ -164,6 +165,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       (bool sent, ) = payable(listings[listingId].owner).call{value: listedPrice - buyingFee1 - buyingFee2}("");
       require(sent, "Failed to send Ether");
     } else {
+      if (msg.value != 0) revert InvalidAmount();
       if (buyingFee1 > 0) {
         payTokenAddress.safeTransferFrom(
           _msgSender(),
@@ -190,7 +192,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
       listings[listingId].tokenId
     );
     activeListingCount = activeListingCount - 1;
-    
+
     emit ItemSold(
       listingId,
       listings[listingId].tokenId,
@@ -209,8 +211,6 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   /// @param _treasury2 New treasury2 address.
   function setFee(uint256 _fee1, address _treasury1, uint256 _fee2, address _treasury2) public onlyOwner
   {
-    if (_fee1 >= DECIMAL_FACTOR) revert InvalidParam();
-    if (_fee2 >= DECIMAL_FACTOR) revert InvalidParam();
     if (_fee1 + _fee2 >= DECIMAL_FACTOR) revert InvalidParam();
     if (_treasury1 == address(0)) revert NoZeroAddress();
     if (_treasury2 == address(0)) revert NoZeroAddress();
@@ -229,7 +229,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     );
   }
 
-  function setWhitelistTokens(address[] memory _whitelist) public onlyOwner {
+  function setWhitelistTokens(address[] calldata _whitelist) external onlyOwner {
     for (uint i = 0; i < _whitelist.length; i++) {
       if (_whitelist[i] == address(0)) revert NoZeroAddress();
       whitelistedTokens[_whitelist[i]] = true;
@@ -238,7 +238,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     emit WhitelistAdded(_whitelist);
   }
 
-  function removeWhitelistTokens(address[] memory _whitelist) public onlyOwner {
+  function removeWhitelistTokens(address[] calldata _whitelist) external onlyOwner {
     for (uint i = 0; i < _whitelist.length; i++) {
       if (_whitelist[i] == address(0)) revert NoZeroAddress();
       whitelistedTokens[_whitelist[i]] = false;
