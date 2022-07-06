@@ -1,68 +1,120 @@
+/* eslint-disable node/no-missing-import */
 import hre from "hardhat";
-import fs from "fs";
 import { BigNumber } from "ethers";
+import NFTArgs from "../constants/NFTArgs.json";
+import TokenArgs from "../constants/TokenArgs.json";
+import ReplicatorArgs from "../constants/ReplicatorArgs.json";
+import { getAddress } from "./deploy/helper";
+
+const NFT_ARGS: any = NFTArgs;
+const TOKEN_ARGS: any = TokenArgs;
+const REPLICATOR_ARGS: any = ReplicatorArgs;
 
 async function main() {
-  const _address = fs.readFileSync("./scripts/address.json", {
-    encoding: "utf8",
-    flag: "r",
-  });
-  const addresses = JSON.parse(_address);
+  const addresses = getAddress(hre.network.name);
 
   // Verify BlastEquipmentNFT Contract
-  await hre.run("verify:verify", {
-    address: addresses.BlastEquipmentNFT,
-    constructorArguments: ["Blast Equipment NFT", "BEN"],
-    contract: "contracts/BlastEquipmentNFT.sol:BlastEquipmentNFT",
-  });
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.BlastEquipmentNFT,
+      constructorArguments: [
+        NFT_ARGS.Equipment[hre.network.name].name,
+        NFT_ARGS.Equipment[hre.network.name].symbol,
+      ],
+      contract: "contracts/BlastEquipmentNFT.sol:BlastEquipmentNFT",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 
   // Verify BlastLootBox Contract
-  await hre.run("verify:verify", {
-    address: addresses.BlastLootBox,
-    constructorArguments: ["Blast Lootbox", "BLX", addresses.BlastEquipmentNFT],
-    contract: "contracts/BlastLootBox.sol:BlastLootBox",
-  });
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.BlastLootBox,
+      constructorArguments: [
+        NFT_ARGS.Lootbox[hre.network.name].name,
+        NFT_ARGS.Lootbox[hre.network.name].symbol,
+        addresses.BlastEquipmentNFT,
+      ],
+      contract: "contracts/BlastLootBox.sol:BlastLootBox",
+    });
+  } catch (err) {
+    console.error(err);
+  }
+
+  // Verify Replicator Contract
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.Replicator,
+      constructorArguments: [
+        addresses.BlastEquipmentNFT,
+        addresses.PrimaryToken,
+        addresses.SecondaryToken,
+        REPLICATOR_ARGS.Replicator[hre.network.name].treasuryAddress,
+        REPLICATOR_ARGS.Replicator[hre.network.name].companyAddress,
+      ],
+      contract: "contracts/Replicator.sol:Replicator",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 
   // Verify Marketplace Contract
-  await hre.run("verify:verify", {
-    address: addresses.LootboxMarketplace,
-    constructorArguments: [
-      addresses.BlastLootBox,
-      "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
-      "0x6306a340f9f3dca2f533a296dc25e3616c0ab74c9d70260810a7a8be3c618d84",
-    ],
-    contract: "contracts/MarketplaceLootbox.sol:MarketplaceLootbox",
-  });
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.LootboxMarketplace,
+      constructorArguments: [
+        addresses.BlastLootBox,
+        "0xd68c0a864e79ef65d97ede9d587355983dca17089d7fe63699717f7aceeeba85",
+        "0x2fbe3b63c32b738129d3a1578400d64555da3e2dd2945119256b149e14de2db9",
+      ],
+      contract: "contracts/MarketplaceLootbox.sol:MarketplaceLootbox",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 
-  // // Verify Marketplace Contract
-  // await hre.run("verify:verify", {
-  //   address: addresses.Marketplace,
-  //   constructorArguments: [addresses.BlastEquipmentNFT],
-  //   contract: "contracts/Marketplace.sol:Marketplace",
-  // });
+  // Verify Marketplace Contract
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.Marketplace,
+      constructorArguments: [addresses.BlastEquipmentNFT],
+      contract: "contracts/Marketplace.sol:Marketplace",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 
-  // // Verify Primary Token Contract
-  // await hre.run("verify:verify", {
-  //   address: addresses.PrimaryToken,
-  //   constructorArguments: [
-  //     "Blast Token",
-  //     "BLT",
-  //     addresses.deployerAddress,
-  //     BigNumber.from("10000000000000000000000"),
-  //   ],
-  //   contract: "contracts/PrimaryToken.sol:PrimaryToken",
-  // });
+  // Verify Primary Token Contract
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.PrimaryToken,
+      constructorArguments: [
+        TOKEN_ARGS.PrimaryToken[hre.network.name].name,
+        TOKEN_ARGS.PrimaryToken[hre.network.name].symbol,
+        addresses.deployerAddress,
+        BigNumber.from("10000000000000000000000"),
+      ],
+      contract: "contracts/PrimaryToken.sol:PrimaryToken",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 
-  // // Verify Secondary Token Contract
-  // await hre.run("verify:verify", {
-  //   address: addresses.secondaryToken,
-  //   constructorArguments: [
-  //     "Craft Spice",
-  //     "CS",
-  //     BigNumber.from("10000000000000000000000"),
-  //   ],
-  //   contract: "contracts/SecondaryToken.sol:SecondaryToken",
-  // });
+  // Verify Secondary Token Contract
+  try {
+    await hre.run("verify:verify", {
+      address: addresses.secondaryToken,
+      constructorArguments: [
+        TOKEN_ARGS.SecondaryToken[hre.network.name].name,
+        TOKEN_ARGS.SecondaryToken[hre.network.name].symbol,
+        BigNumber.from("10000000000000000000000"),
+      ],
+      contract: "contracts/SecondaryToken.sol:SecondaryToken",
+    });
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 main().catch((error) => {
