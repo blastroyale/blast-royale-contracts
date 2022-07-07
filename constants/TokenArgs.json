@@ -36,7 +36,7 @@
         "hardhat": {
             "name": "Test Craft Spice",
             "symbol": "TestCS",
-            "supply": "10000000000000000000000"
+            "supply": "100000000000000000000000000000"
         }
     }
 }

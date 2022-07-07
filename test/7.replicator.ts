@@ -1,9 +1,12 @@
+/* eslint-disable node/no-missing-import */
 import { expect } from "chai";
+import { BigNumber } from "ethers";
 import { ethers, network } from "hardhat";
+import { getContractArguments } from "../scripts/deploy/helper";
 
-describe("Replicator Contract", function () {
+describe("Replicator Contract", () => {
   it("Replicate function test", async function () {
-    const [owner, addr1,treasury] = await ethers.getSigners();
+    const [owner, addr1, company, treasury] = await ethers.getSigners();
     // BlastEquipment NFT Deploying
     const BlastEquipmentToken = await ethers.getContractFactory(
       "BlastEquipmentNFT"
@@ -15,35 +18,51 @@ describe("Replicator Contract", function () {
     await bet.deployed();
 
     // Blast Token Deploying
+    const primaryTokenArgs = getContractArguments(network.name, "PrimaryToken");
     const BlastToken = await ethers.getContractFactory("PrimaryToken");
     const blt = await BlastToken.deploy(
-      "Blast Royale",
-      "$BLT",
-      treasury.address,
-      ethers.utils.parseEther("100000000")
+      primaryTokenArgs.name,
+      primaryTokenArgs.symbol,
+      owner.address, // owner address
+      owner.address, // treasury address
+      BigNumber.from(primaryTokenArgs.supply) // fixed supply 512M
     );
     await blt.deployed();
     await (
-      await blt.connect(treasury).transfer(addr1.address, ethers.utils.parseEther("200"))
+      await blt
+        .connect(owner)
+        .transfer(addr1.address, ethers.utils.parseEther("200"))
     ).wait();
 
     // CS Token deploying
+    const secondaryTokenArgs = getContractArguments(
+      network.name,
+      "SecondaryToken"
+    );
     const CraftToken = await ethers.getContractFactory("SecondaryToken");
     const cs = await CraftToken.deploy(
-      "Craftship",
-      "$BLT",
-      ethers.utils.parseEther("100000000")
+      secondaryTokenArgs.name,
+      secondaryTokenArgs.symbol,
+      BigNumber.from(secondaryTokenArgs.supply)
     );
     await cs.deployed();
     await (
-      await cs.transfer(addr1.address, ethers.utils.parseEther("45000"))
+      await cs
+        .connect(owner)
+        .transfer(addr1.address, ethers.utils.parseEther("45000"))
     ).wait();
 
     // Replicator Contract Deploying
     const replicator = await ethers.getContractFactory("Replicator");
     const replicatorContract = await replicator
       .connect(owner)
-      .deploy(bet.address, blt.address, cs.address);
+      .deploy(
+        bet.address,
+        blt.address,
+        cs.address,
+        treasury.address,
+        company.address
+      );
     await replicatorContract.deployed();
 
     // Granting Replicator role to replicator contract address
@@ -72,7 +91,7 @@ describe("Replicator Contract", function () {
     await approveTx1.wait();
     const approveTx2 = await blt
       .connect(addr1)
-      .approve(replicatorContract.address, ethers.utils.parseEther("200"));
+      .approve(replicatorContract.address, ethers.utils.parseEther("14"));
     await approveTx2.wait();
 
     const eggMetadataUrl =
@@ -95,6 +114,13 @@ describe("Replicator Contract", function () {
     //   .connect(addr1)
     //   .replicate(0, 1);
     // await replicateTxFrom.wait();
+
+    expect(await blt.balanceOf(company.address)).to.eq(
+      ethers.utils.parseEther("10.5")
+    );
+    expect(await blt.balanceOf(treasury.address)).to.eq(
+      ethers.utils.parseEther("3.5")
+    );
 
     expect(await bet.tokenURI(2)).to.eq(eggMetadataUrl);
 

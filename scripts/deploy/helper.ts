@@ -2,6 +2,9 @@ import fs from "fs";
 import path from "path";
 import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
+import TokenArgs from "../../constants/TokenArgs.json";
+
+const TOKEN_ARGS: any = TokenArgs;
 
 export const writeAddress = (network: string, params: any) => {
   const PROJECT_ROOT = path.resolve(__dirname, "../..");
@@ -38,6 +41,10 @@ export const getAddress = (network: string) => {
     })
   );
   return addresses;
+};
+
+export const getContractArguments = (network: string, contractName: string) => {
+  return TOKEN_ARGS[contractName][network];
 };
 
 export const getMerkleRoots = async () => {

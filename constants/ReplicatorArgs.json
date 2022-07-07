@@ -1,0 +1,16 @@
+{
+    "Replicator": {
+        "polygon": {
+            "companyAddress": "0x277293e4854F2668b9679179b71E38438d779213",
+            "treasuryAddress": "0x7404B18a5c49E25051a1F498E4aBD9362E6Ca94a"
+        },
+        "mumbai": {
+            "companyAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+            "treasuryAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a"
+        },
+        "hardhat": {
+            "companyAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+            "treasuryAddress": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a"
+        }
+    }
+}

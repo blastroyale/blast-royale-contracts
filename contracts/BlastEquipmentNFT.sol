@@ -54,9 +54,10 @@ contract BlastEquipmentNFT is
     /// @param symbol Symbol of the contract
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(REPLICATOR_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
+        _setupRole(REVEAL_ROLE, _msgSender());
+        _setupRole(REPLICATOR_ROLE, _msgSender());
     }
 
     /// @notice Creates a new token for `to`. Its token ID will be automatically

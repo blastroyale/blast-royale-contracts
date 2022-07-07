@@ -1,6 +1,9 @@
 /* eslint-disable node/no-missing-import */
 import hre, { ethers } from "hardhat";
 import { getAddress, writeAddress } from "./helper";
+import Args from "../../constants/ReplicatorArgs.json";
+
+const replicatorArgs: any = Args;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -21,10 +24,12 @@ async function main() {
   const replicatorInstance = await Replicator.deploy(
     addresses.BlastEquipmentNFT,
     addresses.PrimaryToken,
-    addresses.SecondaryToken
+    addresses.SecondaryToken,
+    replicatorArgs.Replicator[hre.network.name].treasuryAddress,
+    replicatorArgs.Replicator[hre.network.name].companyAddress
   );
   await replicatorInstance.deployed();
-  console.log("BlastEquipmentNFT address address:", replicatorInstance.address);
+  console.log("Replicator address address:", replicatorInstance.address);
 
   writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
