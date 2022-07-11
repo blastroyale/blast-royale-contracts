@@ -8,11 +8,13 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
+import "./interfaces/IERC4907.sol";
 
 /// @title Blast Equipment NFT
 /// @dev BlastNFT ERC721 token
 contract BlastEquipmentNFT is
     ERC721,
+    IERC4907,
     IBlastEquipmentNFT,
     ERC721URIStorage,
     ERC721Burnable,
@@ -30,12 +32,18 @@ contract BlastEquipmentNFT is
         uint256 replicationCount;
     }
 
+    struct UserInfo {
+        address user; // address of user role
+        uint64 expires; // unix timestamp, user expires
+    }
+
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
 
     Counters.Counter public _tokenIdCounter;
+    mapping(uint256 => UserInfo) internal _users;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
     mapping(uint256 => string) private realTokenURI;
@@ -217,6 +225,12 @@ contract BlastEquipmentNFT is
         uint256 tokenId
     ) internal virtual override whenNotPaused {
         super._beforeTokenTransfer(from, to, tokenId);
+
+        if (from != to) {
+            _users[tokenId].user = address(0);
+            _users[tokenId].expires = 0;
+            emit UpdateUser(tokenId, address(0), 0);
+        }
     }
 
     /// @notice Unpauses all token transfers.
@@ -239,6 +253,51 @@ contract BlastEquipmentNFT is
         returns (string memory)
     {
         return super.tokenURI(tokenId);
+    }
+
+    /// @notice set the user and expires of a NFT
+    /// @dev The zero address indicates there is no user
+    /// Throws if `tokenId` is not valid NFT
+    /// @param user  The new user of the NFT
+    /// @param expires  UNIX timestamp, The new user could use the NFT before expires
+    function setUser(
+        uint256 tokenId,
+        address user,
+        uint64 expires
+    ) public virtual {
+        require(
+            _isApprovedOrOwner(msg.sender, tokenId),
+            "ERC721: transfer caller is not owner nor approved"
+        );
+        UserInfo storage info = _users[tokenId];
+        info.user = user;
+        info.expires = expires;
+        emit UpdateUser(tokenId, user, expires);
+    }
+
+    /// @notice Get the user address of an NFT
+    /// @dev The zero address indicates that there is no user or the user is expired
+    /// @param tokenId The NFT to get the user address for
+    /// @return The user address for this NFT
+    function userOf(uint256 tokenId) public view virtual returns (address) {
+        if (uint256(_users[tokenId].expires) >= block.timestamp) {
+            return _users[tokenId].user;
+        } else {
+            return address(0);
+        }
+    }
+
+    /// @notice Get the user expires of an NFT
+    /// @dev The zero value indicates that there is no user
+    /// @param tokenId The NFT to get the user expires for
+    /// @return The user expires for this NFT
+    function userExpires(uint256 tokenId)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return _users[tokenId].expires;
     }
 
     /// @dev See {IERC165-supportsInterface}.
