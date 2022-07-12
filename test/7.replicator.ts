@@ -100,10 +100,18 @@ describe("Replicator Contract", () => {
       "https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json";
     const hash =
       "0x8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d";
+
+    await (
+      await bet.connect(addr1).approve(replicatorContract.address, 0)
+    ).wait();
+    await (
+      await bet.connect(addr1).approve(replicatorContract.address, 1)
+    ).wait();
+
     // Replicate in Replicator Contract
     await (
       await replicatorContract
-        .connect(addr1)
+        .connect(owner)
         .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1)
     ).wait();
 
