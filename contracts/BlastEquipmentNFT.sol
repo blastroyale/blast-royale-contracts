@@ -43,7 +43,8 @@ contract BlastEquipmentNFT is
     modifier hasGameRole() {
         require(
             hasRole(GAME_ROLE, _msgSender()) ||
-                hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+            hasRole(DEFAULT_ADMIN_ROLE, _msgSender()) ||
+            hasRole(REPLICATOR_ROLE, _msgSender()),
             "AccessControl: Missing role"
         );
         _;
