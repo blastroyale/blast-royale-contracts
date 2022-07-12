@@ -108,9 +108,19 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         }
     }
 
-    function replicate(string calldata _uri, bytes32 _hash, string calldata _realUri, uint256 _p1, uint256 _p2) external nonReentrant whenNotPaused {
+    function replicate(string calldata _uri, bytes32 _hash, string calldata _realUri, uint256 _p1, uint256 _p2) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
-        if (blastEquipmentNFT.ownerOf(_p1) != msg.sender || blastEquipmentNFT.ownerOf(_p2) != msg.sender) revert NotOwner();
+        if (
+            blastEquipmentNFT.ownerOf(_p1) != msg.sender &&
+            blastEquipmentNFT.getApproved(_p1) != address(this) &&
+            !blastEquipmentNFT.isApprovedForAll(blastEquipmentNFT.ownerOf(_p1), address(this))
+        ) revert NotOwner();
+        if (
+            blastEquipmentNFT.ownerOf(_p2) != msg.sender &&
+            blastEquipmentNFT.getApproved(_p2) != address(this) &&
+            !blastEquipmentNFT.isApprovedForAll(blastEquipmentNFT.ownerOf(_p2), address(this))
+        ) revert NotOwner();
+
         if (isReplicating[_p1] || isReplicating[_p2]) revert NotReadyReplicate();
 
         uint256 currentReplicationCountP1;
@@ -126,8 +136,8 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         }
 
         // TODO: Add a check to make sure the child token is not already replicated
-        // blastEquipmentNFT.setReplicationCount(_p1, currentReplicationCountP1 + 1);
-        // blastEquipmentNFT.setReplicationCount(_p2, currentReplicationCountP2 + 1);
+        blastEquipmentNFT.setReplicationCount(_p1, currentReplicationCountP1 + 1);
+        blastEquipmentNFT.setReplicationCount(_p2, currentReplicationCountP2 + 1);
 
         //MINT
         isReplicating[_p1] = true;
