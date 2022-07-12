@@ -112,7 +112,6 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         if (_p1 == _p2) revert InvalidParams();
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
         if (
-            tokenOwner != msg.sender &&
             blastEquipmentNFT.getApproved(_p1) != address(this) &&
             !blastEquipmentNFT.isApprovedForAll(tokenOwner, address(this))
         ) revert NotOwner();
