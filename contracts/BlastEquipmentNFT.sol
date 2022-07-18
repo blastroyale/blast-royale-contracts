@@ -25,9 +25,9 @@ contract BlastEquipmentNFT is
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
     struct VariableAttributes {
         uint256 level;
-        // uint256 durabilityRemaining;
-        uint256 durabilityStart;
-        uint256 durabilityEnd;
+        uint256 maxDurability;
+        uint256 durability;
+        uint256 lastRepairTime;
         uint256 repairCount;
         uint256 replicationCount;
     }
@@ -104,8 +104,9 @@ contract BlastEquipmentNFT is
         realTokenURI[tokenId] = _realUri;
         attributes[tokenId] = VariableAttributes({
             level: 1,
-            durabilityStart: block.timestamp,
-            durabilityEnd: block.timestamp + RUSTING_PERIOD, // It will be between 96 and 144
+            maxDurability: 96,
+            durability: 0,
+            lastRepairTime: block.timestamp,
             repairCount: 0,
             replicationCount: 0
         });
@@ -143,12 +144,12 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function setDurabilityEndtime(
-        uint256 _tokenId,
-        uint256 _endTime
+    function extendDurability(
+        uint256 _tokenId
     ) external override hasGameRole {
         VariableAttributes storage _attribute = attributes[_tokenId];
-        _attribute.durabilityEnd = _endTime;
+        _attribute.durability += getDurabilityPoints(_attribute);
+        _attribute.lastRepairTime = block.timestamp;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         emit AttributeUpdated(
             _tokenId,
@@ -215,7 +216,8 @@ contract BlastEquipmentNFT is
     }
 
     function getDurabilityPoints(VariableAttributes memory _attribute) internal view returns (uint256) {
-        return (block.timestamp - _attribute.durabilityStart) / 1 weeks;
+        uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / 1 weeks;
+        return _durabilityPoint > _attribute.maxDurability ? _attribute.maxDurability : (_durabilityPoint + _attribute.durability);
     }
 
     /// @notice Pauses all token transfers.
