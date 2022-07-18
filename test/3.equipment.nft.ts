@@ -52,11 +52,36 @@ describe("Blast Equipment NFT", function () {
     expect(replicationCount).to.equal(4);
 
     // Time increase to test morphTo function
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 28]);
+    // Week 1. maxDurability: 96, durability: 1
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
     await network.provider.send("evm_mine");
     nftAttributes = await blt.getAttributes(0);
-    expect(nftAttributes[1].toNumber()).to.eq(4);
+    expect(nftAttributes[1].toNumber()).to.eq(1);
 
+    // Week 2. maxDurability: 96, durability: 2
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
+    await network.provider.send("evm_mine");
+    nftAttributes = await blt.getAttributes(0);
+    expect(nftAttributes[1].toNumber()).to.eq(2);
+
+    // We do Repair on Week 2. It gives us maxDurability: 96, durability: 0, durabilityRestored: 2
     await blt.extendDurability(0);
+
+    nftAttributes = await blt.getAttributes(0);
+    const attributes = await blt.attributes(0);
+    expect(attributes.durabilityRestored.toNumber()).to.eq(2);
+    expect(nftAttributes[1].toNumber()).to.eq(0);
+
+    // Week 3, maxDurability: 96, durability: 1, durabilityRestored: 2
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
+    await network.provider.send("evm_mine");
+    nftAttributes = await blt.getAttributes(0);
+    expect(nftAttributes[1].toNumber()).to.eq(1);
+
+    // Week 98, maxDurability: 96, durability: 96, durabilityRestored: 2. On this week the item becomes unusable in game.
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 95]);
+    await network.provider.send("evm_mine");
+    nftAttributes = await blt.getAttributes(0);
+    expect(nftAttributes[1].toNumber()).to.eq(96);
   });
 });

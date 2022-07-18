@@ -26,6 +26,7 @@ contract BlastEquipmentNFT is
     struct VariableAttributes {
         uint256 level;
         uint256 maxDurability;
+        uint256 durabilityRestored;
         uint256 durability;
         uint256 lastRepairTime;
         uint256 repairCount;
@@ -105,6 +106,7 @@ contract BlastEquipmentNFT is
         attributes[tokenId] = VariableAttributes({
             level: 1,
             maxDurability: 96,
+            durabilityRestored: 0,
             durability: 0,
             lastRepairTime: block.timestamp,
             repairCount: 0,
@@ -148,7 +150,7 @@ contract BlastEquipmentNFT is
         uint256 _tokenId
     ) external override hasGameRole {
         VariableAttributes storage _attribute = attributes[_tokenId];
-        _attribute.durability += getDurabilityPoints(_attribute);
+        _attribute.durabilityRestored += getDurabilityPoints(_attribute);
         _attribute.lastRepairTime = block.timestamp;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         emit AttributeUpdated(
@@ -217,7 +219,7 @@ contract BlastEquipmentNFT is
 
     function getDurabilityPoints(VariableAttributes memory _attribute) internal view returns (uint256) {
         uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / 1 weeks;
-        return _durabilityPoint > _attribute.maxDurability ? _attribute.maxDurability : (_durabilityPoint + _attribute.durability);
+        return (_durabilityPoint > _attribute.maxDurability ? _attribute.maxDurability : _durabilityPoint);
     }
 
     /// @notice Pauses all token transfers.
