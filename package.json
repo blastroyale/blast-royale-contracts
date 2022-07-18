@@ -10,6 +10,8 @@
     "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
     "verify:mumbai": "hardhat run scripts/verify.ts --network mumbai",
     "test:loot": "hardhat test test/loot.ts",
+    "export-abi": "hardhat export-abi",
+    "clear-abi": "hardhat clear-abi",
     "cucumber": "hardhat compile && tsc && cucumber-js"
   },
   "keywords": [],
@@ -41,7 +43,7 @@
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.2",
     "hardhat": "^2.9.3",
-    "hardhat-abi-exporter": "^2.8.0",
+    "hardhat-abi-exporter": "^2.10.0",
     "hardhat-gas-reporter": "^1.0.8",
     "prettier": "^2.6.2",
     "prettier-plugin-solidity": "^1.0.0-beta.19",

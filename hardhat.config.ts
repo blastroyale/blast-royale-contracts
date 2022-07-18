@@ -5,6 +5,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
+import "hardhat-abi-exporter";
 import "solidity-coverage";
 
 dotenv.config();
@@ -63,6 +64,17 @@ const config: HardhatUserConfig = {
       polygonMumbai: process.env.MUMBAI_API_KEY,
     },
   },
+
+  abiExporter: [
+    {
+      path: "./abi/pretty",
+      pretty: true,
+    },
+    {
+      path: "./abi/ugly",
+      pretty: false,
+    },
+  ],
 
   typechain: {
     outDir: "typechain",
