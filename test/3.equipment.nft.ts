@@ -83,5 +83,11 @@ describe("Blast Equipment NFT", function () {
     await network.provider.send("evm_mine");
     nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(96);
+
+    // Week 100, maxDurability: 96, durability: 96, durabilityRestored: 2
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 2]);
+    await network.provider.send("evm_mine");
+    nftAttributes = await blt.getAttributes(0);
+    expect(nftAttributes[1].toNumber()).to.eq(96);
   });
 });
