@@ -25,7 +25,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
 
     uint8 public constant INIT_REPLICATION_COUNT = 7;
     // TODO: It would be 5 days in public release. (5 days)
-    uint256 public constant REPLICATION_TIMER = 1 hours;
+    uint256 public constant REPLICATION_TIMER = 5 minutes;
     address private constant DEAD_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
 
