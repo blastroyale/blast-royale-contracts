@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
@@ -8,6 +9,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
+import "hardhat/console.sol";
 
 /// @title Blast Equipment NFT
 /// @dev BlastNFT ERC721 token
@@ -27,7 +29,6 @@ contract BlastEquipmentNFT is
         uint256 level;
         uint256 maxDurability;
         uint256 durabilityRestored;
-        uint256 durability;
         uint256 lastRepairTime;
         uint256 repairCount;
         uint256 replicationCount;
@@ -37,8 +38,8 @@ contract BlastEquipmentNFT is
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
-    uint256 public constant RUSTING_PERIOD = 96 weeks;
 
+    ERC20Burnable public csToken;
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
@@ -57,12 +58,16 @@ contract BlastEquipmentNFT is
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol, ERC20Burnable _csToken) ERC721(name, symbol) {
+        require(address(_csToken) != address(0), "NoZeroAddress");
+
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
         _setupRole(REVEAL_ROLE, _msgSender());
         _setupRole(REPLICATOR_ROLE, _msgSender());
+
+        csToken = _csToken;
     }
 
     /// @notice Creates a new token for `to`. Its token ID will be automatically
@@ -107,7 +112,6 @@ contract BlastEquipmentNFT is
             level: 1,
             maxDurability: 96,
             durabilityRestored: 0,
-            durability: 0,
             lastRepairTime: block.timestamp,
             repairCount: 0,
             replicationCount: 0
@@ -140,22 +144,6 @@ contract BlastEquipmentNFT is
         emit AttributeUpdated(
             _tokenId,
             _newLevel,
-            _durabilityPoint,
-            _attribute.repairCount,
-            _attribute.replicationCount
-        );
-    }
-
-    function extendDurability(
-        uint256 _tokenId
-    ) external override hasGameRole {
-        VariableAttributes storage _attribute = attributes[_tokenId];
-        _attribute.durabilityRestored += getDurabilityPoints(_attribute);
-        _attribute.lastRepairTime = block.timestamp;
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
-        emit AttributeUpdated(
-            _tokenId,
-            _attribute.level,
             _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
@@ -219,7 +207,47 @@ contract BlastEquipmentNFT is
 
     function getDurabilityPoints(VariableAttributes memory _attribute) internal view returns (uint256) {
         uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / 1 weeks;
-        return (_durabilityPoint > _attribute.maxDurability ? _attribute.maxDurability : _durabilityPoint);
+        return (_durabilityPoint >= _attribute.maxDurability ? _attribute.maxDurability : _durabilityPoint);
+    }
+
+    function repair(
+        uint256 _tokenId
+    ) external override hasGameRole {
+        require(ownerOf(_tokenId) == _msgSender(), "AccessControl: Missing role");
+        uint256 price = getRepairPrice(_tokenId);
+        require(price > 0, "Price can't be zero");
+
+        // Burning CS token from msgSender
+        csToken.burnFrom(_msgSender(), price);
+        
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.durabilityRestored += getDurabilityPoints(_attribute);
+        _attribute.lastRepairTime = block.timestamp;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+        emit AttributeUpdated(
+            _tokenId,
+            _attribute.level,
+            _durabilityPoint,
+            _attribute.repairCount,
+            _attribute.replicationCount
+        );
+    }
+
+    function getRepairPrice(uint256 tokenId) public view returns (uint256) {
+        VariableAttributes memory _attribute = attributes[tokenId];
+        return sqrt(((_attribute.durabilityRestored * 20 + 100) * getDurabilityPoints(_attribute)) ** 5) * 20 / 100000;
+    }
+
+    function sqrt(uint x) internal pure returns (uint y) {
+        if (x == 0) return 0;
+        else if (x <= 3) return 1;
+        uint z = (x + 1) / 2;
+        y = x;
+        while (z < y)
+        {
+            y = z;
+            z = (x / z + z) / 2;
+        }
     }
 
     /// @notice Pauses all token transfers.
