@@ -351,6 +351,19 @@
   },
   {
     "inputs": [],
+    "name": "RUSTING_PERIOD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "_tokenIdCounter",
     "outputs": [
       {
@@ -397,7 +410,22 @@
       },
       {
         "internalType": "uint256",
-        "name": "durabilityRemaining",
+        "name": "maxDurability",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "durabilityRestored",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "durability",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastRepairTime",
         "type": "uint256"
       },
       {
@@ -442,6 +470,19 @@
       }
     ],
     "name": "burn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "extendDurability",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -831,24 +872,6 @@
       }
     ],
     "name": "setApprovalForAll",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_newDurabilityRemaining",
-        "type": "uint256"
-      }
-    ],
-    "name": "setDurabilityRemaining",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
