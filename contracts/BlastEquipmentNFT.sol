@@ -218,7 +218,7 @@ contract BlastEquipmentNFT is
         require(price > 0, "Price can't be zero");
 
         // Burning CS token from msgSender
-        csToken.burnFrom(_msgSender(), price);
+        csToken.burnFrom(_msgSender(), price * 10 ** 18);
         
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.durabilityRestored += getDurabilityPoints(_attribute);
