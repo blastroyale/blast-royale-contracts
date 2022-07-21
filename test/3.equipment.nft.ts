@@ -116,14 +116,5 @@ describe("Blast Equipment NFT", function () {
     expect(nftAttributes[1].toNumber()).to.eq(94);
     repairPrice = await blt.getRepairPrice(0);
     expect(repairPrice.toNumber()).to.eq(3973467);
-
-    // We do Repair on Week 2. It gives us maxDurability: 96, durability: 0, durabilityRestored: 2
-    // await cs
-    //   .connect(addr1)
-    //   .approve(blt.address, ethers.utils.parseEther("113"));
-    await blt.connect(addr1).repair(0);
-    const attributes1 = await blt.attributes(0);
-    console.log(attributes1);
-    // expect(attributes.durabilityRestored.toNumber()).to.eq(2);
   });
 });
