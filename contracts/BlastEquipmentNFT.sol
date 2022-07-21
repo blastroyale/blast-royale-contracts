@@ -212,8 +212,8 @@ contract BlastEquipmentNFT is
 
     function repair(
         uint256 _tokenId
-    ) external override hasGameRole {
-        require(ownerOf(_tokenId) == _msgSender(), "AccessControl: Missing role");
+    ) external override {
+        require(_isApprovedOrOwner(_msgSender(), _tokenId), "AccessControl: caller is not owner nor approved");
         uint256 price = getRepairPrice(_tokenId);
         require(price > 0, "Price can't be zero");
 
