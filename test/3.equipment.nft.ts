@@ -56,6 +56,7 @@ describe("Blast Equipment NFT", function () {
         ["ipfs://111_real", "ipfs://222_real"]
       );
     await tx.wait();
+  });
 
     await blt.setTreasuryAddress(treasury.address);
     await blt.setCompanyAddress(treasury.address);
