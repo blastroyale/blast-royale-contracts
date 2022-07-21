@@ -25,7 +25,10 @@ contract BlastEquipmentNFT is
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
     struct VariableAttributes {
         uint256 level;
-        uint256 durabilityRemaining;
+        uint256 maxDurability;
+        uint256 durabilityRestored;
+        uint256 durability;
+        uint256 lastRepairTime;
         uint256 repairCount;
         uint256 replicationCount;
     }
@@ -34,6 +37,7 @@ contract BlastEquipmentNFT is
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
+    uint256 public constant RUSTING_PERIOD = 96 weeks;
 
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
@@ -99,7 +103,15 @@ contract BlastEquipmentNFT is
         _tokenIdCounter.increment();
         hashValue[tokenId] = _hash;
         realTokenURI[tokenId] = _realUri;
-        attributes[tokenId] = VariableAttributes(1, 0, 0, 0);
+        attributes[tokenId] = VariableAttributes({
+            level: 1,
+            maxDurability: 96,
+            durabilityRestored: 0,
+            durability: 0,
+            lastRepairTime: block.timestamp,
+            repairCount: 0,
+            replicationCount: 0
+        });
         _mint(_to, tokenId);
         _setTokenURI(tokenId, _uri);
 
@@ -124,25 +136,27 @@ contract BlastEquipmentNFT is
     {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         emit AttributeUpdated(
             _tokenId,
             _newLevel,
-            _attribute.durabilityRemaining,
+            _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
         );
     }
 
-    function setDurabilityRemaining(
-        uint256 _tokenId,
-        uint256 _newDurabilityRemaining
+    function extendDurability(
+        uint256 _tokenId
     ) external override hasGameRole {
         VariableAttributes storage _attribute = attributes[_tokenId];
-        _attribute.durabilityRemaining = _newDurabilityRemaining;
+        _attribute.durabilityRestored += getDurabilityPoints(_attribute);
+        _attribute.lastRepairTime = block.timestamp;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         emit AttributeUpdated(
             _tokenId,
             _attribute.level,
-            _newDurabilityRemaining,
+            _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
         );
@@ -155,10 +169,11 @@ contract BlastEquipmentNFT is
     {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.repairCount = _newRepairCount;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         emit AttributeUpdated(
             _tokenId,
             _attribute.level,
-            _attribute.durabilityRemaining,
+            _durabilityPoint,
             _newRepairCount,
             _attribute.replicationCount
         );
@@ -171,10 +186,11 @@ contract BlastEquipmentNFT is
     {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.replicationCount = _newReplicationCount;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         emit AttributeUpdated(
             _tokenId,
             _attribute.level,
-            _attribute.durabilityRemaining,
+            _durabilityPoint,
             _attribute.repairCount,
             _newReplicationCount
         );
@@ -192,12 +208,18 @@ contract BlastEquipmentNFT is
         )
     {
         VariableAttributes memory _attribute = attributes[_tokenId];
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
         return (
             _attribute.level,
-            _attribute.durabilityRemaining,
+            _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
         );
+    }
+
+    function getDurabilityPoints(VariableAttributes memory _attribute) internal view returns (uint256) {
+        uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / 1 weeks;
+        return (_durabilityPoint > _attribute.maxDurability ? _attribute.maxDurability : _durabilityPoint);
     }
 
     /// @notice Pauses all token transfers.
