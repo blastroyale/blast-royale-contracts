@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
@@ -22,6 +23,7 @@ contract BlastEquipmentNFT is
     AccessControl
 {
     using Counters for Counters.Counter;
+    using SafeERC20 for IERC20;
 
     /// @dev Variable Attributes
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
@@ -40,6 +42,7 @@ contract BlastEquipmentNFT is
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
 
     ERC20Burnable public csToken;
+    IERC20 public blastToken;
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
@@ -58,8 +61,9 @@ contract BlastEquipmentNFT is
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
-    constructor(string memory name, string memory symbol, ERC20Burnable _csToken) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol, ERC20Burnable _csToken, IERC20 _blastToken) ERC721(name, symbol) {
         require(address(_csToken) != address(0), "NoZeroAddress");
+        require(address(_blastToken) != address(0), "NoZeroAddress");
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
@@ -68,6 +72,7 @@ contract BlastEquipmentNFT is
         _setupRole(REPLICATOR_ROLE, _msgSender());
 
         csToken = _csToken;
+        blastToken = _blastToken;
     }
 
     /// @notice Creates a new token for `to`. Its token ID will be automatically
@@ -213,7 +218,7 @@ contract BlastEquipmentNFT is
     function repair(
         uint256 _tokenId
     ) external override {
-        require(_isApprovedOrOwner(_msgSender(), _tokenId), "AccessControl: caller is not owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), _tokenId), "Caller is not owner nor approved");
         uint256 price = getRepairPrice(_tokenId);
         require(price > 0, "Price can't be zero");
 
@@ -236,6 +241,12 @@ contract BlastEquipmentNFT is
     function getRepairPrice(uint256 tokenId) public view returns (uint256) {
         VariableAttributes memory _attribute = attributes[tokenId];
         return sqrt(((_attribute.durabilityRestored * 20 + 100) * getDurabilityPoints(_attribute)) ** 5) * 20 / 100000;
+    }
+
+    function getRepairPriceBLST(uint tokenId) public view returns (uint256) {
+        VariableAttributes memory _attribute = attributes[tokenId];
+        require(_attribute.durabilityRestored >= 6, "Durability must be at least 6");
+        return (((_attribute.durabilityRestored + 1) * getDurabilityPoints(_attribute)) ** 2) * 5 / 100;
     }
 
     function sqrt(uint x) internal pure returns (uint y) {
