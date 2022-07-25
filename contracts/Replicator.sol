@@ -23,9 +23,8 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         uint256 parent1;
     }
 
+    uint256 public immutable REPLICATION_TIMER;
     uint8 public constant INIT_REPLICATION_COUNT = 7;
-    // TODO: It would be 5 days in public release. (5 days)
-    uint256 public constant REPLICATION_TIMER = 5 minutes;
     address private constant DEAD_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
 
@@ -86,7 +85,8 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         IERC20 _blastToken,
         ERC20Burnable _csToken,
         address _treasuryAddress,
-        address _companyAddress
+        address _companyAddress,
+        uint256 _replicatTimer
     ) {
         if (
             address(_blastEquipmentNFT) == address(0) ||
@@ -95,6 +95,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
             _treasuryAddress == address(0) ||
             _companyAddress == address(0)
         ) revert NoZeroAddress();
+        if (_replicatTimer == 0) revert InvalidParams();
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         blastEquipmentNFT = _blastEquipmentNFT;
@@ -102,6 +103,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
+        REPLICATION_TIMER = _replicatTimer;
     }
 
     function setTreasuryAddress(address _treasury)
