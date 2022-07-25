@@ -13,7 +13,9 @@ describe("Replicator Contract", () => {
     );
     const bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
-      "BLT"
+      "BLT",
+      company.address,
+      treasury.address
     );
     await bet.deployed();
 
@@ -54,15 +56,14 @@ describe("Replicator Contract", () => {
 
     // Replicator Contract Deploying
     const replicator = await ethers.getContractFactory("Replicator");
-    const replicatorContract = await replicator
-      .connect(owner)
-      .deploy(
-        bet.address,
-        blt.address,
-        cs.address,
-        treasury.address,
-        company.address
-      );
+    const replicatorContract = await replicator.connect(owner).deploy(
+      bet.address,
+      blt.address,
+      cs.address,
+      treasury.address,
+      company.address,
+      BigNumber.from("300") // 5 mins
+    );
     await replicatorContract.deployed();
 
     // Granting Replicator role to replicator contract address
