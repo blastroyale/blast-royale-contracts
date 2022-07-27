@@ -46,6 +46,7 @@ contract BlastEquipmentNFT is
     ERC20Burnable public csToken;
     IERC20 public blastToken;
     address public treasury;
+    address public company;
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
@@ -228,9 +229,11 @@ contract BlastEquipmentNFT is
             uint256 blstPrice = getRepairPriceBLST(_tokenId);
             require(blstPrice > 0, "Price can't be zero");
             require(treasury != address(0), "Treasury is not set");
+            require(company != address(0), "Company is not set");
 
             // Safe TransferFrom from msgSender to treasury
-            blastToken.safeTransferFrom(_msgSender(), treasury, blstPrice);
+            blastToken.safeTransferFrom(_msgSender(), treasury, blstPrice / 4);
+            blastToken.safeTransferFrom(_msgSender(), company, (blstPrice - blstPrice / 4));
         } else {
             uint256 price = getRepairPrice(_tokenId);
             require(price > 0, "Price can't be zero");
@@ -278,7 +281,15 @@ contract BlastEquipmentNFT is
         }
     }
 
-    /// @notice Pauses all token transfers.
+    /// @notice Set Company address
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setCompanyAddress(address _company) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_company != address(0), "Can't be zero");
+
+        company = _company;
+    }
+
+    /// @notice Set Treasury address
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function setTreasuryAddress(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_treasury != address(0), "Can't be zero");
