@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@prb/math/contracts/PRBMathUD60x18.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
 import "hardhat/console.sol";
 
@@ -24,6 +25,7 @@ contract BlastEquipmentNFT is
 {
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
+    using PRBMathUD60x18 for uint256;
 
     /// @dev Variable Attributes
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
@@ -43,6 +45,7 @@ contract BlastEquipmentNFT is
 
     ERC20Burnable public csToken;
     IERC20 public blastToken;
+    address public treasury;
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
@@ -219,13 +222,23 @@ contract BlastEquipmentNFT is
         uint256 _tokenId
     ) external override {
         require(_isApprovedOrOwner(_msgSender(), _tokenId), "Caller is not owner nor approved");
-        uint256 price = getRepairPrice(_tokenId);
-        require(price > 0, "Price can't be zero");
-
-        // Burning CS token from msgSender
-        csToken.burnFrom(_msgSender(), price * 10 ** 18);
-        
         VariableAttributes storage _attribute = attributes[_tokenId];
+        uint256 durabilityPoints = getDurabilityPoints(_attribute);
+        if ((_attribute.durabilityRestored + durabilityPoints) > 6) {
+            uint256 blstPrice = getRepairPriceBLST(_tokenId);
+            require(blstPrice > 0, "Price can't be zero");
+            require(treasury != address(0), "Treasury is not set");
+
+            // Safe TransferFrom from msgSender to treasury
+            blastToken.safeTransferFrom(_msgSender(), treasury, blstPrice);
+        } else {
+            uint256 price = getRepairPrice(_tokenId);
+            require(price > 0, "Price can't be zero");
+
+            // Burning CS token from msgSender
+            csToken.burnFrom(_msgSender(), price * 10 ** 18);
+        }
+        
         _attribute.durabilityRestored += getDurabilityPoints(_attribute);
         _attribute.lastRepairTime = block.timestamp;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute);
@@ -243,10 +256,14 @@ contract BlastEquipmentNFT is
         return sqrt(((_attribute.durabilityRestored * 20 + 100) * getDurabilityPoints(_attribute)) ** 5) * 20 / 100000;
     }
 
-    function getRepairPriceBLST(uint tokenId) public view returns (uint256) {
+    function getRepairPriceBLST(uint256 tokenId) public view returns (uint256) {
         VariableAttributes memory _attribute = attributes[tokenId];
         require(_attribute.durabilityRestored >= 6, "Durability must be at least 6");
-        return (((_attribute.durabilityRestored + 1) * getDurabilityPoints(_attribute)) ** 2) * 5 / 100;
+        uint256 temp = ((_attribute.durabilityRestored + 1) * getDurabilityPoints(_attribute));
+        if (temp == 0) {
+            return 0;
+        }
+        return PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), 2025), 1000)) * 5 / 100;
     }
 
     function sqrt(uint x) internal pure returns (uint y) {
@@ -259,6 +276,14 @@ contract BlastEquipmentNFT is
             y = z;
             z = (x / z + z) / 2;
         }
+    }
+
+    /// @notice Pauses all token transfers.
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setTreasuryAddress(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_treasury != address(0), "Can't be zero");
+
+        treasury = _treasury;
     }
 
     /// @notice Pauses all token transfers.
