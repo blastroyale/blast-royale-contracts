@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { BigNumber } from "ethers";
 import { ethers, network } from "hardhat";
 
 describe("Blast Equipment NFT", function () {
@@ -6,6 +7,7 @@ describe("Blast Equipment NFT", function () {
   let treasury: any;
   let addr1: any;
   let blt: any;
+  let blst: any;
   let cs: any;
 
   beforeEach(async () => {
@@ -22,14 +24,17 @@ describe("Blast Equipment NFT", function () {
       .claim(addr1.address, ethers.utils.parseEther("10000"));
 
     const BlastToken = await ethers.getContractFactory("PrimaryToken");
-    blt = await BlastToken.deploy(
+    blst = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
       owner.address,
       treasury.address,
       ethers.utils.parseEther("512000000")
     );
-    await blt.deployed();
+    await blst.deployed();
+    await blst
+      .connect(treasury)
+      .transfer(addr1.address, ethers.utils.parseEther("10000000"));
 
     const BlastEquipmentToken = await ethers.getContractFactory(
       "BlastEquipmentNFT"
@@ -38,7 +43,7 @@ describe("Blast Equipment NFT", function () {
       "Blast Equipment",
       "BLT",
       cs.address,
-      blt.address
+      blst.address
     );
     await blt.deployed();
 
@@ -51,6 +56,9 @@ describe("Blast Equipment NFT", function () {
         ["ipfs://111_real", "ipfs://222_real"]
       );
     await tx.wait();
+
+    await blt.setTreasuryAddress(treasury.address);
+    await blt.setCompanyAddress(treasury.address);
   });
 
   it("Test NFT", async function () {
@@ -82,7 +90,7 @@ describe("Blast Equipment NFT", function () {
     let nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(1);
     let repairPrice = await blt.getRepairPrice(0);
-    expect(repairPrice.toNumber()).to.eq(20);
+    expect(repairPrice).to.gte(ethers.utils.parseEther("20"));
 
     // Week 2. maxDurability: 96, durability: 2
     await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
@@ -90,12 +98,12 @@ describe("Blast Equipment NFT", function () {
     nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(2);
     repairPrice = await blt.getRepairPrice(0);
-    expect(repairPrice.toNumber()).to.eq(113);
+    expect(repairPrice).to.gte(ethers.utils.parseEther("113"));
 
     // We do Repair on Week 2. It gives us maxDurability: 96, durability: 0, durabilityRestored: 2
     await cs
       .connect(addr1)
-      .approve(blt.address, ethers.utils.parseEther("113"));
+      .approve(blt.address, ethers.utils.parseEther("114"));
     await blt.connect(addr1).repair(0);
 
     nftAttributes = await blt.getAttributes(0);
@@ -111,7 +119,7 @@ describe("Blast Equipment NFT", function () {
     nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(1);
     repairPrice = await blt.getRepairPrice(0);
-    expect(repairPrice.toNumber()).to.eq(46);
+    expect(repairPrice).to.gte(ethers.utils.parseEther("46"));
 
     // Week 95, maxDurability: 96, durability: 93, durabilityRestored: 2. On this week the item becomes unusable in game.
     await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 92]);
@@ -119,7 +127,8 @@ describe("Blast Equipment NFT", function () {
     nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(93);
     repairPrice = await blt.getRepairPrice(0);
-    expect(repairPrice.toNumber()).to.eq(3868632);
+    console.log(repairPrice);
+    expect(repairPrice).to.gte(ethers.utils.parseEther("3867388"));
 
     // Week 100, maxDurability: 96, durability: 96, durabilityRestored: 2
     await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 1]);
@@ -127,7 +136,7 @@ describe("Blast Equipment NFT", function () {
     nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(94);
     repairPrice = await blt.getRepairPrice(0);
-    expect(repairPrice.toNumber()).to.eq(3973467);
+    expect(repairPrice).to.gte(ethers.utils.parseEther("3973360"));
   });
 
   it("Repair with BLST Token", async () => {
@@ -137,66 +146,28 @@ describe("Blast Equipment NFT", function () {
     let nftAttributes = await blt.getAttributes(0);
     expect(nftAttributes[1].toNumber()).to.eq(1);
     let repairPrice = await blt.getRepairPrice(0);
-    expect(repairPrice.toNumber()).to.eq(20);
+    expect(repairPrice).to.gte(ethers.utils.parseEther("20"));
 
-    // Week 6. maxDurability: 96, durability: 6
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 5]);
+    // Week 9. maxDurability: 96, durability: 9
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 8]);
     await network.provider.send("evm_mine");
-    // nftAttributes = await blt.getAttributes(0);
-    // expect(nftAttributes[1].toNumber()).to.eq(2);
-    // repairPrice = await blt.getRepairPrice(0);
-    // expect(repairPrice.toNumber()).to.eq(113);
 
-    // We do Repair on Week 6. It gives us maxDurability: 96, durability: 0, durabilityRestored: 6
-    await cs
+    repairPrice = await blt.getRepairPriceBLST(0);
+    await blst
       .connect(addr1)
-      .approve(blt.address, ethers.utils.parseEther("1763"));
-    await blt.connect(addr1).repair(0);
+      .approve(blt.address, repairPrice.sub(BigNumber.from("100")));
+    await expect(blt.connect(addr1).repair(0)).to.revertedWith(
+      "ERC20: insufficient allowance"
+    );
+    await blst.connect(addr1).approve(blt.address, repairPrice);
+    await expect(blt.connect(addr1).repair(0)).to.emit(blt, "AttributeUpdated");
 
+    // We do Repair on Week 9. It gives us maxDurability: 96, durability: 0, durabilityRestored: 9
     await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
     await network.provider.send("evm_mine");
     nftAttributes = await blt.getAttributes(0);
     const attributes = await blt.attributes(0);
-    expect(attributes.durabilityRestored.toNumber()).to.eq(6);
+    expect(attributes.durabilityRestored.toNumber()).to.eq(9);
     expect(nftAttributes[1].toNumber()).to.eq(1);
-    // get BLST repair price
-    repairPrice = await blt.getRepairPriceBLST(0);
-    console.log(repairPrice);
-    // expect(repairPrice).to.eq(2);
-
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    // get BLST repair price
-    repairPrice = await blt.getRepairPriceBLST(0);
-    console.log(repairPrice);
-    // expect(repairPrice.toNumber()).to.eq(9);
-
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 90]);
-    await network.provider.send("evm_mine");
-    // get BLST repair price
-    repairPrice = await blt.getRepairPriceBLST(0);
-    console.log(repairPrice);
-    // expect(repairPrice.toNumber()).to.eq(9);
-
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    // get BLST repair price
-    repairPrice = await blt.getRepairPriceBLST(0);
-    console.log(repairPrice);
-    // expect(repairPrice.toNumber()).to.eq(9);
-
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    // get BLST repair price
-    repairPrice = await blt.getRepairPriceBLST(0);
-    console.log(repairPrice);
-    // expect(repairPrice.toNumber()).to.eq(9);
-
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    // get BLST repair price
-    repairPrice = await blt.getRepairPriceBLST(0);
-    console.log(repairPrice);
-    // expect(repairPrice.toNumber()).to.eq(9);
   });
 });

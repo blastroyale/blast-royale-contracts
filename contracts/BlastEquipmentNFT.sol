@@ -11,7 +11,6 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@prb/math/contracts/PRBMathUD60x18.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
-import "hardhat/console.sol";
 
 /// @title Blast Equipment NFT
 /// @dev BlastNFT ERC721 token
@@ -42,6 +41,12 @@ contract BlastEquipmentNFT is
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
+    uint256 public constant DECIMAL_FACTOR = 1000;
+
+    uint256 private basePowerForCS = 2500; // 2.5
+    uint256 private basePowerForBLST = 2025; // 2.025
+    uint256 private basePriceForCS = 20000; // 20
+    uint256 private basePriceForBLST = 50; // 0.05
 
     ERC20Burnable public csToken;
     IERC20 public blastToken;
@@ -239,12 +244,13 @@ contract BlastEquipmentNFT is
             require(price > 0, "Price can't be zero");
 
             // Burning CS token from msgSender
-            csToken.burnFrom(_msgSender(), price * 10 ** 18);
+            csToken.burnFrom(_msgSender(), price);
         }
         
         _attribute.durabilityRestored += getDurabilityPoints(_attribute);
         _attribute.lastRepairTime = block.timestamp;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+
         emit AttributeUpdated(
             _tokenId,
             _attribute.level,
@@ -256,29 +262,44 @@ contract BlastEquipmentNFT is
 
     function getRepairPrice(uint256 tokenId) public view returns (uint256) {
         VariableAttributes memory _attribute = attributes[tokenId];
-        return sqrt(((_attribute.durabilityRestored * 20 + 100) * getDurabilityPoints(_attribute)) ** 5) * 20 / 100000;
+        uint256 temp = ((_attribute.durabilityRestored * 2 + 10) * getDurabilityPoints(_attribute)) * 10 ** 17;
+        if (temp == 0) {
+            return 0;
+        }
+        return PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp), basePowerForCS), DECIMAL_FACTOR)) * basePriceForCS / DECIMAL_FACTOR;
     }
 
     function getRepairPriceBLST(uint256 tokenId) public view returns (uint256) {
         VariableAttributes memory _attribute = attributes[tokenId];
-        require(_attribute.durabilityRestored >= 6, "Durability must be at least 6");
         uint256 temp = ((_attribute.durabilityRestored + 1) * getDurabilityPoints(_attribute));
         if (temp == 0) {
             return 0;
         }
-        return PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), 2025), 1000)) * 5 / 100;
+        return PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * basePriceForBLST / DECIMAL_FACTOR;
     }
 
-    function sqrt(uint x) internal pure returns (uint y) {
-        if (x == 0) return 0;
-        else if (x <= 3) return 1;
-        uint z = (x + 1) / 2;
-        y = x;
-        while (z < y)
-        {
-            y = z;
-            z = (x / z + z) / 2;
-        }
+    /// @notice Set Base Power for CS and BLST. It will affect to calculate repair price for CS & BLST
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setBasePower(uint256 _basePowerForCS, uint256 _basePowerForBLST) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_basePowerForCS > 0, "Can't be zero");
+        require(_basePowerForBLST > 0, "Can't be zero");
+
+        basePowerForCS = _basePowerForCS;
+        basePowerForBLST = _basePowerForBLST;
+
+        emit BasePowerUpdated(_basePowerForCS, _basePowerForBLST);
+    }
+
+    /// @notice Set Base Price for CS and BLST. It will affect to calculate repair price for CS & BLST
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setBasePrice(uint256 _basePriceForCS, uint256 _basePriceForBLST) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_basePriceForCS > 0, "Can't be zero");
+        require(_basePriceForBLST > 0, "Can't be zero");
+
+        basePriceForCS = _basePriceForCS;
+        basePriceForBLST = _basePriceForBLST;
+
+        emit BasePriceUpdated(_basePriceForCS, _basePriceForBLST);
     }
 
     /// @notice Set Company address

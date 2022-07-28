@@ -27,6 +27,12 @@ interface IBlastEquipmentNFT is IERC721 {
     /// @notice Event Revealed TokenURI
     event PermanentURI(string _value, uint256 indexed _id);
 
+    /// @notice Event Base Power Updated
+    event BasePowerUpdated(uint256 _basePowerCS, uint256 _basePowerBLST);
+
+    /// @notice Event Base Price Updated
+    event BasePriceUpdated(uint256 _basePriceCS, uint256 _basePriceBLST);
+
     function safeMint(
         address _to,
         string[] memory _uri,
