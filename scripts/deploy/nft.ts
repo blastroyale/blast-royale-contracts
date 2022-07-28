@@ -8,6 +8,8 @@ const NFT_ARGS: any = NFTArgs;
 async function main() {
   const [deployer] = await ethers.getSigners();
   const { merkleRoot, luckyMerkleRoot }: any = await getMerkleRoots();
+  console.log("merkleRoot",merkleRoot)
+  console.log("luckyMerkleRoot",luckyMerkleRoot)
 
   console.log("Deploying contracts with the account:", deployer.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
@@ -19,7 +21,7 @@ async function main() {
   );
   const blastEqtNFT = await BlastEquipmentNFT.deploy(
     equipmentArgs.name,
-    equipmentArgs.symbol
+    equipmentArgs.symbol,
   );
   await blastEqtNFT.deployed();
   console.log("BlastEquipmentNFT address address:", blastEqtNFT.address);
@@ -54,18 +56,18 @@ async function main() {
   );
   console.log("BlastLootbox Marketplace address: ", lootboxMarket.address);
 
-  // // NFT MARKETPLACE
-  // const Marketplace = await ethers.getContractFactory("Marketplace");
-  // const marketplace = await Marketplace.deploy(blastEqtNFT.address);
-  // await marketplace.deployed();
+  // NFT MARKETPLACE
+  const Marketplace = await ethers.getContractFactory("Marketplace");
+  const marketplace = await Marketplace.deploy(blastEqtNFT.address);
+  await marketplace.deployed();
 
-  // console.log("Marketplace address address:", marketplace.address);
+  console.log("Marketplace address:", marketplace.address);
 
   writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
     BlastEquipmentNFT: blastEqtNFT.address,
     BlastLootBox: blastLootBox.address,
-    // Marketplace: marketplace.address,
+    Marketplace: marketplace.address,
     LootboxMarketplace: lootboxMarket.address,
   });
 }
