@@ -1,10 +1,15 @@
 import fs from "fs";
 import path from "path";
 import { ethers } from "hardhat";
+import axios from "axios"
 import { MerkleTree } from "merkletreejs";
 import TokenArgs from "../../constants/TokenArgs.json";
 
 const TOKEN_ARGS: any = TokenArgs;
+
+const WHITELIST_SHEET_ID =
+  process.env.WHITELIST_SHEET_ID ||
+  "1MMJ9Rt6zk6Qpquar1Z2Q9cuBTVGbKtQRuIDgZGzO_Hg";
 
 export const writeAddress = (network: string, params: any) => {
   const PROJECT_ROOT = path.resolve(__dirname, "../..");
@@ -47,26 +52,50 @@ export const getContractArguments = (network: string, contractName: string) => {
   return TOKEN_ARGS[contractName][network];
 };
 
-export const getMerkleRoots = async () => {
-  const _whitelist = fs.readFileSync("./scripts/whitelistData/WL.json", {
-    encoding: "utf8",
-    flag: "r",
-  });
-  const whiltelist = JSON.parse(_whitelist);
-  if (!whiltelist) return;
+const googleSheetLoadfromUrl = async (sheetNameParam = "Whitelist") => {
+  const base = `https://docs.google.com/spreadsheets/d/${WHITELIST_SHEET_ID}/gviz/tq?`;
+  const sheetName = sheetNameParam;
+  const query = encodeURIComponent("Select *");
+  const url = `${base}&sheet=${sheetName}&tq=${query}`;
 
-  const _luckyWhitelist = fs.readFileSync(
-    "./scripts/whitelistData/luckyWL.json",
-    {
-      encoding: "utf8",
-      flag: "r",
-    }
-  );
-  const luckyWhitelist = JSON.parse(_luckyWhitelist);
+  try {
+    const { data: json } = await axios.get(url);
+    const data:any = [];
+    //Remove additional text and extract only JSON:
+    const jsonData = JSON.parse(json.substring(47).slice(0, -2));
+
+    //extract row data:
+    jsonData.table.rows.forEach((rowData:any) => {
+      const row = rowData.c[0] != null ? rowData.c[0].v : "";
+      data.push(row);
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+ const getWLUserList = async () => {
+  const list = await googleSheetLoadfromUrl();
+  return list.filter((wallet:any) => ethers.utils.isAddress(wallet));
+};
+
+ const getWLLuckyUserList = async () => {
+  const list = await googleSheetLoadfromUrl("WLLucky");
+  return list.filter((wallet:any) => ethers.utils.isAddress(wallet));
+};
+
+
+
+export const getMerkleRoots = async () => {
+  const whitelist = await getWLUserList() 
+  const luckyWhitelist = await getWLLuckyUserList()
+  if (!whitelist) return;
   if (!luckyWhitelist) return;
 
   const leaves = await Promise.all(
-    whiltelist.map(async (address: string) => {
+    whitelist.map(async (address: string) => {
       return ethers.utils.keccak256(address);
     })
   );
@@ -81,7 +110,6 @@ export const getMerkleRoots = async () => {
     sortPairs: true,
   });
   const merkleRoot = tree.getHexRoot();
-  console.log("merkleRoot: ", merkleRoot);
 
   const luckyTree = new MerkleTree(luckyLeaves, ethers.utils.keccak256, {
     sortPairs: true,
@@ -103,13 +131,3 @@ export const getMerkleRoots = async () => {
   return { merkleRoot, luckyMerkleRoot };
 };
 
-// export const writeMerkleRoots = (params: any) => {
-//   const filePath = path.resolve(__dirname, "../merkleRoots.json");
-//   const merkleRoots = JSON.parse(
-//     fs.readFileSync(filePath, {
-//       encoding: "utf8",
-//       flag: "r",
-//     })
-//   );
-//   fs.writeFileSync(filePath, JSON.stringify(Object.assign(merkleRoots, params)));
-// };
