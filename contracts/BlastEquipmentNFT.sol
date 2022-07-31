@@ -26,6 +26,14 @@ contract BlastEquipmentNFT is
     using SafeERC20 for IERC20;
     using PRBMathUD60x18 for uint256;
 
+    struct StaticAttributes {
+        uint8 maxLevel;
+        uint8 maxDurability;
+        uint8 adjective;
+        uint8 rarity;
+        uint8 grade;
+    }
+
     /// @dev Variable Attributes
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
     struct VariableAttributes {
@@ -55,6 +63,7 @@ contract BlastEquipmentNFT is
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
+    mapping(uint256 => StaticAttributes) public staticAttributes;
     mapping(uint256 => string) private realTokenURI;
 
     modifier hasGameRole() {
@@ -216,6 +225,28 @@ contract BlastEquipmentNFT is
             _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
+        );
+    }
+
+    function getStaticAttributes(uint256 _tokenId)
+        external
+        view
+        override
+        returns (
+            uint8,
+            uint8,
+            uint8,
+            uint8,
+            uint8
+        )
+    {
+        StaticAttributes memory _attribute = staticAttributes[_tokenId];
+        return (
+            _attribute.maxLevel,
+            _attribute.maxDurability,
+            _attribute.adjective,
+            _attribute.rarity,
+            _attribute.grade
         );
     }
 
