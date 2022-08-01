@@ -8,13 +8,16 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
+import "hardhat/console.sol";
 
 error NotOwner();
 error NoZeroAddress();
 error InvalidParams();
 
-contract Replicator is AccessControl, ReentrancyGuard, Pausable {
+contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
+
+    event LevelUpgraded(uint256 tokenId, address owner, uint256 newLevel);
 
     uint256 public constant DECIMAL_FACTOR = 1000;
 
@@ -24,10 +27,21 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         uint16[10] pricePerRarity;
         uint8[10] pricePerAdjective;
         uint256 multiplierK;
-        uint256 pricePerLevel;
+        uint256 pricePerLevel; // decimal factor 100000
     }
 
-    uint256[10] public maxLevelPerRarity = [10, 12, 15, 17, 20, 22, 25, 27, 30, 35];
+    uint256[10] public maxLevelPerRarity = [
+        10,
+        12,
+        15,
+        17,
+        20,
+        22,
+        25,
+        27,
+        30,
+        35
+    ];
     uint16[5] public multiplierPerGrade = [1740, 1520, 1320, 1150, 1000];
     uint16 public gradeMultiplierK = 1149;
     Attributes public bltAttribute;
@@ -68,9 +82,31 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
 
-        uint16[10] memory _bltPricePerRarity = [uint16(3), 4, 4, 5, 5, 6, 7, 7, 8, 9];
+        uint16[10] memory _bltPricePerRarity = [
+            uint16(3),
+            4,
+            4,
+            5,
+            5,
+            6,
+            7,
+            7,
+            8,
+            9
+        ];
         uint8[10] memory _bltPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
-        uint16[10] memory _csPricePerRarity = [100, 144, 207, 297, 427, 613, 881, 1266, 1819, 2613];
+        uint16[10] memory _csPricePerRarity = [
+            100,
+            144,
+            207,
+            297,
+            427,
+            613,
+            881,
+            1266,
+            1819,
+            2613
+        ];
         uint8[10] memory _csPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
 
         bltAttribute = Attributes({
@@ -106,18 +142,51 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
     }
 
     function upgrade(uint256 _tokenId) external {
+        if (_msgSender() != blastEquipmentNFT.ownerOf(_tokenId))
+            revert NotOwner();
 
+        uint256 bltPrice = getRequiredPrice(0, _tokenId);
+        uint256 csPrice = getRequiredPrice(1, _tokenId);
+        (uint256 level, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+        if (level == 0) revert InvalidParams();
+
+        if (bltPrice == 0 || csPrice == 0) revert InvalidParams();
+        csToken.burnFrom(_msgSender(), csPrice);
+
+        if (bltPrice > 0) {
+            blastToken.safeTransferFrom(
+                _msgSender(),
+                treasuryAddress,
+                bltPrice / 4
+            );
+            blastToken.safeTransferFrom(
+                _msgSender(),
+                companyAddress,
+                (bltPrice * 3) / 4
+            );
+        }
+
+        blastEquipmentNFT.setLevel(_tokenId, level + 1);
+
+        emit LevelUpgraded(_tokenId, _msgSender(), level + 1);
     }
 
-    function getRequiredPrice(uint8 _tokenType) internal view returns (uint256) {
-        uint8 rarity;
-        uint8 adjective;
-        uint8 grade;
-        uint level;
+    function getRequiredPrice(uint8 _tokenType, uint256 _tokenId)
+        public
+        view
+        returns (uint256)
+    {
+        (, , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
+            .getStaticAttributes(_tokenId);
+        (uint256 level, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+
         if (_tokenType == 0) {
-            return ((bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) + (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 18;
+            return (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10;
+        } else if (_tokenType == 1) {
+            return (csAttribute.pricePerRarity[rarity] + csAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * csAttribute.pricePerLevel) * multiplierPerGrade[grade] / DECIMAL_FACTOR / DECIMAL_FACTOR / 100 * 10 ** 18;
+        } else {
+            revert InvalidParams();
         }
-        return 0;
     }
 
     // @notice Pauses/Unpauses the contract

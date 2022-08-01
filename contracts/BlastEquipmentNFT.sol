@@ -132,13 +132,21 @@ contract BlastEquipmentNFT is
         hashValue[tokenId] = _hash;
         realTokenURI[tokenId] = _realUri;
         attributes[tokenId] = VariableAttributes({
-            level: 1,
+            level: 10,
             maxDurability: 96,
             durabilityRestored: 0,
             lastRepairTime: block.timestamp,
             repairCount: 0,
             replicationCount: 0
         });
+        staticAttributes[tokenId] = StaticAttributes({
+            maxLevel: 0,
+            maxDurability: 0,
+            adjective: 0,
+            rarity: 0,
+            grade: 4
+        });
+
         _mint(_to, tokenId);
         _setTokenURI(tokenId, _uri);
 
