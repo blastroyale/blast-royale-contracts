@@ -38,7 +38,6 @@ contract BlastEquipmentNFT is
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
     struct VariableAttributes {
         uint256 level;
-        uint256 maxDurability;
         uint256 durabilityRestored;
         uint256 lastRepairTime;
         uint256 repairCount;
@@ -132,8 +131,7 @@ contract BlastEquipmentNFT is
         hashValue[tokenId] = _hash;
         realTokenURI[tokenId] = _realUri;
         attributes[tokenId] = VariableAttributes({
-            level: 10,
-            maxDurability: 96,
+            level: 1,
             durabilityRestored: 0,
             lastRepairTime: block.timestamp,
             repairCount: 0,
@@ -141,7 +139,7 @@ contract BlastEquipmentNFT is
         });
         staticAttributes[tokenId] = StaticAttributes({
             maxLevel: 0,
-            maxDurability: 0,
+            maxDurability: 96,
             adjective: 0,
             rarity: 0,
             grade: 4
@@ -171,7 +169,7 @@ contract BlastEquipmentNFT is
     {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
         emit AttributeUpdated(
             _tokenId,
             _newLevel,
@@ -188,7 +186,7 @@ contract BlastEquipmentNFT is
     {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.repairCount = _newRepairCount;
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
         emit AttributeUpdated(
             _tokenId,
             _attribute.level,
@@ -205,7 +203,7 @@ contract BlastEquipmentNFT is
     {
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.replicationCount = _newReplicationCount;
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
         emit AttributeUpdated(
             _tokenId,
             _attribute.level,
@@ -227,7 +225,7 @@ contract BlastEquipmentNFT is
         )
     {
         VariableAttributes memory _attribute = attributes[_tokenId];
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
         return (
             _attribute.level,
             _durabilityPoint,
@@ -258,9 +256,10 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function getDurabilityPoints(VariableAttributes memory _attribute) internal view returns (uint256) {
+    function getDurabilityPoints(VariableAttributes memory _attribute, uint256 _tokenId) internal view returns (uint256) {
+        StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
         uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / 1 weeks;
-        return (_durabilityPoint >= _attribute.maxDurability ? _attribute.maxDurability : _durabilityPoint);
+        return (_durabilityPoint >= _staticAttribute.maxDurability ? _staticAttribute.maxDurability : _durabilityPoint);
     }
 
     function repair(
@@ -268,7 +267,7 @@ contract BlastEquipmentNFT is
     ) external override {
         require(_isApprovedOrOwner(_msgSender(), _tokenId), "Caller is not owner nor approved");
         VariableAttributes storage _attribute = attributes[_tokenId];
-        uint256 durabilityPoints = getDurabilityPoints(_attribute);
+        uint256 durabilityPoints = getDurabilityPoints(_attribute, _tokenId);
         if ((_attribute.durabilityRestored + durabilityPoints) > 6) {
             uint256 blstPrice = getRepairPriceBLST(_tokenId);
             require(blstPrice > 0, "Price can't be zero");
@@ -286,9 +285,9 @@ contract BlastEquipmentNFT is
             csToken.burnFrom(_msgSender(), price);
         }
         
-        _attribute.durabilityRestored += getDurabilityPoints(_attribute);
+        _attribute.durabilityRestored += getDurabilityPoints(_attribute, _tokenId);
         _attribute.lastRepairTime = block.timestamp;
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute);
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
 
         emit AttributeUpdated(
             _tokenId,
@@ -299,18 +298,18 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function getRepairPrice(uint256 tokenId) public view returns (uint256) {
-        VariableAttributes memory _attribute = attributes[tokenId];
-        uint256 temp = ((_attribute.durabilityRestored * 2 + 10) * getDurabilityPoints(_attribute)) * 10 ** 17;
+    function getRepairPrice(uint256 _tokenId) public view returns (uint256) {
+        VariableAttributes memory _attribute = attributes[_tokenId];
+        uint256 temp = ((_attribute.durabilityRestored * 2 + 10) * getDurabilityPoints(_attribute, _tokenId)) * 10 ** 17;
         if (temp == 0) {
             return 0;
         }
         return PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp), basePowerForCS), DECIMAL_FACTOR)) * basePriceForCS / DECIMAL_FACTOR;
     }
 
-    function getRepairPriceBLST(uint256 tokenId) public view returns (uint256) {
-        VariableAttributes memory _attribute = attributes[tokenId];
-        uint256 temp = ((_attribute.durabilityRestored + 1) * getDurabilityPoints(_attribute));
+    function getRepairPriceBLST(uint256 _tokenId) public view returns (uint256) {
+        VariableAttributes memory _attribute = attributes[_tokenId];
+        uint256 temp = ((_attribute.durabilityRestored + 1) * getDurabilityPoints(_attribute, _tokenId));
         if (temp == 0) {
             return 0;
         }

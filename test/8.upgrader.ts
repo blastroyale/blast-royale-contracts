@@ -11,6 +11,56 @@ describe("Upgrader Contract", () => {
   let cs: any;
   let upgrader: any;
 
+  // Rarity => [Adjective => Grade => [level => [bltPrice, csPrice]]]
+  const EXPECTED_VALUES: any = [
+    [
+      [
+        {
+          1: [5.23, 174], // Common, Regular, I, 1
+          5: [5.33, 191], // Common, Regular, I, 5
+          10: [5.46, 213], // Common, Regular, I, 10
+        },
+        {},
+        {},
+        {},
+        {
+          1: [3, 100], // Common, Regular, V, 1
+          5: [3.06, 110], // Common, Regular, V, 5
+          10: [3.14, 122], // Common, Regular, V, 10
+        },
+      ],
+    ],
+    [
+      [
+        {
+          1: [6.97, 313], // Common, Posh, I, 1
+          5: [7.11, 345], // Common, Posh, I, 5
+          10: [7.29, 384], // Common, Posh, I, 10
+        },
+        {},
+        {},
+        {},
+        {
+          1: [3, 100], // Common, Regular, V, 1
+          5: [3.06, 110], // Common, Regular, V, 5
+          10: [3.14, 122], // Common, Regular, V, 10
+        },
+      ],
+    ],
+  ];
+
+  const getExpectedValue = async (tokenId: number): Promise<Array<number>> => {
+    const _attributes = await bet.getAttributes(tokenId);
+    const _staticAttributes = await bet.getStaticAttributes(tokenId);
+
+    const rarity = _staticAttributes[3];
+    const adjective = _staticAttributes[2];
+    const grade = _staticAttributes[4];
+    const level = _attributes[0].toNumber();
+
+    return EXPECTED_VALUES[rarity][adjective][grade][level];
+  };
+
   before(async () => {
     [owner, addr1, company, treasury] = await ethers.getSigners();
     // BlastEquipment NFT Deploying
@@ -90,21 +140,38 @@ describe("Upgrader Contract", () => {
   });
 
   it("Upgrade function test", async function () {
+    const tokenId = 0;
+    const BLT_TYPE = 0;
+    const CS_TYPE = 1;
+
+    const bltPrice = await upgrader
+      .connect(addr1)
+      .getRequiredPrice(BLT_TYPE, tokenId);
+    const csPrice = await upgrader
+      .connect(addr1)
+      .getRequiredPrice(CS_TYPE, tokenId);
+    const _prices = await getExpectedValue(tokenId);
+
+    expect(bltPrice).to.eq(ethers.utils.parseEther(_prices[0].toString()));
+    expect(csPrice).to.eq(ethers.utils.parseEther(_prices[1].toString()));
+
     // Approve token
     await (
       await cs
         .connect(addr1)
-        .approve(upgrader.address, ethers.utils.parseEther("45000"))
-    ).wait();
-    await (
-      await blt
-        .connect(addr1)
-        .approve(upgrader.address, ethers.utils.parseEther("14"))
+        .approve(upgrader.address, csPrice.sub(BigNumber.from("1")))
     ).wait();
 
-    const bltPrice = await upgrader.connect(addr1).getRequiredPrice(0, 0);
-    const csPrice = await upgrader.connect(addr1).getRequiredPrice(1, 0);
-    console.log(bltPrice);
-    console.log(csPrice);
+    // Upgrade
+    await expect(upgrader.connect(addr1).upgrade(tokenId)).to.revertedWith(
+      "ERC20: insufficient allowance"
+    );
+
+    await (await cs.connect(addr1).approve(upgrader.address, csPrice)).wait();
+    await (await blt.connect(addr1).approve(upgrader.address, bltPrice)).wait();
+
+    await expect(upgrader.connect(addr1).upgrade(tokenId))
+      .to.emit(upgrader, "LevelUpgraded")
+      .withArgs(tokenId, addr1.address, 2);
   });
 });
