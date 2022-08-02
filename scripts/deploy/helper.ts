@@ -116,18 +116,6 @@ export const getMerkleRoots = async () => {
   });
   const luckyMerkleRoot = luckyTree.getHexRoot();
 
-  const filePath = path.resolve(__dirname, "../whitelistData/merkleRoots.json");
-  const merkleRoots = JSON.parse(
-    fs.readFileSync(filePath, {
-      encoding: "utf8",
-      flag: "r",
-    })
-  );
-  fs.writeFileSync(
-    filePath,
-    JSON.stringify(Object.assign(merkleRoots, { merkleRoot, luckyMerkleRoot }))
-  );
-
   return { merkleRoot, luckyMerkleRoot };
 };
 
