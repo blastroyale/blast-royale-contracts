@@ -13,6 +13,7 @@ import "hardhat/console.sol";
 error NotOwner();
 error NoZeroAddress();
 error InvalidParams();
+error MaxLevelReached();
 
 contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
@@ -23,10 +24,8 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
 
     // Calculation related variables
     struct Attributes {
-        uint256 priceGrowth;
         uint16[10] pricePerRarity;
         uint8[10] pricePerAdjective;
-        uint256 multiplierK;
         uint256 pricePerLevel; // decimal factor 100000
     }
 
@@ -43,7 +42,6 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
         35
     ];
     uint16[5] public multiplierPerGrade = [1740, 1520, 1320, 1150, 1000];
-    uint16 public gradeMultiplierK = 1149;
     Attributes public bltAttribute;
     Attributes public csAttribute;
 
@@ -110,17 +108,13 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
         uint8[10] memory _csPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
 
         bltAttribute = Attributes({
-            priceGrowth: 1127,
             pricePerRarity: _bltPricePerRarity,
             pricePerAdjective: _bltPricePerAdjective,
-            multiplierK: 1200,
             pricePerLevel: 500
         });
         csAttribute = Attributes({
-            priceGrowth: 1437,
             pricePerRarity: _csPricePerRarity,
             pricePerAdjective: _csPricePerAdjective,
-            multiplierK: 2250,
             pricePerLevel: 2500
         });
     }
@@ -147,24 +141,23 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
 
         uint256 bltPrice = getRequiredPrice(0, _tokenId);
         uint256 csPrice = getRequiredPrice(1, _tokenId);
+        (, , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
         if (level == 0) revert InvalidParams();
+        if (level == maxLevelPerRarity[rarity]) revert MaxLevelReached();
 
         if (bltPrice == 0 || csPrice == 0) revert InvalidParams();
         csToken.burnFrom(_msgSender(), csPrice);
-
-        if (bltPrice > 0) {
-            blastToken.safeTransferFrom(
-                _msgSender(),
-                treasuryAddress,
-                bltPrice / 4
-            );
-            blastToken.safeTransferFrom(
-                _msgSender(),
-                companyAddress,
-                (bltPrice * 3) / 4
-            );
-        }
+        blastToken.safeTransferFrom(
+            _msgSender(),
+            treasuryAddress,
+            bltPrice / 4
+        );
+        blastToken.safeTransferFrom(
+            _msgSender(),
+            companyAddress,
+            (bltPrice * 3) / 4
+        );
 
         blastEquipmentNFT.setLevel(_tokenId, level + 1);
 
