@@ -95,6 +95,11 @@ contract SecondaryToken is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, R
         _mint(_to, _amount);
     }
 
+    function updateSigner(address _signer) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_signer != address(0), "signer can't be zero");
+        signer = _signer;
+    }
+
     /// @notice Pauses the contract
     /// @dev It stops transfer from happening. Only Owner can call it.
     function pause() public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
