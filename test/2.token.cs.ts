@@ -53,7 +53,7 @@ describe("Blast Royale Token", function () {
     // only ADMIN_ROLE role can pause
     await expect(cs.connect(addr1).pause()).to.be.reverted;
 
-    await cs.connect(owner).pause();
+    await cs.connect(owner).pause();;
 
     await expect(
       cs.connect(owner).transfer(addr1.address, ethers.utils.parseEther("100"))
@@ -64,13 +64,13 @@ describe("Blast Royale Token", function () {
     // only ADMIN_ROLE role can unpause
     await expect(cs.connect(addr1).unpause()).to.be.reverted;
 
-    await cs.connect(owner).unpause();
+    await cs.connect(owner).unpause();;
 
     expect(
       await cs
-        .connect(owner)
-        .transfer(addr1.address, ethers.utils.parseEther("100"))
-    );
+          .connect(owner)
+          .transfer(addr1.address, ethers.utils.parseEther("100"))
+    );;
     // can transfer balance when it's unpaused
     expect(await cs.balanceOf(addr1.address)).to.equal(
       ethers.utils.parseEther("200")
