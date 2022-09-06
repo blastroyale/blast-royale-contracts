@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
 
 error NotOwner();
@@ -14,8 +15,10 @@ error NotReadyMorph();
 error NoZeroAddress();
 error NotReadyReplicate();
 error InvalidParams();
+error InvalidSignature();
 
 contract Replicator is AccessControl, ReentrancyGuard, Pausable {
+    using ECDSA for bytes32;
     using SafeERC20 for IERC20;
 
     struct Parent {
@@ -23,11 +26,11 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         uint256 parent1;
     }
 
+    address private signer;
+    mapping(address => uint256) public nonces;
     uint8 public constant INIT_REPLICATION_COUNT = 7;
     // TODO: It would be 5 days in public release. (5 days)
     uint256 public constant REPLICATION_TIMER = 5 minutes;
-    address private constant DEAD_ADDRESS =
-        0x000000000000000000000000000000000000dEaD;
 
     // Token related Addresses
     IBlastEquipmentNFT public immutable blastEquipmentNFT;
@@ -86,14 +89,16 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         IERC20 _blastToken,
         ERC20Burnable _csToken,
         address _treasuryAddress,
-        address _companyAddress
+        address _companyAddress,
+        address _signer
     ) {
         if (
             address(_blastEquipmentNFT) == address(0) ||
             address(_blastToken) == address(0) ||
             address(_csToken) == address(0) ||
             _treasuryAddress == address(0) ||
-            _companyAddress == address(0)
+            _companyAddress == address(0) ||
+            _signer == address(0)
         ) revert NoZeroAddress();
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -102,6 +107,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
+        signer = _signer;
     }
 
     function setTreasuryAddress(address _treasury)
@@ -145,7 +151,9 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         bytes32 _hash,
         string calldata _realUri,
         uint256 _p1,
-        uint256 _p2
+        uint256 _p2,
+        uint256 _deadline,
+        bytes memory _signature
     ) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
@@ -165,14 +173,28 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         if (isReplicating[_p1] || isReplicating[_p2])
             revert NotReadyReplicate();
 
+        if (block.timestamp >= _deadline) revert InvalidParams();
+
+        bytes32 ethSignedMessageHash = ECDSA.toEthSignedMessageHash(
+            getMessageHash(
+                _uri,
+                _hash,
+                _realUri,
+                _p1,
+                _p2,
+                nonces[_msgSender()],
+                _deadline
+            )
+        );
+
+        if (ECDSA.recover(ethSignedMessageHash, _signature) != signer) revert InvalidSignature();
+
+        nonces[_msgSender()] ++;
+
         uint256 currentReplicationCountP1;
         uint256 currentReplicationCountP2;
-        (, , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(
-            _p1
-        );
-        (, , , currentReplicationCountP2) = blastEquipmentNFT.getAttributes(
-            _p2
-        );
+        (, , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
+        (, , , currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
         csToken.burnFrom(
             tokenOwner,
             csPrices[currentReplicationCountP1] +
@@ -193,29 +215,55 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
             );
         }
 
-        blastEquipmentNFT.setReplicationCount(
-            _p1,
-            currentReplicationCountP1 + 1
-        );
-        blastEquipmentNFT.setReplicationCount(
-            _p2,
-            currentReplicationCountP2 + 1
-        );
+        // blastEquipmentNFT.setReplicationCount(
+        //     _p1,
+        //     currentReplicationCountP1 + 1
+        // );
+        // blastEquipmentNFT.setReplicationCount(
+        //     _p2,
+        //     currentReplicationCountP2 + 1
+        // );
 
-        //MINT
-        isReplicating[_p1] = true;
-        isReplicating[_p2] = true;
+        // //MINT
+        // isReplicating[_p1] = true;
+        // isReplicating[_p2] = true;
 
-        uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
-            tokenOwner,
-            _uri,
-            _hash,
-            _realUri
+        // uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
+        //     tokenOwner,
+        //     _uri,
+        //     _hash,
+        //     _realUri
+        // );
+        // parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
+        // morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
+
+        // emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
+    }
+
+    function getMessageHash(
+        string calldata _uri,
+        bytes32 _hash,
+        string calldata _realUri,
+        uint256 _p1,
+        uint256 _p2, 
+        uint256 _nonce, 
+        uint256 _deadline
+    )
+        internal
+        pure
+        returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(
+                _uri,
+                _hash,
+                _realUri,
+                _p1,
+                _p2,
+                _nonce,
+                _deadline
+            )
         );
-        parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
-        morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
-
-        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
     function isReplicatingStatus(uint256 _tokenId)
