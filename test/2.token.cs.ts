@@ -83,12 +83,30 @@ describe("Blast Royale Token", function () {
     const deadline = blockTimestamp + 3600;
     const nonce = await cs.nonces(addr2.address);
 
-    const claimMessageHash = ethers.utils.solidityKeccak256(
-      ["address", "uint256", "uint256", "uint256"],
-      [addr2.address, ethers.utils.parseEther("1"), nonce, deadline]
-    );
-    const signature = await adminPrivate.signMessage(
-      ethers.utils.arrayify(claimMessageHash)
+    const signature = await adminPrivate._signTypedData(
+      // Domain
+      {
+        name: "CSToken",
+        version: "1.0.0",
+        chainId: 31337,
+        verifyingContract: cs.address,
+      },
+      // Types
+      {
+        CSToken: [
+          { name: "account", type: "address" },
+          { name: "amount", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ],
+      },
+      // Value
+      {
+        account: addr2.address,
+        amount: ethers.utils.parseEther("1"),
+        nonce: nonce.toNumber(),
+        deadline: deadline,
+      }
     );
 
     // In case call is not the user who is able to claim CS token
