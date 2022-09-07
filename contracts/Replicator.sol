@@ -154,8 +154,8 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
-        uint256 _deadline,
-        bytes memory _signature
+        uint256 _deadline, 
+        bytes calldata _signature
     ) external nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
@@ -171,7 +171,11 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
-        internRequire(_p1, _p2, tokenOwner);
+        setReplicatorCount(_p1, _p2, tokenOwner);
+
+        //MINT
+        isReplicating[_p1] = true;
+        isReplicating[_p2] = true;
 
         uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
             tokenOwner,
@@ -185,7 +189,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
-    function internRequire(uint _p1, uint _p2, address tokenOwner) internal {
+    function setReplicatorCount(uint256 _p1, uint256 _p2, address tokenOwner) internal {
         uint256 currentReplicationCountP1;
         uint256 currentReplicationCountP2;
         (, , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
@@ -218,10 +222,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             _p2,
             currentReplicationCountP2 + 1
         );
-
-        //MINT
-        isReplicating[_p1] = true;
-        isReplicating[_p2] = true;
     }
 
     function _verify(bytes32 digest, bytes memory signature) internal view returns (bool)
