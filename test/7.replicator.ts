@@ -1,6 +1,6 @@
 /* eslint-disable node/no-missing-import */
 import { expect } from "chai";
-import { BigNumber } from "ethers";
+import { BigNumber, providers } from "ethers";
 import { ethers, network } from "hardhat";
 import { getContractArguments } from "../scripts/deploy/helper";
 
@@ -45,7 +45,8 @@ describe("Replicator Contract", () => {
     const cs = await CraftToken.deploy(
       secondaryTokenArgs.name,
       secondaryTokenArgs.symbol,
-      BigNumber.from(secondaryTokenArgs.supply)
+      BigNumber.from(secondaryTokenArgs.supply),
+      owner.address
     );
     await cs.deployed();
     await (
@@ -56,14 +57,16 @@ describe("Replicator Contract", () => {
 
     // Replicator Contract Deploying
     const replicator = await ethers.getContractFactory("Replicator");
-    const replicatorContract = await replicator.connect(owner).deploy(
-      bet.address,
-      blt.address,
-      cs.address,
-      treasury.address,
-      company.address,
-      BigNumber.from("300") // 5 mins
-    );
+    const replicatorContract = await replicator
+      .connect(owner)
+      .deploy(
+        bet.address,
+        blt.address,
+        cs.address,
+        treasury.address,
+        company.address,
+        owner.address
+      );
     await replicatorContract.deployed();
 
     // Granting Replicator role to replicator contract address
@@ -109,12 +112,88 @@ describe("Replicator Contract", () => {
       await bet.connect(addr1).approve(replicatorContract.address, 1)
     ).wait();
 
+    // Signature generation with EIP712
+    const block = await providers.getDefaultProvider().getBlock("latest");
+    const blockTimestamp = block.timestamp;
+    const deadline = blockTimestamp + 3600;
+    const nonce = await replicatorContract.nonces(addr1.address);
+
+    const signature = await owner._signTypedData(
+      // Domain
+      {
+        name: "REPLICATOR",
+        version: "1.0.0",
+        chainId: 31337,
+        verifyingContract: replicatorContract.address,
+      },
+      // Types
+      {
+        REPLICATOR: [
+          { name: "sender", type: "address" },
+          { name: "uri", type: "string" },
+          { name: "hash", type: "bytes32" },
+          { name: "realUri", type: "string" },
+          { name: "p1", type: "uint256" },
+          { name: "p2", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ],
+      },
+      // Value
+      {
+        sender: addr1.address,
+        uri: eggMetadataUrl,
+        hash: hash,
+        realUri: realMetadataUrl,
+        p1: 0,
+        p2: 1,
+        nonce: nonce.toNumber(),
+        deadline: deadline,
+      }
+    );
+
     // Replicate in Replicator Contract
-    await (
-      await replicatorContract
-        .connect(owner)
-        .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1)
-    ).wait();
+    await expect(
+      replicatorContract
+        .connect(addr1)
+        .replicate(
+          eggMetadataUrl + "123",
+          hash,
+          realMetadataUrl,
+          0,
+          1,
+          deadline,
+          signature
+        )
+    ).revertedWith("Replicator:Invalid Signature");
+    await expect(
+      replicatorContract
+        .connect(addr1)
+        .replicate(
+          eggMetadataUrl,
+          hash,
+          realMetadataUrl + "1",
+          0,
+          1,
+          deadline,
+          signature
+        )
+    ).revertedWith("Replicator:Invalid Signature");
+
+    // Expecting event emitted
+    await expect(
+      replicatorContract
+        .connect(addr1)
+        .replicate(
+          eggMetadataUrl,
+          hash,
+          realMetadataUrl,
+          0,
+          1,
+          deadline,
+          signature
+        )
+    ).to.emit(replicatorContract, "Replicated");
 
     // There should be backend logic here after emitting replicated event
     // Will simulate how it works
