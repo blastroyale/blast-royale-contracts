@@ -29,7 +29,7 @@ async function main() {
     replicatorArgs.Replicator[hre.network.name].companyAddress
   );
   await replicatorInstance.deployed();
-  console.log("Replicator address address:", replicatorInstance.address);
+  console.log("Replicator address:", replicatorInstance.address);
 
   writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
