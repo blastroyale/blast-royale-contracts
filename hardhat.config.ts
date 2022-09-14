@@ -42,7 +42,7 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     mumbai: {
-      url: "https://speedy-nodes-nyc.moralis.io/99e98b2333a911011f42606d/polygon/mumbai",
+      url: "https://polygon-mumbai.g.alchemy.com/v2/5E3uKzM68Q7UH_13K8FXajwvNSf0-vAq",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
