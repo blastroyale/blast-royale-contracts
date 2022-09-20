@@ -142,29 +142,35 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
 
     function replicate(
         string calldata _uri,
-        bytes32 _hash,
+        string calldata _hashString,
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2
     ) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
-        if (
-            blastEquipmentNFT.getApproved(_p1) != address(this) &&
-            !blastEquipmentNFT.isApprovedForAll(tokenOwner, address(this))
-        ) revert NotOwner();
-        if (
-            blastEquipmentNFT.ownerOf(_p2) != tokenOwner &&
-            blastEquipmentNFT.getApproved(_p2) != address(this) &&
-            !blastEquipmentNFT.isApprovedForAll(
-                blastEquipmentNFT.ownerOf(_p2),
-                address(this)
-            )
-        ) revert NotOwner();
+        if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
 
         if (isReplicating[_p1] || isReplicating[_p2])
             revert NotReadyReplicate();
 
+        internRequire(_p1, _p2, tokenOwner);
+
+        bytes32 _hash = keccak256(abi.encodePacked(_hashString));
+
+        uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
+            tokenOwner,
+            _uri,
+            _hash,
+            _realUri
+        );
+        parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
+        morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
+
+        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
+    }
+
+    function internRequire(uint _p1, uint _p2, address tokenOwner) internal {
         uint256 currentReplicationCountP1;
         uint256 currentReplicationCountP2;
         (, , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(
@@ -205,17 +211,6 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         //MINT
         isReplicating[_p1] = true;
         isReplicating[_p2] = true;
-
-        uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
-            tokenOwner,
-            _uri,
-            _hash,
-            _realUri
-        );
-        parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
-        morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
-
-        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
     function isReplicatingStatus(uint256 _tokenId)
