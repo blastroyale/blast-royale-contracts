@@ -150,7 +150,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
     function replicate(
         string calldata _uri,
-        string calldata _hashString,
+        bytes32 _hash,
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
@@ -164,8 +164,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
         if (isReplicating[_p1] || isReplicating[_p2])
             revert NotReadyReplicate();
-
-        bytes32 _hash = keccak256(abi.encodePacked(_hashString));
 
         if (block.timestamp >= _deadline) revert InvalidParams();
         require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
