@@ -173,19 +173,8 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
-        //MINT
-        isReplicating[_p1] = true;
-        isReplicating[_p2] = true;
-
-        uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
-            tokenOwner,
-            _uri,
-            _hash,
-            _realUri
-        );
-        parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
-        morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
-
+        uint childTokenId = mintChild(tokenOwner, _uri, _hash, _realUri, _p1, _p2);
+        
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
@@ -222,6 +211,20 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             _p2,
             currentReplicationCountP2 + 1
         );
+    }
+
+    function mintChild(address tokenOwner, string calldata _uri, bytes32 _hash, string calldata _realUri, uint256 _p1, uint256 _p2) internal returns (uint256) {
+        uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
+            tokenOwner,
+            _uri,
+            _hash,
+            _realUri
+        );
+        isReplicating[childTokenId] = true;
+        parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
+        morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
+
+        return childTokenId;
     }
 
     function _verify(bytes32 digest, bytes memory signature) internal view returns (bool)
@@ -271,8 +274,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         if (morphTimestamp[_childId] > block.timestamp) revert NotReadyMorph();
 
         Parent memory _parent = parents[_childId];
-        isReplicating[_parent.parent0] = false;
-        isReplicating[_parent.parent1] = false;
+        isReplicating[_childId] = false;
 
         blastEquipmentNFT.revealRealTokenURI(_childId);
 
