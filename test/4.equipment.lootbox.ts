@@ -7,24 +7,22 @@ describe("Blast LootBox Contract", function () {
   let owner: any;
   let player1: any;
   let player2: any;
+  let treasury: any;
   let bet: any;
   let blb: any;
 
   before("deploying", async () => {
-    const signers = await ethers.getSigners();
-    owner = signers[0];
-    player1 = signers[1];
-    player2 = signers[2];
-  });
+    [owner, player1, player2, treasury] = await ethers.getSigners();
 
-  it("Open function test", async function () {
     // BlastEquipment NFT Deploying
     const BlastEquipmentToken = await ethers.getContractFactory(
       "BlastEquipmentNFT"
     );
     bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
-      "BLT"
+      "BLT",
+      owner.address,
+      treasury.address
     );
     await bet.deployed();
 
@@ -69,7 +67,9 @@ describe("Blast LootBox Contract", function () {
       1
     );
     await tx.wait();
+  });
 
+  it("Open function test", async function () {
     // Lootbox contract has 3 Equipment NFT items
     expect(await bet.balanceOf(blb.address)).to.equal(3);
     // Owner don't have Equipment NFT
@@ -78,6 +78,7 @@ describe("Blast LootBox Contract", function () {
     expect(await blb.balanceOf(owner.address)).to.equal(1);
 
     // Owner opens the Lootbox
+    await blb.setOpenAvailableStatus(true);
     const openTx = await blb.connect(owner).open(0);
     await openTx.wait();
 
@@ -154,8 +155,7 @@ describe("Blast LootBox Contract", function () {
   });
 
   it("Can create an empty lootbox with no Blast Equipment minted", async () => {
-
-    // creating a lootbox with tokens that do not exist  
+    // creating a lootbox with tokens that do not exist
     const tx = await blb.connect(owner).safeMint(
       [player2.address],
       ["ipfs://999"],
@@ -169,11 +169,12 @@ describe("Blast LootBox Contract", function () {
       1
     );
     await tx.wait();
-    
 
     expect(await blb.balanceOf(player2.address)).to.eq(1);
 
-    expect(blb.connect(owner).openTo(3, player2.address)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+    expect(blb.connect(owner).openTo(3, player2.address)).to.be.revertedWith(
+      "ERC721: operator query for nonexistent token"
+    );
     // player should not receive any equipment NFT
     expect(await bet.balanceOf(player2.address)).to.equal(0);
   });

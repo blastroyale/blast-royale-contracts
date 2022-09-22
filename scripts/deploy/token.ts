@@ -30,14 +30,15 @@ async function main() {
   const secondaryToken = await SecondaryToken.deploy(
     secondaryTokenArgs.name,
     secondaryTokenArgs.symbol,
-    BigNumber.from(secondaryTokenArgs.supply)
+    BigNumber.from(secondaryTokenArgs.supply),
+    "0x34c935743ddEaCbd6675d2705e4A55992eB99F82"
   );
   await secondaryToken.deployed();
   console.log("Secondary token address:", secondaryToken.address);
 
   writeAddress(hre.network.name, {
     deployerAddress: deployer.address,
-    PrimaryToken: primaryToken.address,
+    // PrimaryToken: primaryToken.address,
     SecondaryToken: secondaryToken.address,
   });
 }

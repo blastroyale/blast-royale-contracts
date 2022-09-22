@@ -26,10 +26,11 @@ async function main() {
     addresses.PrimaryToken,
     addresses.SecondaryToken,
     replicatorArgs.Replicator[hre.network.name].treasuryAddress,
-    replicatorArgs.Replicator[hre.network.name].companyAddress
+    replicatorArgs.Replicator[hre.network.name].companyAddress,
+    addresses.deployerAddress
   );
   await replicatorInstance.deployed();
-  console.log("Replicator address address:", replicatorInstance.address);
+  console.log("Replicator address:", replicatorInstance.address);
 
   writeAddress(hre.network.name, {
     deployerAddress: deployer.address,

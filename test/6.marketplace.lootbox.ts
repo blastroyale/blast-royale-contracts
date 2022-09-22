@@ -34,6 +34,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
+      admin.address,
       treasury.address,
       ethers.utils.parseEther("512000000") // fixed supply 512M
     );
@@ -51,7 +52,12 @@ describe("Blast Royale Marketplace Lootbox", function () {
 
   it("Deploy NFT", async function () {
     const BlastNFT = await ethers.getContractFactory("BlastEquipmentNFT");
-    nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
+    nft = await BlastNFT.connect(admin).deploy(
+      "Blast Royale",
+      "$BLT",
+      blt.address,
+      blt.address
+    );
     await nft.deployed();
   });
 
@@ -154,7 +160,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
       sortPairs: true,
     });
     const merkleRoot = tree.getHexRoot();
-    console.log(merkleRoot)
+    console.log(merkleRoot);
 
     const LootboxMarketplce = await ethers.getContractFactory(
       "MarketplaceLootbox"
@@ -162,7 +168,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     market = await LootboxMarketplce.connect(admin).deploy(
       lootbox.address,
       merkleRoot,
-
+      merkleRoot
     );
     await market.deployed();
 
@@ -222,7 +228,10 @@ describe("Blast Royale Marketplace Lootbox", function () {
     const listing = await market.listings(tokenId);
 
     const player3Address = await whitelisted[3].getAddress();
-    const merkleProof = ['0x5ad2bbe9d835eb0f28a017de1d92239e4d0ad72eb79ea35bdafc3e350e6b49e7', '0x544bbdc069a66bcb6dbe538dda1a25c22494a5de875b8d3ccafc49458cebdb4b'];
+    const merkleProof = [
+      "0x5ad2bbe9d835eb0f28a017de1d92239e4d0ad72eb79ea35bdafc3e350e6b49e7",
+      "0x544bbdc069a66bcb6dbe538dda1a25c22494a5de875b8d3ccafc49458cebdb4b",
+    ];
 
     // Approve BLT and Buy NFT from the marketplace.
     await blt.connect(player3).approve(market.address, listing.price);

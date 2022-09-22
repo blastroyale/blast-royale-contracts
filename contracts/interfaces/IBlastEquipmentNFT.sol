@@ -27,6 +27,12 @@ interface IBlastEquipmentNFT is IERC721 {
     /// @notice Event Revealed TokenURI
     event PermanentURI(string _value, uint256 indexed _id);
 
+    /// @notice Event Base Power Updated
+    event BasePowerUpdated(uint256 _basePowerCS, uint256 _basePowerBLST);
+
+    /// @notice Event Base Price Updated
+    event BasePriceUpdated(uint256 _basePriceCS, uint256 _basePriceBLST);
+
     function safeMint(
         address _to,
         string[] memory _uri,
@@ -40,14 +46,14 @@ interface IBlastEquipmentNFT is IERC721 {
 
     function setLevel(uint256 _tokenId, uint256 _newLevel) external;
 
-    function extendDurability(uint256 _tokenId) external;
+    function repair(uint256 _tokenId) external;
 
     function setRepairCount(uint256 _tokenId, uint256 _newRepairCount) external;
 
     function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
         external;
 
-    // function replicate(address _to, string memory _uri, string memory _realUri, bytes32 _hash, uint _f1, uint _f2) external;
+    function getAttributes(uint256 _tokenId) external view returns (uint256, uint256, uint256, uint256);
 
-    function getAttributes(uint _tokenId) external view returns (uint, uint, uint, uint);
+    function getStaticAttributes(uint256 _tokenId) external view returns (uint8, uint8, uint8, uint8, uint8);
 }

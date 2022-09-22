@@ -27,6 +27,7 @@ describe("Blast Royale Marketplace", function () {
     blt = await BlastToken.deploy(
       "Blast Royale",
       "$BLT",
+      admin.address,
       treasury1.address,
       ethers.utils.parseEther("100000000")
     );
@@ -38,7 +39,12 @@ describe("Blast Royale Marketplace", function () {
 
   it("Deploy NFT", async function () {
     const BlastNFT = await ethers.getContractFactory("BlastEquipmentNFT");
-    nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
+    nft = await BlastNFT.connect(admin).deploy(
+      "Blast Royale",
+      "$BLT",
+      blt.address,
+      blt.address
+    );
     await nft.deployed();
     const mintTx = await nft
       .connect(admin)
@@ -122,7 +128,7 @@ describe("Blast Royale Marketplace", function () {
     expect(totalListings.toNumber()).to.equal(1);
 
     // Check NFT was exchanged.
-    expect(await nft.ownerOf(1)).to.equal(player2.address); 
+    expect(await nft.ownerOf(1)).to.equal(player2.address);
 
     // Check BLT was paid from player2 to player1
     expect(await blt.balanceOf(player1.address)).to.equal(

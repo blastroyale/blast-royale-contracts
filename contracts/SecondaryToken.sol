@@ -15,7 +15,7 @@ contract SecondaryToken is ERC20, ERC20Burnable, EIP712, ERC20Pausable, AccessCo
     using ECDSA for bytes32;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 constant public CSTOKEN_TYPEHASH = keccak256("CSToken(address account,uint256 amount,uint256 nonce,uint256 deadline)");
+    bytes32 public constant CSTOKEN_TYPEHASH = keccak256("CSToken(address account,uint256 amount,uint256 nonce,uint256 deadline)");
 
     address private signer;
     mapping(address => uint256) public nonces;
