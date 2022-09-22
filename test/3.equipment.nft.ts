@@ -10,13 +10,14 @@ describe("Blast Equipment NFT", function () {
   let blst: any;
   let cs: any;
 
-  beforeEach(async () => {
+  before(async () => {
     [owner, treasury, addr1] = await ethers.getSigners();
     const CraftToken = await ethers.getContractFactory("SecondaryToken");
     cs = await CraftToken.deploy(
       "Craftship",
       "$CS",
-      ethers.utils.parseEther("100000000")
+      ethers.utils.parseEther("100000000"),
+      owner.address
     );
     await cs.deployed();
     await cs
@@ -56,13 +57,11 @@ describe("Blast Equipment NFT", function () {
         ["ipfs://111_real", "ipfs://222_real"]
       );
     await tx.wait();
-  });
-
     await blt.setTreasuryAddress(treasury.address);
     await blt.setCompanyAddress(treasury.address);
   });
 
-  it("Test NFT", async function () {
+  it("Test NFT", async () => {
     await blt.connect(owner).setLevel(0, 3);
     await blt.connect(owner).setRepairCount(0, 1);
     await blt.connect(owner).setReplicationCount(0, 4);
