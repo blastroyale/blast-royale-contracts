@@ -5,8 +5,6 @@
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
-    "deploy:rinkeby": "hardhat run scripts/deploy.ts --network rinkeby",
-    "verify:rinkeby": "hardhat run scripts/verify.ts --network rinkeby",
     "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
     "verify:mumbai": "hardhat run scripts/verify.ts --network mumbai",
     "test:loot": "hardhat test test/loot.ts",
@@ -15,7 +13,7 @@
     "cucumber": "hardhat compile && tsc && cucumber-js"
   },
   "keywords": [],
-  "author": "CryptoBenkei",
+  "author": "Jenson Collins",
   "license": "ISC",
   "devDependencies": {
     "@ethersproject/bignumber": "^5.6.0",
