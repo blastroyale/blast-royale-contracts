@@ -166,6 +166,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             revert NotReadyReplicate();
 
         if (block.timestamp >= _deadline) revert InvalidParams();
+        
         require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
@@ -200,7 +201,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
                 (totalBltAmount * 3) / 4
             );
         }
-
         blastEquipmentNFT.setReplicationCount(
             _p1,
             currentReplicationCountP1 + 1
