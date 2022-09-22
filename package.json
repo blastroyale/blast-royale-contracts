@@ -56,6 +56,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.4.0",
     "@cucumber/cucumber": "^8.0.0",
+    "@prb/math": "^2.5.0",
     "@types/cucumber": "^7.0.0",
     "axios": "^0.26.1",
     "eth-sig-util": "^3.0.1",

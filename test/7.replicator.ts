@@ -13,7 +13,9 @@ describe("Replicator Contract", () => {
     );
     const bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
-      "BLT"
+      "BLT",
+      company.address,
+      treasury.address
     );
     await bet.deployed();
 

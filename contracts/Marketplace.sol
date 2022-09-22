@@ -88,8 +88,6 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   constructor(IERC721 erc721Address) {
     if (address(erc721Address) == address(0)) revert NoZeroAddress();
     erc721Contract = erc721Address;
-    fee1 = 0;
-    fee2 = 0;
   }
 
   /// @notice add a Listing to the Marketplace
