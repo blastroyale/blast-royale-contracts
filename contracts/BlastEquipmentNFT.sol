@@ -39,6 +39,7 @@ contract BlastEquipmentNFT is
     struct VariableAttributes {
         uint256 level;
         uint256 durabilityRestored;
+        uint256 durability;
         uint256 lastRepairTime;
         uint256 repairCount;
         uint256 replicationCount;
@@ -49,6 +50,7 @@ contract BlastEquipmentNFT is
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
     uint256 public constant DECIMAL_FACTOR = 1000;
+    uint256 public constant RUSTING_PERIOD = 96 weeks;
 
     uint256 private basePowerForCS = 2500; // 2.5
     uint256 private basePowerForBLST = 2025; // 2.025
@@ -59,6 +61,7 @@ contract BlastEquipmentNFT is
     IERC20 public blastToken;
     address public treasury;
     address public company;
+
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
@@ -133,6 +136,7 @@ contract BlastEquipmentNFT is
         attributes[tokenId] = VariableAttributes({
             level: 1,
             durabilityRestored: 0,
+            durability: 0,
             lastRepairTime: block.timestamp,
             repairCount: 0,
             replicationCount: 0
@@ -173,6 +177,22 @@ contract BlastEquipmentNFT is
         emit AttributeUpdated(
             _tokenId,
             _newLevel,
+            _durabilityPoint,
+            _attribute.repairCount,
+            _attribute.replicationCount
+        );
+    }
+
+    function extendDurability(
+        uint256 _tokenId
+    ) external override hasGameRole {
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.durabilityRestored += getDurabilityPoints(_attribute, _tokenId);
+        _attribute.lastRepairTime = block.timestamp;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
+        emit AttributeUpdated(
+            _tokenId,
+            _attribute.level,
             _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
