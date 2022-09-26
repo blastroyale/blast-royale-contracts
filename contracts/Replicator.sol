@@ -173,7 +173,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         csToken = _csToken;
     }
 
-    function flipMaticUsing() external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function toggleIsUsingMatic() external onlyRole(DEFAULT_ADMIN_ROLE) {
         isUsingMatic = !isUsingMatic;
     }
 
@@ -183,7 +183,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
-        uint256 _deadline, 
+        uint256 _deadline,
         bytes calldata _signature
     ) external payable nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
@@ -195,14 +195,14 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             revert NotReadyReplicate();
 
         if (block.timestamp >= _deadline) revert InvalidParams();
-        
+
         require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
         uint childTokenId = mintChild(tokenOwner, _uri, _hash, _realUri, _p1, _p2);
-        
+
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
@@ -219,7 +219,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         uint256 totalBltAmount = bltPrices[currentReplicationCountP1] +
             bltPrices[currentReplicationCountP2];
         if (isUsingMatic) {
-            require(msg.value == totalBltAmount, "Replicator:Invalid BLT Amount");
+            require(msg.value == totalBltAmount, "Replicator:Invalid Matic Amount");
             (bool sent1, ) = payable(treasuryAddress).call{value: totalBltAmount / 4}("");
             require(sent1, "Failed to send treasuryAddress");
             (bool sent2, ) = payable(companyAddress).call{value: (totalBltAmount * 3) / 4}("");
