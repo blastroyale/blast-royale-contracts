@@ -29,9 +29,9 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
     bytes32 public constant REPLICATOR_TYPEHASH = keccak256("REPLICATOR(address sender,string uri,bytes32 hash,string realUri,uint256 p1,uint256 p2,uint256 nonce,uint256 deadline)");
     // Token related Addresses
-    IBlastEquipmentNFT public immutable blastEquipmentNFT;
-    IERC20 public immutable blastToken;
-    ERC20Burnable public immutable csToken;
+    IBlastEquipmentNFT public blastEquipmentNFT;
+    IERC20 public blastToken;
+    ERC20Burnable public csToken;
 
     address private signer;
     mapping(address => uint256) public nonces;
@@ -56,6 +56,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
     address private treasuryAddress;
     address private companyAddress;
+    bool public isUsingMatic;
     // Child Token ID : Parent Struct
     mapping(uint256 => Parent) public parents;
     // Child Token ID : morphTime
@@ -148,15 +149,43 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         }
     }
 
+    function setBlastEquipmentAddress(IBlastEquipmentNFT _blastEquipmentNFT)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(address(_blastEquipmentNFT) != address(0), "NoZeroAddress");
+        blastEquipmentNFT = _blastEquipmentNFT;
+    }
+
+    function setBlastTokenAddress(IERC20 _blastToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(address(_blastToken) != address(0), "NoZeroAddress");
+        blastToken = _blastToken;
+    }
+
+    function setCSTokenAddress(ERC20Burnable _csToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(address(_csToken) != address(0), "NoZeroAddress");
+        csToken = _csToken;
+    }
+
+    function toggleIsUsingMatic() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isUsingMatic = !isUsingMatic;
+    }
+
     function replicate(
         string calldata _uri,
         bytes32 _hash,
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
-        uint256 _deadline, 
+        uint256 _deadline,
         bytes calldata _signature
-    ) external nonReentrant whenNotPaused {
+    ) external payable nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
         if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
@@ -166,14 +195,14 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             revert NotReadyReplicate();
 
         if (block.timestamp >= _deadline) revert InvalidParams();
-        
+
         require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
         uint childTokenId = mintChild(tokenOwner, _uri, _hash, _realUri, _p1, _p2);
-        
+
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
@@ -189,7 +218,14 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         );
         uint256 totalBltAmount = bltPrices[currentReplicationCountP1] +
             bltPrices[currentReplicationCountP2];
-        if (totalBltAmount > 0) {
+        if (isUsingMatic) {
+            require(msg.value == totalBltAmount, "Replicator:Invalid Matic Amount");
+            (bool sent1, ) = payable(treasuryAddress).call{value: totalBltAmount / 4}("");
+            require(sent1, "Failed to send treasuryAddress");
+            (bool sent2, ) = payable(companyAddress).call{value: (totalBltAmount * 3) / 4}("");
+            require(sent2, "Failed to send companyAddress");
+        } else {
+            require(msg.value == 0, "Replicator:Invalid Value");
             blastToken.safeTransferFrom(
                 tokenOwner,
                 treasuryAddress,

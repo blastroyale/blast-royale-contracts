@@ -51,6 +51,7 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
     ERC20Burnable public csToken;
     address private treasuryAddress;
     address private companyAddress;
+    bool public isUsingMatic;
 
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
     /// @param _blastEquipmentNFT : address of EquipmentNFT contract
@@ -135,7 +136,11 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
         companyAddress = _company;
     }
 
-    function upgrade(uint256 _tokenId) external {
+    function toggleIsUsingMatic() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isUsingMatic = !isUsingMatic;
+    }
+
+    function upgrade(uint256 _tokenId) external payable {
         if (_msgSender() != blastEquipmentNFT.ownerOf(_tokenId))
             revert NotOwner();
 
@@ -148,16 +153,25 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
 
         if (bltPrice == 0 || csPrice == 0) revert InvalidParams();
         csToken.burnFrom(_msgSender(), csPrice);
-        blastToken.safeTransferFrom(
-            _msgSender(),
-            treasuryAddress,
-            bltPrice / 4
-        );
-        blastToken.safeTransferFrom(
-            _msgSender(),
-            companyAddress,
-            (bltPrice * 3) / 4
-        );
+        if (isUsingMatic) {
+            require(msg.value == bltPrice, "Upgrader:Invalid Matic Amount");
+            (bool sent1, ) = payable(treasuryAddress).call{value: bltPrice / 4}("");
+            require(sent1, "Failed to send treasuryAddress");
+            (bool sent2, ) = payable(companyAddress).call{value: (bltPrice * 3) / 4}("");
+            require(sent2, "Failed to send companyAddress");
+        } else {
+            require(msg.value == 0, "Upgrader:Invalid Value");
+            blastToken.safeTransferFrom(
+                _msgSender(),
+                treasuryAddress,
+                bltPrice / 4
+            );
+            blastToken.safeTransferFrom(
+                _msgSender(),
+                companyAddress,
+                (bltPrice * 3) / 4
+            );
+        }
 
         blastEquipmentNFT.setLevel(_tokenId, level + 1);
 

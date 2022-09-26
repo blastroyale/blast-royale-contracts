@@ -39,6 +39,7 @@ contract BlastEquipmentNFT is
     struct VariableAttributes {
         uint256 level;
         uint256 durabilityRestored;
+        uint256 durability;
         uint256 lastRepairTime;
         uint256 repairCount;
         uint256 replicationCount;
@@ -59,6 +60,8 @@ contract BlastEquipmentNFT is
     IERC20 public blastToken;
     address public treasury;
     address public company;
+    bool public isUsingMatic;
+
     Counters.Counter public _tokenIdCounter;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
@@ -133,6 +136,7 @@ contract BlastEquipmentNFT is
         attributes[tokenId] = VariableAttributes({
             level: 1,
             durabilityRestored: 0,
+            durability: 0,
             lastRepairTime: block.timestamp,
             repairCount: 0,
             replicationCount: 0
@@ -173,6 +177,22 @@ contract BlastEquipmentNFT is
         emit AttributeUpdated(
             _tokenId,
             _newLevel,
+            _durabilityPoint,
+            _attribute.repairCount,
+            _attribute.replicationCount
+        );
+    }
+
+    function extendDurability(
+        uint256 _tokenId
+    ) external override hasGameRole {
+        VariableAttributes storage _attribute = attributes[_tokenId];
+        _attribute.durabilityRestored += getDurabilityPoints(_attribute, _tokenId);
+        _attribute.lastRepairTime = block.timestamp;
+        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
+        emit AttributeUpdated(
+            _tokenId,
+            _attribute.level,
             _durabilityPoint,
             _attribute.repairCount,
             _attribute.replicationCount
@@ -264,7 +284,7 @@ contract BlastEquipmentNFT is
 
     function repair(
         uint256 _tokenId
-    ) external override {
+    ) external payable override {
         require(_isApprovedOrOwner(_msgSender(), _tokenId), "Caller is not owner nor approved");
         VariableAttributes storage _attribute = attributes[_tokenId];
         uint256 durabilityPoints = getDurabilityPoints(_attribute, _tokenId);
@@ -275,8 +295,17 @@ contract BlastEquipmentNFT is
             require(company != address(0), "Company is not set");
 
             // Safe TransferFrom from msgSender to treasury
-            blastToken.safeTransferFrom(_msgSender(), treasury, blstPrice / 4);
-            blastToken.safeTransferFrom(_msgSender(), company, (blstPrice - blstPrice / 4));
+            if (isUsingMatic) {
+                require(msg.value == blstPrice, "Repair:Invalid Matic Amount");
+                (bool sent1, ) = payable(treasury).call{value: blstPrice / 4}("");
+                require(sent1, "Failed to send treasuryAddress");
+                (bool sent2, ) = payable(company).call{value: (blstPrice - blstPrice / 4)}("");
+                require(sent2, "Failed to send companyAddress");
+            } else {
+                require(msg.value == 0, "Repair:Invalid Value");
+                blastToken.safeTransferFrom(_msgSender(), treasury, blstPrice / 4);
+                blastToken.safeTransferFrom(_msgSender(), company, (blstPrice - blstPrice / 4));
+            }
         } else {
             uint256 price = getRepairPrice(_tokenId);
             require(price > 0, "Price can't be zero");
@@ -284,7 +313,7 @@ contract BlastEquipmentNFT is
             // Burning CS token from msgSender
             csToken.burnFrom(_msgSender(), price);
         }
-        
+
         _attribute.durabilityRestored += getDurabilityPoints(_attribute, _tokenId);
         _attribute.lastRepairTime = block.timestamp;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
@@ -354,6 +383,12 @@ contract BlastEquipmentNFT is
         require(_treasury != address(0), "Can't be zero");
 
         treasury = _treasury;
+    }
+
+    /// @notice Toggle isUsingMatic flag
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function toggleIsUsingMatic() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isUsingMatic = !isUsingMatic;
     }
 
     /// @notice Pauses all token transfers.
