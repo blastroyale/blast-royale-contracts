@@ -50,7 +50,6 @@ contract BlastEquipmentNFT is
     bytes32 public constant REVEAL_ROLE = keccak256("REVEAL_ROLE");
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
     uint256 public constant DECIMAL_FACTOR = 1000;
-    uint256 public constant RUSTING_PERIOD = 96 weeks;
 
     uint256 private basePowerForCS = 2500; // 2.5
     uint256 private basePowerForBLST = 2025; // 2.025
