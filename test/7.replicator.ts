@@ -135,7 +135,7 @@ describe("Replicator Contract", () => {
         REPLICATOR: [
           { name: "sender", type: "address" },
           { name: "uri", type: "string" },
-          { name: "hash", type: "bytes32" },
+          { name: "hash", type: "string" },
           { name: "realUri", type: "string" },
           { name: "p1", type: "uint256" },
           { name: "p2", type: "uint256" },
@@ -147,7 +147,7 @@ describe("Replicator Contract", () => {
       {
         sender: addr1.address,
         uri: eggMetadataUrl,
-        hash: `0x${hash}`,
+        hash: hash,
         realUri: realMetadataUrl,
         p1: 0,
         p2: 1,

@@ -27,7 +27,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         uint256 parent1;
     }
 
-    bytes32 public constant REPLICATOR_TYPEHASH = keccak256("REPLICATOR(address sender,string uri,bytes32 hash,string realUri,uint256 p1,uint256 p2,uint256 nonce,uint256 deadline)");
+    bytes32 public constant REPLICATOR_TYPEHASH = keccak256("REPLICATOR(address sender,string uri,string hash,string realUri,uint256 p1,uint256 p2,uint256 nonce,uint256 deadline)");
     // Token related Addresses
     IBlastEquipmentNFT public blastEquipmentNFT;
     IERC20 public blastToken;
@@ -196,14 +196,12 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
         if (block.timestamp >= _deadline) revert InvalidParams();
 
-        bytes32 _hash = bytes32(fromHex(_hashString));
-
-        require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
+        require(_verify(_hashFunc(_msgSender(), _uri, _hashString, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
-        uint childTokenId = mintChild(tokenOwner, _uri, _hash, _realUri, _p1, _p2);
+        uint childTokenId = mintChild(tokenOwner, _uri, _hashString, _realUri, _p1, _p2);
 
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
@@ -275,11 +273,11 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         );
     }
 
-    function mintChild(address tokenOwner, string calldata _uri, bytes32 _hash, string calldata _realUri, uint256 _p1, uint256 _p2) internal returns (uint256) {
+    function mintChild(address tokenOwner, string calldata _uri, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2) internal returns (uint256) {
         uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
             tokenOwner,
             _uri,
-            _hash,
+            bytes32(fromHex(_hashString)),
             _realUri
         );
         isReplicating[childTokenId] = true;
@@ -297,7 +295,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
     function _hashFunc(
         address _sender,
         string calldata _uri,
-        bytes32 _hash,
+        string calldata _hash,
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
@@ -309,7 +307,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             REPLICATOR_TYPEHASH,
             _sender,
             keccak256(abi.encodePacked(_uri)),
-            _hash,
+            keccak256(abi.encodePacked(_hash)),
             keccak256(abi.encodePacked(_realUri)),
             _p1,
             _p2,
