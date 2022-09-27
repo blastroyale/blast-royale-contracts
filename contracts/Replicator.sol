@@ -179,7 +179,7 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
     function replicate(
         string calldata _uri,
-        bytes32 _hash,
+        string calldata _hashString,
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
@@ -196,6 +196,8 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
         if (block.timestamp >= _deadline) revert InvalidParams();
 
+        bytes32 _hash = bytes32(fromHex(_hashString));
+
         require(_verify(_hashFunc(_msgSender(), _uri, _hash, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
@@ -204,6 +206,32 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         uint childTokenId = mintChild(tokenOwner, _uri, _hash, _realUri, _p1, _p2);
 
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
+    }
+
+    // Convert an hexadecimal character to their value
+    function fromHexChar(uint8 c) internal pure returns (uint8) {
+        if (bytes1(c) >= bytes1("0") && bytes1(c) <= bytes1("9")) {
+            return c - uint8(bytes1("0"));
+        }
+        if (bytes1(c) >= bytes1("a") && bytes1(c) <= bytes1("f")) {
+            return 10 + c - uint8(bytes1("a"));
+        }
+        if (bytes1(c) >= bytes1("A") && bytes1(c) <= bytes1("F")) {
+            return 10 + c - uint8(bytes1("A"));
+        }
+        revert("fail");
+    }
+
+    // Convert an hexadecimal string to raw bytes
+    function fromHex(string memory s) internal pure returns (bytes memory) {
+        bytes memory ss = bytes(s);
+        require(ss.length%2 == 0); // length must be even
+        bytes memory r = new bytes(ss.length/2);
+        for (uint i=0; i<ss.length/2; ++i) {
+            r[i] = bytes1(fromHexChar(uint8(ss[2*i])) * 16 +
+                        fromHexChar(uint8(ss[2*i+1])));
+        }
+        return r;
     }
 
     function setReplicatorCount(uint256 _p1, uint256 _p2, address tokenOwner) internal {
