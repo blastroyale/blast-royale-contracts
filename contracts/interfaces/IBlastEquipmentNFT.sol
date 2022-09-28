@@ -44,6 +44,8 @@ interface IBlastEquipmentNFT is IERC721 {
 
     function revealRealTokenURI(uint _tokenId) external;
 
+    function setRealTokenURI(uint _tokenId, string calldata _realUri) external;
+
     function setLevel(uint256 _tokenId, uint256 _newLevel) external;
 
     function extendDurability(uint256 _tokenId) external;
