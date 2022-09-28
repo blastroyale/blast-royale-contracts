@@ -166,6 +166,15 @@ contract BlastEquipmentNFT is
         emit PermanentURI(realTokenURI[_tokenId], _tokenId);
     }
 
+    function setRealTokenURI(uint256 _tokenId, string calldata _realUri)
+        external
+        override
+        onlyRole(REVEAL_ROLE)
+    {
+        _setTokenURI(_tokenId, _realUri);
+        emit PermanentURI(_realUri, _tokenId);
+    }
+
     function setLevel(uint256 _tokenId, uint256 _newLevel)
         external
         override
@@ -372,7 +381,7 @@ contract BlastEquipmentNFT is
     /// @notice Set Company address
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function setCompanyAddress(address _company) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_company != address(0), "Can't be zero");
+        require(_company != address(0), "NoZeroAddress");
 
         company = _company;
     }
@@ -380,9 +389,25 @@ contract BlastEquipmentNFT is
     /// @notice Set Treasury address
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function setTreasuryAddress(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_treasury != address(0), "Can't be zero");
+        require(_treasury != address(0), "NoZeroAddress");
 
         treasury = _treasury;
+    }
+
+    function setBlastTokenAddress(IERC20 _blastToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(address(_blastToken) != address(0), "NoZeroAddress");
+        blastToken = _blastToken;
+    }
+
+    function setCSTokenAddress(ERC20Burnable _csToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(address(_csToken) != address(0), "NoZeroAddress");
+        csToken = _csToken;
     }
 
     /// @notice Toggle isUsingMatic flag

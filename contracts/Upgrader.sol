@@ -140,6 +140,22 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
         isUsingMatic = !isUsingMatic;
     }
 
+    function setBlastTokenAddress(IERC20 _blastToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        if (address(_blastToken) == address(0)) revert NoZeroAddress();
+        blastToken = _blastToken;
+    }
+
+    function setCSTokenAddress(ERC20Burnable _csToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        if (address(_csToken) == address(0)) revert NoZeroAddress();
+        csToken = _csToken;
+    }
+
     function upgrade(uint256 _tokenId) external payable {
         if (_msgSender() != blastEquipmentNFT.ownerOf(_tokenId))
             revert NotOwner();
