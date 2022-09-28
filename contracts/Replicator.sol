@@ -235,8 +235,8 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
     function setReplicatorCount(uint256 _p1, uint256 _p2, address tokenOwner) internal {
         uint256 currentReplicationCountP1;
         uint256 currentReplicationCountP2;
-        (, , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
-        (, , , currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
+        (, , , currentReplicationCountP1, ,) = blastEquipmentNFT.getAttributes(_p1);
+        (, , , currentReplicationCountP2, ,) = blastEquipmentNFT.getAttributes(_p2);
         csToken.burnFrom(
             tokenOwner,
             csPrices[currentReplicationCountP1] +
@@ -314,18 +314,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
             nonce,
             deadline
         )));
-    }
-
-    function isReplicatingStatus(uint256 _tokenId)
-        internal
-        view
-        returns (bool)
-    {
-        return isReplicating[_tokenId];
-    }
-
-    function isReadyToMorph(uint256 _childId) public view returns (bool) {
-        return morphTimestamp[_childId] <= block.timestamp;
     }
 
     function morph(uint256 _childId) external nonReentrant whenNotPaused {

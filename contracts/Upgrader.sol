@@ -163,7 +163,7 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
         uint256 bltPrice = getRequiredPrice(0, _tokenId);
         uint256 csPrice = getRequiredPrice(1, _tokenId);
         (, , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
-        (uint256 level, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+        (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         if (level == 0) revert InvalidParams();
         if (level == maxLevelPerRarity[rarity]) revert MaxLevelReached();
 
@@ -201,7 +201,7 @@ contract Upgrader is AccessControl, ReentrancyGuard, Pausable {
     {
         (, , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
             .getStaticAttributes(_tokenId);
-        (uint256 level, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+        (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
 
         if (_tokenType == 0) {
             return (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10;
