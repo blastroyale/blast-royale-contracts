@@ -176,24 +176,6 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function extendDurability(
-        uint256 _tokenId
-    ) external override hasGameRole {
-        VariableAttributes storage _attribute = attributes[_tokenId];
-        _attribute.durabilityRestored += getDurabilityPoints(_attribute, _tokenId);
-        _attribute.lastRepairTime = block.timestamp;
-        uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
-        emit AttributeUpdated(
-            _tokenId,
-            _attribute.level,
-            _attribute.durabilityRestored,
-            _durabilityPoint,
-            _attribute.lastRepairTime,
-            _attribute.repairCount,
-            _attribute.replicationCount
-        );
-    }
-
     function setRepairCount(uint256 _tokenId, uint256 _newRepairCount)
         external
         override
@@ -234,6 +216,10 @@ contract BlastEquipmentNFT is
             _attribute.repairCount,
             _newReplicationCount
         );
+    }
+
+    function scrap(uint256 _tokenId) external override hasGameRole {
+        _burn(_tokenId);
     }
 
     function getAttributes(uint256 _tokenId)

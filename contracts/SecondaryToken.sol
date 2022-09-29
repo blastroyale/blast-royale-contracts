@@ -8,10 +8,11 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./interfaces/ICraftSpiceToken.sol";
 
 /// @title Blast Royale Token - Secondary Token
 /// @dev Based on OpenZeppelin Contracts.
-contract SecondaryToken is ERC20, ERC20Burnable, EIP712, ERC20Pausable, AccessControl, ReentrancyGuard {
+contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20Pausable, AccessControl, ReentrancyGuard {
     using ECDSA for bytes32;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -91,6 +92,7 @@ contract SecondaryToken is ERC20, ERC20Burnable, EIP712, ERC20Pausable, AccessCo
     /// @param _amount Token Amount
     function claim(address _to, uint256 _amount)
         external
+        override
         onlyRole(MINTER_ROLE)
     {
         _mint(_to, _amount);

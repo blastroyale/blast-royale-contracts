@@ -35,12 +35,12 @@ interface IBlastEquipmentNFT is IERC721 {
 
     function setLevel(uint256 _tokenId, uint256 _newLevel) external;
 
-    function extendDurability(uint256 _tokenId) external;
-
     function setRepairCount(uint256 _tokenId, uint256 _newRepairCount) external;
 
     function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
         external;
+
+    function scrap(uint256 _tokenId) external;
 
     function getAttributes(uint256 _tokenId) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
 
