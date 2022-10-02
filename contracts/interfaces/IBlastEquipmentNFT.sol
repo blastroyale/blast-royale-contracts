@@ -2,6 +2,14 @@
 pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
+struct StaticAttributes {
+    uint8 maxLevel;
+    uint8 maxDurability;
+    uint8 adjective;
+    uint8 rarity;
+    uint8 grade;
+}
+
 /**
  * @dev required interface of an Equipment NFT.
  */
@@ -20,14 +28,7 @@ interface IBlastEquipmentNFT is IERC721 {
     /// @notice Event Revealed TokenURI
     event PermanentURI(string _value, uint256 indexed _id);
 
-    function safeMint(
-        address _to,
-        string[] memory _uri,
-        bytes32[] memory _hash,
-        string[] memory _realUri
-    ) external;
-
-    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri) external returns (uint);
+    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri, StaticAttributes calldata _staticAttribute) external returns (uint);
 
     function revealRealTokenURI(uint _tokenId) external;
 

@@ -14,6 +14,24 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     IBlastEquipmentNFT public blastEquipmentNFT;
     ICraftSpiceToken public csToken;
 
+    uint256 public constant DECIMAL_FACTOR = 1000;
+
+    uint256 public growthMultiplier = 1200;
+    uint256[10] public csValuePerRarity = [
+        100, 120, 144, 173, 208,
+        250, 300, 360, 432, 518
+    ];
+    uint256[10] public csAdditiveValuePerAdjective = [
+        20, 40, 70, 100, 100,
+        200, 200, 350, 500, 500
+    ];
+    uint256[6] public gradeMultiplierPerGrade = [
+        100, 110, 120, 140, 165, 200 // DECIMAL FACTOR = 100
+    ];
+    uint256 public csPercentagePerLevel = 25;
+
+    event Scrapped(uint256 tokenId, address user, uint256 csAmount);
+
     constructor (IBlastEquipmentNFT _blastEquipmentNFT, ICraftSpiceToken _csToken) {
         if (
             address(_blastEquipmentNFT) == address(0) ||
@@ -30,8 +48,17 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
             blastEquipmentNFT.ownerOf(_tokenId) == msg.sender,
             "Scrapper: Not owner of token"
         );
-        csToken.claim(_msgSender(), 1);
         blastEquipmentNFT.scrap(_tokenId);
+        uint256 csAmount = getCSPrice(_tokenId);
+        csToken.claim(_msgSender(), csAmount);
+
+        emit Scrapped(_tokenId, _msgSender(), csAmount);
+    }
+
+    function getCSPrice(uint256 _tokenId) public view returns (uint256) {
+        (, , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT.getStaticAttributes(_tokenId);
+        (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
+        return ((csValuePerRarity[rarity] + csAdditiveValuePerAdjective[adjective]) + (csValuePerRarity[rarity] + csAdditiveValuePerAdjective[adjective]) * (level - 1) * csPercentagePerLevel / 1000) * gradeMultiplierPerGrade[grade] / 100 * 10 ** 18;
     }
 
     function setBlastEquipmentAddress(IBlastEquipmentNFT _blastEquipmentNFT)

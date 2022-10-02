@@ -53,8 +53,8 @@ describe("Upgrader Contract", () => {
     const _attributes = await bet.getAttributes(tokenId);
     const _staticAttributes = await bet.getStaticAttributes(tokenId);
 
-    const rarity = _staticAttributes[3];
     const adjective = _staticAttributes[2];
+    const rarity = _staticAttributes[3];
     const grade = _staticAttributes[4];
     const level = _attributes[0].toNumber();
 
@@ -69,9 +69,7 @@ describe("Upgrader Contract", () => {
     );
     bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
-      "BLT",
-      company.address,
-      treasury.address
+      "BLT"
     );
     await bet.deployed();
 
@@ -101,7 +99,8 @@ describe("Upgrader Contract", () => {
     cs = await CraftToken.deploy(
       secondaryTokenArgs.name,
       secondaryTokenArgs.symbol,
-      BigNumber.from(secondaryTokenArgs.supply)
+      BigNumber.from(secondaryTokenArgs.supply),
+      owner.address
     );
     await cs.deployed();
     await (
@@ -128,14 +127,28 @@ describe("Upgrader Contract", () => {
     await bet.grantRole(GAME_ROLE, upgrader.address);
 
     // NFT equipment items minting
-    const tx = await bet
-      .connect(owner)
-      .safeMint(
-        addr1.address,
-        ["ipfs://111", "ipfs://222"],
-        [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
-        ["ipfs://111_real", "ipfs://222_real"]
-      );
+    const tx = await bet.connect(owner).safeMint(
+      addr1.address,
+      ["ipfs://111", "ipfs://222"],
+      [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
+      ["ipfs://111_real", "ipfs://222_real"],
+      [
+        {
+          maxLevel: 5,
+          maxDurability: 144,
+          adjective: 0,
+          rarity: 0,
+          grade: 4,
+        },
+        {
+          maxLevel: 5,
+          maxDurability: 144,
+          adjective: 0,
+          rarity: 0,
+          grade: 4,
+        },
+      ]
+    );
     await tx.wait();
   });
 

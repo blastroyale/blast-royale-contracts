@@ -7,12 +7,11 @@ describe("Blast LootBox Contract", function () {
   let owner: any;
   let player1: any;
   let player2: any;
-  let treasury: any;
   let bet: any;
   let blb: any;
 
   before("deploying", async () => {
-    [owner, player1, player2, treasury] = await ethers.getSigners();
+    [owner, player1, player2] = await ethers.getSigners();
 
     // BlastEquipment NFT Deploying
     const BlastEquipmentToken = await ethers.getContractFactory(
@@ -20,9 +19,7 @@ describe("Blast LootBox Contract", function () {
     );
     bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
-      "BLT",
-      owner.address,
-      treasury.address
+      "BLT"
     );
     await bet.deployed();
 
@@ -36,18 +33,21 @@ describe("Blast LootBox Contract", function () {
     await blb.deployed();
 
     // Equipment NFT minting process
-    const mintTx = await bet
-      .connect(owner)
-      .safeMint(
-        blb.address,
-        ["ipfs://111", "ipfs://222", "ipfs://333"],
-        [
-          ethers.utils.keccak256("0x1000"),
-          ethers.utils.keccak256("0x2000"),
-          ethers.utils.keccak256("0x3000"),
-        ],
-        ["ipfs://111_real", "ipfs://222_real", "ipfs://333_real"]
-      );
+    const mintTx = await bet.connect(owner).safeMint(
+      blb.address,
+      ["ipfs://111", "ipfs://222", "ipfs://333"],
+      [
+        ethers.utils.keccak256("0x1000"),
+        ethers.utils.keccak256("0x2000"),
+        ethers.utils.keccak256("0x3000"),
+      ],
+      ["ipfs://111_real", "ipfs://222_real", "ipfs://333_real"],
+      [
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+      ]
+    );
     await mintTx.wait();
     // Grant REVEAL_ROLE to Lootbox contract
     const REVEAL_ROLE = await bet.REVEAL_ROLE();
@@ -98,35 +98,41 @@ describe("Blast LootBox Contract", function () {
 
   it("Open multiple lootbox items", async () => {
     // Equipment NFT minting process
-    const mintTx1 = await bet
-      .connect(owner)
-      .safeMint(
-        blb.address,
-        [
-          "ipfs://111",
-          "ipfs://222",
-          "ipfs://333",
-          "ipfs://444",
-          "ipfs://555",
-          "ipfs://666",
-        ],
-        [
-          ethers.utils.keccak256("0x1000"),
-          ethers.utils.keccak256("0x2000"),
-          ethers.utils.keccak256("0x3000"),
-          ethers.utils.keccak256("0x4000"),
-          ethers.utils.keccak256("0x5000"),
-          ethers.utils.keccak256("0x6000"),
-        ],
-        [
-          "ipfs://111_real",
-          "ipfs://222_real",
-          "ipfs://333_real",
-          "ipfs://444_real",
-          "ipfs://555_real",
-          "ipfs://666_real",
-        ]
-      );
+    const mintTx1 = await bet.connect(owner).safeMint(
+      blb.address,
+      [
+        "ipfs://111",
+        "ipfs://222",
+        "ipfs://333",
+        "ipfs://444",
+        "ipfs://555",
+        "ipfs://666",
+      ],
+      [
+        ethers.utils.keccak256("0x1000"),
+        ethers.utils.keccak256("0x2000"),
+        ethers.utils.keccak256("0x3000"),
+        ethers.utils.keccak256("0x4000"),
+        ethers.utils.keccak256("0x5000"),
+        ethers.utils.keccak256("0x6000"),
+      ],
+      [
+        "ipfs://111_real",
+        "ipfs://222_real",
+        "ipfs://333_real",
+        "ipfs://444_real",
+        "ipfs://555_real",
+        "ipfs://666_real",
+      ],
+      [
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+      ]
+    );
     await mintTx1.wait();
 
     const tx = await blb.connect(owner).safeMint(

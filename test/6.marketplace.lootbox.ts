@@ -52,12 +52,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
 
   it("Deploy NFT", async function () {
     const BlastNFT = await ethers.getContractFactory("BlastEquipmentNFT");
-    nft = await BlastNFT.connect(admin).deploy(
-      "Blast Royale",
-      "$BLT",
-      blt.address,
-      blt.address
-    );
+    nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
     await nft.deployed();
   });
 
@@ -72,44 +67,53 @@ describe("Blast Royale Marketplace Lootbox", function () {
 
     // Equipment NFT mint to blast Lootbox contract
     await (
-      await nft
-        .connect(admin)
-        .safeMint(
-          lootbox.address,
-          [
-            "ipfs://111",
-            "ipfs://222",
-            "ipfs://333",
-            "ipfs://111",
-            "ipfs://222",
-            "ipfs://333",
-            "ipfs://111",
-            "ipfs://222",
-            "ipfs://333",
-          ],
-          [
-            ethers.utils.keccak256("0x1000"),
-            ethers.utils.keccak256("0x2000"),
-            ethers.utils.keccak256("0x3000"),
-            ethers.utils.keccak256("0x1000"),
-            ethers.utils.keccak256("0x2000"),
-            ethers.utils.keccak256("0x3000"),
-            ethers.utils.keccak256("0x1000"),
-            ethers.utils.keccak256("0x2000"),
-            ethers.utils.keccak256("0x3000"),
-          ],
-          [
-            "ipfs://111_real",
-            "ipfs://222_real",
-            "ipfs://333_real",
-            "ipfs://111_real",
-            "ipfs://222_real",
-            "ipfs://333_real",
-            "ipfs://111_real",
-            "ipfs://222_real",
-            "ipfs://333_real",
-          ]
-        )
+      await nft.connect(admin).safeMint(
+        lootbox.address,
+        [
+          "ipfs://111",
+          "ipfs://222",
+          "ipfs://333",
+          "ipfs://111",
+          "ipfs://222",
+          "ipfs://333",
+          "ipfs://111",
+          "ipfs://222",
+          "ipfs://333",
+        ],
+        [
+          ethers.utils.keccak256("0x1000"),
+          ethers.utils.keccak256("0x2000"),
+          ethers.utils.keccak256("0x3000"),
+          ethers.utils.keccak256("0x1000"),
+          ethers.utils.keccak256("0x2000"),
+          ethers.utils.keccak256("0x3000"),
+          ethers.utils.keccak256("0x1000"),
+          ethers.utils.keccak256("0x2000"),
+          ethers.utils.keccak256("0x3000"),
+        ],
+        [
+          "ipfs://111_real",
+          "ipfs://222_real",
+          "ipfs://333_real",
+          "ipfs://111_real",
+          "ipfs://222_real",
+          "ipfs://333_real",
+          "ipfs://111_real",
+          "ipfs://222_real",
+          "ipfs://333_real",
+        ],
+        [
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+          [5, 0, 0, 0, 0],
+        ]
+      )
     ).wait();
 
     // Lootbox SafeMint
@@ -160,7 +164,6 @@ describe("Blast Royale Marketplace Lootbox", function () {
       sortPairs: true,
     });
     const merkleRoot = tree.getHexRoot();
-    console.log(merkleRoot);
 
     const LootboxMarketplce = await ethers.getContractFactory(
       "MarketplaceLootbox"
@@ -182,7 +185,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     await expect(
       market
         .connect(admin)
-        .addListing(0, ethers.utils.parseUnits("10"), blt.address)
+        .addListing([0], ethers.utils.parseUnits("10"), blt.address)
     )
       .to.emit(market, "LootboxListed")
       .withArgs(0, admin.address, ethers.utils.parseUnits("10"), blt.address);
@@ -191,7 +194,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     await expect(
       market
         .connect(admin)
-        .addListing(1, ethers.utils.parseUnits("20"), blt.address)
+        .addListing([1], ethers.utils.parseUnits("20"), blt.address)
     )
       .to.emit(market, "LootboxListed")
       .withArgs(1, admin.address, ethers.utils.parseUnits("20"), blt.address);
@@ -200,7 +203,7 @@ describe("Blast Royale Marketplace Lootbox", function () {
     await expect(
       market
         .connect(admin)
-        .addListing(2, ethers.utils.parseUnits("30"), blt.address)
+        .addListing([2], ethers.utils.parseUnits("30"), blt.address)
     )
       .to.emit(market, "LootboxListed")
       .withArgs(2, admin.address, ethers.utils.parseUnits("30"), blt.address);
@@ -228,10 +231,9 @@ describe("Blast Royale Marketplace Lootbox", function () {
     const listing = await market.listings(tokenId);
 
     const player3Address = await whitelisted[3].getAddress();
-    const merkleProof = [
-      "0x5ad2bbe9d835eb0f28a017de1d92239e4d0ad72eb79ea35bdafc3e350e6b49e7",
-      "0x544bbdc069a66bcb6dbe538dda1a25c22494a5de875b8d3ccafc49458cebdb4b",
-    ];
+    const merkleProof = tree.getHexProof(
+      ethers.utils.keccak256(player3Address)
+    );
 
     // Approve BLT and Buy NFT from the marketplace.
     await blt.connect(player3).approve(market.address, listing.price);

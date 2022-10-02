@@ -35,8 +35,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
 
     address private signer;
     mapping(address => uint256) public nonces;
-    uint8 public constant INIT_REPLICATION_COUNT = 7;
-    // TODO: It would be 5 days in public release. (5 days)
     uint256 public constant REPLICATION_TIMER = 5 minutes;
 
     event Replicated(
@@ -184,12 +182,12 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         uint256 _p1,
         uint256 _p2,
         uint256 _deadline,
-        bytes calldata _signature
+        bytes calldata _signature,
+        StaticAttributes calldata _staticAttribute
     ) external payable nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
-        address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
-        if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
-        if (tokenOwner != msg.sender) revert InvalidParams();
+        if (blastEquipmentNFT.ownerOf(_p1) != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
+        if (blastEquipmentNFT.ownerOf(_p1) != msg.sender) revert InvalidParams();
 
         if (isReplicating[_p1] || isReplicating[_p2])
             revert NotReadyReplicate();
@@ -199,11 +197,11 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         require(_verify(_hashFunc(_msgSender(), _uri, _hashString, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
         nonces[_msgSender()] ++;
 
-        setReplicatorCount(_p1, _p2, tokenOwner);
+        setReplicatorCount(_p1, _p2, blastEquipmentNFT.ownerOf(_p1));
 
-        uint childTokenId = mintChild(tokenOwner, _uri, _hashString, _realUri, _p1, _p2);
+        uint childTokenId = mintChild(blastEquipmentNFT.ownerOf(_p1), _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
 
-        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
+        emit Replicated(_p1, _p2, childTokenId, blastEquipmentNFT.ownerOf(_p1), block.timestamp);
     }
 
     // Convert an hexadecimal character to their value
@@ -235,8 +233,8 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
     function setReplicatorCount(uint256 _p1, uint256 _p2, address tokenOwner) internal {
         uint256 currentReplicationCountP1;
         uint256 currentReplicationCountP2;
-        (, , , currentReplicationCountP1, ,) = blastEquipmentNFT.getAttributes(_p1);
-        (, , , currentReplicationCountP2, ,) = blastEquipmentNFT.getAttributes(_p2);
+        (, , , , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
+        (, , , , , currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
         csToken.burnFrom(
             tokenOwner,
             csPrices[currentReplicationCountP1] +
@@ -273,12 +271,13 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         );
     }
 
-    function mintChild(address tokenOwner, string calldata _uri, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2) internal returns (uint256) {
+    function mintChild(address tokenOwner, string calldata _uri, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
         uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
             tokenOwner,
             _uri,
             bytes32(fromHex(_hashString)),
-            _realUri
+            _realUri,
+            _staticAttribute
         );
         isReplicating[childTokenId] = true;
         parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});

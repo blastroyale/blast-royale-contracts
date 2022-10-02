@@ -39,25 +39,23 @@ describe("Blast Royale Marketplace", function () {
 
   it("Deploy NFT", async function () {
     const BlastNFT = await ethers.getContractFactory("BlastEquipmentNFT");
-    nft = await BlastNFT.connect(admin).deploy(
-      "Blast Royale",
-      "$BLT",
-      blt.address,
-      blt.address
-    );
+    nft = await BlastNFT.connect(admin).deploy("Blast Royale", "$BLT");
     await nft.deployed();
-    const mintTx = await nft
-      .connect(admin)
-      .safeMint(
-        player1.address,
-        ["ipfs://111", "ipfs://222", "ipfs://333"],
-        [
-          ethers.utils.keccak256("0x1000"),
-          ethers.utils.keccak256("0x2000"),
-          ethers.utils.keccak256("0x3000"),
-        ],
-        ["ipfs://111_real", "ipfs://222_real", "ipfs://333_real"]
-      );
+    const mintTx = await nft.connect(admin).safeMint(
+      player1.address,
+      ["ipfs://111", "ipfs://222", "ipfs://333"],
+      [
+        ethers.utils.keccak256("0x1000"),
+        ethers.utils.keccak256("0x2000"),
+        ethers.utils.keccak256("0x3000"),
+      ],
+      ["ipfs://111_real", "ipfs://222_real", "ipfs://333_real"],
+      [
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0],
+      ]
+    );
     await mintTx.wait();
   });
 

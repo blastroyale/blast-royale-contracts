@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
-import "hardhat/console.sol";
 
 error NotOwner();
 error NoZeroAddress();

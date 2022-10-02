@@ -13,9 +13,7 @@ describe("Replicator Contract", () => {
     );
     const bet = await BlastEquipmentToken.connect(owner).deploy(
       "Blast Equipment",
-      "BLT",
-      company.address,
-      treasury.address
+      "BLT"
     );
     await bet.deployed();
 
@@ -78,14 +76,28 @@ describe("Replicator Contract", () => {
     await bet.grantRole(REVEAL_ROLE, replicatorContract.address);
 
     // NFT equipment items minting
-    const tx = await bet
-      .connect(owner)
-      .safeMint(
-        addr1.address,
-        ["ipfs://111", "ipfs://222"],
-        [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
-        ["ipfs://111_real", "ipfs://222_real"]
-      );
+    const tx = await bet.connect(owner).safeMint(
+      addr1.address,
+      ["ipfs://111", "ipfs://222"],
+      [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
+      ["ipfs://111_real", "ipfs://222_real"],
+      [
+        {
+          maxLevel: 5,
+          maxDurability: 144,
+          adjective: 0,
+          rarity: 0,
+          grade: 0,
+        },
+        {
+          maxLevel: 5,
+          maxDurability: 144,
+          adjective: 0,
+          rarity: 0,
+          grade: 0,
+        },
+      ]
+    );
     await tx.wait();
 
     // Approve token
@@ -195,7 +207,14 @@ describe("Replicator Contract", () => {
           0,
           1,
           deadline,
-          signature
+          signature,
+          {
+            maxLevel: 0,
+            maxDurability: 0,
+            adjective: 0,
+            rarity: 0,
+            grade: 0,
+          }
         )
     ).to.emit(replicatorContract, "Replicated");
 

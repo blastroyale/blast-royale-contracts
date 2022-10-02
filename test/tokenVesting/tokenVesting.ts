@@ -5,6 +5,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
+// eslint-disable-next-line node/no-missing-import
 import { PrimaryToken, TokenVesting } from "../../typechain";
 
 describe("TokenVesting", function () {
@@ -31,6 +32,7 @@ describe("TokenVesting", function () {
     vesting = await TokenVesting.connect(owner).deploy(blt.address);
     await vesting.deployed();
   });
+
   it("Test TokenVesting", async function () {
     // Transfer blast Token to vesting contract
     const transferTx = await blt
@@ -40,7 +42,7 @@ describe("TokenVesting", function () {
 
     // Friday, May 20, 2022 4:24:52 PM. It's TGE
     // https://www.epochconverter.com/
-    const startTimestamp = 1652808504;
+    const startTimestamp = new Date().getTime();
     const cliffDurationInSeconds = 3600 * 24 * 30 * 6; // 6 months
     const durationInSeconds = 3600 * 24 * 30 * 24; // 24 months
     const createTx = await vesting.createVestingSchedule(
@@ -97,6 +99,6 @@ describe("TokenVesting", function () {
     await releaseTx2.wait();
 
     const schedule2 = await vesting.getVestingSchedule(scheduleId);
-    expect(schedule2.released).to.eq(ethers.utils.parseEther("76800000"));
+    expect(schedule2.released).to.eq(ethers.utils.parseEther("3072000"));
   });
 });

@@ -26,14 +26,6 @@ contract BlastEquipmentNFT is
     using SafeERC20 for IERC20;
     using PRBMathUD60x18 for uint256;
 
-    struct StaticAttributes {
-        uint8 maxLevel;
-        uint8 maxDurability;
-        uint8 adjective;
-        uint8 rarity;
-        uint8 grade;
-    }
-
     /// @dev Variable Attributes
     /// @notice These attributes would be nice to have on-chain because they affect the value of NFT and they are persistent when NFT changes hands.
     struct VariableAttributes {
@@ -83,14 +75,15 @@ contract BlastEquipmentNFT is
         address _to,
         string[] calldata _uri,
         bytes32[] calldata _hash,
-        string[] calldata _realUri
-    ) external override onlyRole(MINTER_ROLE) {
+        string[] calldata _realUri,
+        StaticAttributes[] calldata _staticAttributes
+    ) external onlyRole(MINTER_ROLE) {
         require(_to != address(0), "To address can't be zero");
         require(_uri.length == _hash.length, "Invalid params");
         require(_uri.length == _realUri.length, "Invalid params");
 
         for (uint256 i = 0; i < _uri.length; i = i + 1) {
-            _safeMint(_to, _uri[i], _hash[i], _realUri[i]);
+            _safeMint(_to, _uri[i], _hash[i], _realUri[i], _staticAttributes[i]);
         }
     }
 
@@ -98,18 +91,20 @@ contract BlastEquipmentNFT is
         address _to,
         string calldata _uri,
         bytes32 _hash,
-        string calldata _realUri
+        string calldata _realUri,
+        StaticAttributes memory _staticAttributes
     ) external override onlyRole(REPLICATOR_ROLE) returns (uint256) {
         require(_to != address(0), "To address can't be zero");
 
-        return _safeMint(_to, _uri, _hash, _realUri);
+        return _safeMint(_to, _uri, _hash, _realUri, _staticAttributes);
     }
 
     function _safeMint(
         address _to,
         string memory _uri,
         bytes32 _hash,
-        string memory _realUri
+        string memory _realUri,
+        StaticAttributes memory _staticAttributes
     ) internal returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
@@ -123,13 +118,7 @@ contract BlastEquipmentNFT is
             repairCount: 0,
             replicationCount: 0
         });
-        staticAttributes[tokenId] = StaticAttributes({
-            maxLevel: 0,
-            maxDurability: 96,
-            adjective: 0,
-            rarity: 0,
-            grade: 4
-        });
+        staticAttributes[tokenId] = _staticAttributes;
 
         _mint(_to, tokenId);
         _setTokenURI(tokenId, _uri);
@@ -162,6 +151,9 @@ contract BlastEquipmentNFT is
         override
         hasGameRole
     {
+        StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
+        require(_staticAttribute.maxLevel >= _newLevel, "Invalid level");
+
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
