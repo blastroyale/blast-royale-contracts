@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { ethers } from "hardhat";
-import axios from "axios"
+import axios from "axios";
 import { MerkleTree } from "merkletreejs";
 import TokenArgs from "../../constants/TokenArgs.json";
 
@@ -60,12 +60,12 @@ const googleSheetLoadfromUrl = async (sheetNameParam = "Whitelist") => {
 
   try {
     const { data: json } = await axios.get(url);
-    const data:any = [];
-    //Remove additional text and extract only JSON:
+    const data: any = [];
+    // Remove additional text and extract only JSON:
     const jsonData = JSON.parse(json.substring(47).slice(0, -2));
 
-    //extract row data:
-    jsonData.table.rows.forEach((rowData:any) => {
+    // extract row data:
+    jsonData.table.rows.forEach((rowData: any) => {
       const row = rowData.c[0] != null ? rowData.c[0].v : "";
       data.push(row);
     });
@@ -76,21 +76,19 @@ const googleSheetLoadfromUrl = async (sheetNameParam = "Whitelist") => {
   }
 };
 
- const getWLUserList = async () => {
+const getWLUserList = async () => {
   const list = await googleSheetLoadfromUrl();
-  return list.filter((wallet:any) => ethers.utils.isAddress(wallet));
+  return list.filter((wallet: any) => ethers.utils.isAddress(wallet));
 };
 
- const getWLLuckyUserList = async () => {
+const getWLLuckyUserList = async () => {
   const list = await googleSheetLoadfromUrl("WLLucky");
-  return list.filter((wallet:any) => ethers.utils.isAddress(wallet));
+  return list.filter((wallet: any) => ethers.utils.isAddress(wallet));
 };
-
-
 
 export const getMerkleRoots = async () => {
-  const whitelist = await getWLUserList() 
-  const luckyWhitelist = await getWLLuckyUserList()
+  const whitelist = await getWLUserList();
+  const luckyWhitelist = await getWLLuckyUserList();
   if (!whitelist) return;
   if (!luckyWhitelist) return;
 
@@ -118,4 +116,3 @@ export const getMerkleRoots = async () => {
 
   return { merkleRoot, luckyMerkleRoot };
 };
-

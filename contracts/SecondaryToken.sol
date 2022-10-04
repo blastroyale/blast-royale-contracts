@@ -21,6 +21,8 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
     address private signer;
     mapping(address => uint256) public nonces;
 
+    event Claimed(address user, uint256 amount);
+
     /// @notice Token constructor
     /// @dev Creates the token and setup the initial supply and the Admin Role.
     /// @param name Name of the Token
@@ -54,6 +56,8 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
         require(_verify(_hash(_msgSender(), _amount, nonces[_msgSender()], _deadline), _signature), "CS:Invalid Signature in claiming");
         nonces[_msgSender()] ++;
         _mint(_msgSender(), _amount);
+
+        emit Claimed(_msgSender(), _amount);
     }
 
     function _verify(bytes32 digest, bytes memory signature) internal view returns (bool)
@@ -96,6 +100,8 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
         onlyRole(MINTER_ROLE)
     {
         _mint(_to, _amount);
+
+        emit Claimed(_to, _amount);
     }
 
     function updateSigner(address _signer) external onlyRole(DEFAULT_ADMIN_ROLE) {
