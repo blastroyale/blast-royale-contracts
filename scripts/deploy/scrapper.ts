@@ -1,6 +1,8 @@
 /* eslint-disable node/no-missing-import */
 import hre, { ethers } from "hardhat";
 import { getAddress, writeAddress } from "./helper";
+import EquipmentNFTABI from "../../artifacts/contracts/BlastEquipmentNFT.sol/BlastEquipmentNFT.json";
+import SecondaryTokenABI from "../../artifacts/contracts/SecondaryToken.sol/SecondaryToken.json";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -27,6 +29,24 @@ async function main() {
   writeAddress(hre.network.name, {
     Scrapper: scrapperInstance.address,
   });
+
+  const bet = new ethers.Contract(
+    addresses.BlastEquipmentNFT,
+    EquipmentNFTABI.abi,
+    deployer
+  );
+  const cs = new ethers.Contract(
+    addresses.SecondaryToken,
+    SecondaryTokenABI.abi,
+    deployer
+  );
+  // Granting GAME ROLE role to Upgrader contract address
+  const GAME_ROLE = await bet.GAME_ROLE();
+  await bet.grantRole(GAME_ROLE, scrapperInstance.address);
+
+  // Granting MINTER ROLE to cs contract
+  const MINTER_ROLE = await cs.MINTER_ROLE();
+  await cs.grantRole(MINTER_ROLE, scrapperInstance.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
