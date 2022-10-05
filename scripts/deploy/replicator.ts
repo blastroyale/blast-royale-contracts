@@ -27,7 +27,6 @@ async function main() {
     addresses.SecondaryToken,
     replicatorArgs.Replicator[hre.network.name].treasuryAddress,
     replicatorArgs.Replicator[hre.network.name].companyAddress,
-    addresses.deployerAddress
   );
   await replicatorInstance.deployed();
   console.log("Replicator address:", replicatorInstance.address);

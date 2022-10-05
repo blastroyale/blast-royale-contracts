@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
 
 error NotOwner();
@@ -18,8 +16,7 @@ error NotReadyReplicate();
 error InvalidParams();
 error InvalidSignature();
 
-contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
-    using ECDSA for bytes32;
+contract Replicator is AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     struct Parent {
@@ -27,13 +24,11 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         uint256 parent1;
     }
 
-    bytes32 public constant REPLICATOR_TYPEHASH = keccak256("REPLICATOR(address sender,string uri,string hash,string realUri,uint256 p1,uint256 p2,uint256 nonce,uint256 deadline)");
     // Token related Addresses
     IBlastEquipmentNFT public blastEquipmentNFT;
     IERC20 public blastToken;
     ERC20Burnable public csToken;
 
-    address private signer;
     mapping(address => uint256) public nonces;
     uint256 public constant REPLICATION_TIMER = 5 minutes;
 
@@ -90,16 +85,14 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         IERC20 _blastToken,
         ERC20Burnable _csToken,
         address _treasuryAddress,
-        address _companyAddress,
-        address _signer
-    ) EIP712("REPLICATOR", "1.0.0") {
+        address _companyAddress
+    ) {
         if (
             address(_blastEquipmentNFT) == address(0) ||
             address(_blastToken) == address(0) ||
             address(_csToken) == address(0) ||
             _treasuryAddress == address(0) ||
-            _companyAddress == address(0) ||
-            _signer == address(0)
+            _companyAddress == address(0)
         ) revert NoZeroAddress();
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -108,7 +101,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         csToken = _csToken;
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
-        signer = _signer;
     }
 
     function setTreasuryAddress(address _treasury)
@@ -181,27 +173,21 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         string calldata _realUri,
         uint256 _p1,
         uint256 _p2,
-        uint256 _deadline,
-        bytes calldata _signature,
         StaticAttributes calldata _staticAttribute
     ) external payable nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
-        if (blastEquipmentNFT.ownerOf(_p1) != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
-        if (blastEquipmentNFT.ownerOf(_p1) != msg.sender) revert InvalidParams();
+        address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
+        if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
+        if (tokenOwner != msg.sender) revert InvalidParams();
 
         if (isReplicating[_p1] || isReplicating[_p2])
             revert NotReadyReplicate();
 
-        if (block.timestamp >= _deadline) revert InvalidParams();
+        setReplicatorCount(_p1, _p2, tokenOwner);
 
-        require(_verify(_hashFunc(_msgSender(), _uri, _hashString, _realUri, _p1, _p2, nonces[_msgSender()], _deadline), _signature), "Replicator:Invalid Signature");
-        nonces[_msgSender()] ++;
+        uint childTokenId = mintChild(tokenOwner, _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
 
-        setReplicatorCount(_p1, _p2, blastEquipmentNFT.ownerOf(_p1));
-
-        uint childTokenId = mintChild(blastEquipmentNFT.ownerOf(_p1), _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
-
-        emit Replicated(_p1, _p2, childTokenId, blastEquipmentNFT.ownerOf(_p1), block.timestamp);
+        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
 
     // Convert an hexadecimal character to their value
@@ -284,35 +270,6 @@ contract Replicator is AccessControl, EIP712, ReentrancyGuard, Pausable {
         morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
 
         return childTokenId;
-    }
-
-    function _verify(bytes32 digest, bytes memory signature) internal view returns (bool)
-    {
-        return ECDSA.recover(digest, signature) == signer;
-    }
-
-    function _hashFunc(
-        address _sender,
-        string calldata _uri,
-        string calldata _hash,
-        string calldata _realUri,
-        uint256 _p1,
-        uint256 _p2,
-        uint256 nonce,
-        uint256 deadline
-    ) internal view returns (bytes32)
-    {
-        return _hashTypedDataV4(keccak256(abi.encode(
-            REPLICATOR_TYPEHASH,
-            _sender,
-            keccak256(abi.encodePacked(_uri)),
-            keccak256(abi.encodePacked(_hash)),
-            keccak256(abi.encodePacked(_realUri)),
-            _p1,
-            _p2,
-            nonce,
-            deadline
-        )));
     }
 
     function morph(uint256 _childId) external nonReentrant whenNotPaused {
