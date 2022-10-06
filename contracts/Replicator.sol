@@ -30,7 +30,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
     ERC20Burnable public csToken;
 
     mapping(address => uint256) public nonces;
-    uint256 public constant REPLICATION_TIMER = 5 minutes;
+    uint256 public replicationTimer = 5 minutes;
 
     event Replicated(
         uint256 parent0,
@@ -267,7 +267,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         );
         isReplicating[childTokenId] = true;
         parents[childTokenId] = Parent({parent0: _p1, parent1: _p2});
-        morphTimestamp[childTokenId] = block.timestamp + REPLICATION_TIMER;
+        morphTimestamp[childTokenId] = block.timestamp + replicationTimer;
 
         return childTokenId;
     }
@@ -289,6 +289,11 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
             msg.sender,
             block.timestamp
         );
+    }
+
+    function setReplicationTimer(uint _newTimer) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_newTimer > 0, "Replicator:Invalid Timer");
+        replicationTimer = _newTimer;
     }
 
     // @notice Pauses/Unpauses the contract

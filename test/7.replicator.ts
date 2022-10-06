@@ -200,22 +200,13 @@ describe("Replicator Contract", () => {
     await expect(
       replicatorContract
         .connect(addr1)
-        .replicate(
-          eggMetadataUrl,
-          hash,
-          realMetadataUrl,
-          0,
-          1,
-          deadline,
-          signature,
-          {
-            maxLevel: 0,
-            maxDurability: 0,
-            adjective: 0,
-            rarity: 0,
-            grade: 0,
-          }
-        )
+        .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1, {
+          maxLevel: 0,
+          maxDurability: 0,
+          adjective: 0,
+          rarity: 0,
+          grade: 0,
+        })
     ).to.emit(replicatorContract, "Replicated");
 
     // There should be backend logic here after emitting replicated event

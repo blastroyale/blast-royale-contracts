@@ -43,6 +43,7 @@ contract BlastEquipmentNFT is
     bytes32 public constant REPLICATOR_ROLE = keccak256("REPLICATOR_ROLE");
 
     Counters.Counter public _tokenIdCounter;
+    uint256 public durabilityPointTimer = 1 weeks;
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
     mapping(uint256 => StaticAttributes) public staticAttributes;
@@ -184,8 +185,8 @@ contract BlastEquipmentNFT is
             _tokenId,
             _attribute.level,
             _attribute.durabilityRestored,
-            _attribute.lastRepairTime,
             _durabilityPoint,
+            _attribute.lastRepairTime,
             _newRepairCount,
             _attribute.replicationCount
         );
@@ -203,8 +204,8 @@ contract BlastEquipmentNFT is
             _tokenId,
             _attribute.level,
             _attribute.durabilityRestored,
-            _attribute.lastRepairTime,
             _durabilityPoint,
+            _attribute.lastRepairTime,
             _attribute.repairCount,
             _newReplicationCount
         );
@@ -263,8 +264,15 @@ contract BlastEquipmentNFT is
 
     function getDurabilityPoints(VariableAttributes memory _attribute, uint256 _tokenId) internal view returns (uint256) {
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
-        uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / 1 weeks;
+        uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / durabilityPointTimer;
         return (_durabilityPoint >= _staticAttribute.maxDurability ? _staticAttribute.maxDurability : _durabilityPoint);
+    }
+
+    /// @notice Set the DurabilityPoint Timer
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setDurabilityPointTimer(uint256 _newTimer) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_newTimer > 0, "Durability point timer can't be zero");
+        durabilityPointTimer = _newTimer;
     }
 
     /// @notice Pauses all token transfers.
