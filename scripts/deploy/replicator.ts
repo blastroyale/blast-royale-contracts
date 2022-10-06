@@ -2,6 +2,7 @@
 import hre, { ethers } from "hardhat";
 import { getAddress, writeAddress } from "./helper";
 import Args from "../../constants/ReplicatorArgs.json";
+import ReplicatorABI from "../../artifacts/contracts/Replicator.sol/Replicator.json";
 
 const replicatorArgs: any = Args;
 
@@ -26,7 +27,7 @@ async function main() {
     addresses.PrimaryToken,
     addresses.SecondaryToken,
     replicatorArgs.Replicator[hre.network.name].treasuryAddress,
-    replicatorArgs.Replicator[hre.network.name].companyAddress,
+    replicatorArgs.Replicator[hre.network.name].companyAddress
   );
   await replicatorInstance.deployed();
   console.log("Replicator address:", replicatorInstance.address);
@@ -35,6 +36,21 @@ async function main() {
     deployerAddress: deployer.address,
     Replicator: replicatorInstance.address,
   });
+
+  const replicator = new ethers.Contract(
+    replicatorInstance.address,
+    ReplicatorABI.abi,
+    deployer
+  );
+  await replicator.setBLTPrices([
+    ethers.BigNumber.from("7000000000000000000"),
+    ethers.BigNumber.from("9000000000000000000"),
+    ethers.BigNumber.from("12000000000000000000"),
+    ethers.BigNumber.from("15000000000000000000"),
+    ethers.BigNumber.from("20000000000000000000"),
+    ethers.BigNumber.from("25000000000000000000"),
+    ethers.BigNumber.from("30000000000000000000"),
+  ]);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
