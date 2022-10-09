@@ -43,7 +43,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
     }
 
-    function scrap(uint256 _tokenId) external {
+    function scrap(uint256 _tokenId) external nonReentrant whenNotPaused {
         require(
             blastEquipmentNFT.ownerOf(_tokenId) == msg.sender,
             "Scrapper: Not owner of token"

@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -14,6 +15,7 @@ error NoZeroAddress();
 abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
+    AggregatorV3Interface internal priceFeed;
     uint256 public constant DECIMAL_FACTOR = 1000;
 
     IBlastEquipmentNFT public blastEquipmentNFT;
@@ -45,6 +47,8 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
+
+        priceFeed = AggregatorV3Interface(0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada);
     }
 
     function setTreasuryAddress(address _treasury)
@@ -89,6 +93,20 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
 
     function flipIsUsingMatic() public onlyRole(DEFAULT_ADMIN_ROLE) {
         isUsingMatic = !isUsingMatic;
+    }    
+    
+    /**
+     * Returns the latest price
+     */
+    function getLatestPrice() public view returns (int) {
+        (
+            /*uint80 roundID*/,
+            int price,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = priceFeed.latestRoundData();
+        return price;
     }
 
     // @notice Pauses/Unpauses the contract

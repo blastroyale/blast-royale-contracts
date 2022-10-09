@@ -8,26 +8,21 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./../interfaces/IBlastEquipmentNFT.sol";
+import "./Utility.sol";
 
 error NotOwner();
 error NotReadyMorph();
-error NoZeroAddress();
 error NotReadyReplicate();
 error InvalidParams();
 error InvalidSignature();
 
-contract Replicator is AccessControl, ReentrancyGuard, Pausable {
+contract Replicator is Utility {
     using SafeERC20 for IERC20;
 
     struct Parent {
         uint256 parent0;
         uint256 parent1;
     }
-
-    // Token related Addresses
-    IBlastEquipmentNFT public blastEquipmentNFT;
-    IERC20 public blastToken;
-    ERC20Burnable public csToken;
 
     mapping(address => uint256) public nonces;
     uint256 public replicationTimer = 5 minutes;
@@ -47,9 +42,6 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         uint256 timestamp
     );
 
-    address private treasuryAddress;
-    address private companyAddress;
-    bool public isUsingMatic;
     // Child Token ID : Parent Struct
     mapping(uint256 => Parent) public parents;
     // Child Token ID : morphTime
@@ -86,37 +78,7 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         ERC20Burnable _csToken,
         address _treasuryAddress,
         address _companyAddress
-    ) {
-        if (
-            address(_blastEquipmentNFT) == address(0) ||
-            address(_blastToken) == address(0) ||
-            address(_csToken) == address(0) ||
-            _treasuryAddress == address(0) ||
-            _companyAddress == address(0)
-        ) revert NoZeroAddress();
-
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        blastEquipmentNFT = _blastEquipmentNFT;
-        blastToken = _blastToken;
-        csToken = _csToken;
-        treasuryAddress = _treasuryAddress;
-        companyAddress = _companyAddress;
-    }
-
-    function setTreasuryAddress(address _treasury)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (_treasury == address(0)) revert NoZeroAddress();
-        treasuryAddress = _treasury;
-    }
-
-    function setCompanyAddress(address _company)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (_company == address(0)) revert NoZeroAddress();
-        companyAddress = _company;
+    ) Utility(_blastEquipmentNFT, _blastToken, _csToken, _treasuryAddress, _companyAddress) {
     }
 
     function setCSPrices(uint256[] calldata _csPrices)
@@ -139,34 +101,6 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         }
     }
 
-    function setBlastEquipmentAddress(IBlastEquipmentNFT _blastEquipmentNFT)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        require(address(_blastEquipmentNFT) != address(0), "NoZeroAddress");
-        blastEquipmentNFT = _blastEquipmentNFT;
-    }
-
-    function setBlastTokenAddress(IERC20 _blastToken)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        require(address(_blastToken) != address(0), "NoZeroAddress");
-        blastToken = _blastToken;
-    }
-
-    function setCSTokenAddress(ERC20Burnable _csToken)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        require(address(_csToken) != address(0), "NoZeroAddress");
-        csToken = _csToken;
-    }
-
-    function toggleIsUsingMatic() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        isUsingMatic = !isUsingMatic;
-    }
-
     function replicate(
         string calldata _uri,
         string calldata _hashString,
@@ -174,7 +108,8 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         uint256 _p1,
         uint256 _p2,
         StaticAttributes calldata _staticAttribute
-    ) external payable onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
+        require(!isUsingMatic, "Not available using Matic");
         if (_p1 == _p2) revert InvalidParams();
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
         if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
@@ -188,6 +123,29 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
 
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
+
+    function replicateUsingMatic(
+        string calldata _uri,
+        string calldata _hashString,
+        string calldata _realUri,
+        uint256 _p1,
+        uint256 _p2,
+        StaticAttributes calldata _staticAttribute
+    ) external payable onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
+        require(isUsingMatic, "Not using Matic");
+        if (_p1 == _p2) revert InvalidParams();
+        address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
+        if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
+
+        if (isReplicating[_p1] || isReplicating[_p2])
+            revert NotReadyReplicate();
+
+        setReplicatorCount(_p1, _p2, tokenOwner);
+
+        uint childTokenId = mintChild(tokenOwner, _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
+
+        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
+    } 
 
     // Convert an hexadecimal character to their value
     function fromHexChar(uint8 c) internal pure returns (uint8) {
@@ -216,17 +174,14 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
     }
 
     function setReplicatorCount(uint256 _p1, uint256 _p2, address tokenOwner) internal {
-        uint256 currentReplicationCountP1;
-        uint256 currentReplicationCountP2;
-        (, , , , , currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
-        (, , , , , currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
+        (, , , , , uint256 currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
+        (, , , , , uint256 currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
         csToken.burnFrom(
             tokenOwner,
             csPrices[currentReplicationCountP1] +
                 csPrices[currentReplicationCountP2]
         );
-        uint256 totalBltAmount = bltPrices[currentReplicationCountP1] +
-            bltPrices[currentReplicationCountP2];
+        uint256 totalBltAmount = getTotalBLSTAmount(currentReplicationCountP1, currentReplicationCountP2);
         if (isUsingMatic) {
             require(msg.value == totalBltAmount, "Replicator:Invalid Matic Amount");
             (bool sent1, ) = payable(treasuryAddress).call{value: totalBltAmount / 4}("");
@@ -296,13 +251,11 @@ contract Replicator is AccessControl, ReentrancyGuard, Pausable {
         replicationTimer = _newTimer;
     }
 
-    // @notice Pauses/Unpauses the contract
-    // @param stop whether to pause or unpause the contract.
-    function pause(bool stop) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (stop) {
-            _pause();
-        } else {
-            _unpause();
+    function getTotalBLSTAmount(uint256 currentReplicationCountP1, uint256 currentReplicationCountP2) public view returns (uint256) {
+        int maticPrice = getLatestPrice();
+        if (isUsingMatic && maticPrice > 0) {
+            return (bltPrices[currentReplicationCountP1] + bltPrices[currentReplicationCountP2]) * uint256(maticPrice) / 10 ** 8;
         }
+        return bltPrices[currentReplicationCountP1] + bltPrices[currentReplicationCountP2];
     }
 }
