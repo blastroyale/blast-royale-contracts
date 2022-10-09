@@ -48,9 +48,9 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
             blastEquipmentNFT.ownerOf(_tokenId) == msg.sender,
             "Scrapper: Not owner of token"
         );
-        blastEquipmentNFT.scrap(_tokenId);
         uint256 csAmount = getCSPrice(_tokenId);
         csToken.claim(_msgSender(), csAmount);
+        blastEquipmentNFT.scrap(_tokenId);
 
         emit Scrapped(_tokenId, _msgSender(), csAmount);
     }

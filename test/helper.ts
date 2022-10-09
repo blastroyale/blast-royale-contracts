@@ -69,6 +69,36 @@ export const deployUpgrader = async (
   return upgrader
 }
 
+export const deployRepairing = async (
+  deployer: Signer,
+  blst: string,
+  primary: string,
+  secondary: string,
+  treasury: string,
+  company: string
+) => {
+  const repairingFactory = await ethers.getContractFactory('Repairing')
+  const repairing = await repairingFactory
+    .connect(deployer)
+    .deploy(blst, primary, secondary, treasury, company)
+  await repairing.deployed()
+
+  return repairing
+}
+
+export const deployScrapper = async (
+  deployer: Signer,
+  blst: string,
+  secondary: string
+) => {
+  const scrapperFactory = await ethers.getContractFactory('Scrapper')
+  const scrapper = await scrapperFactory
+    .connect(deployer)
+    .deploy(blst, secondary)
+  await scrapper.deployed()
+  return scrapper
+}
+
 export const mintBLST = async (
   deployer: Signer,
   blst: any,
@@ -80,7 +110,7 @@ export const mintBLST = async (
     .fill('0x000')
     .map((x, i) => ethers.utils.formatBytes32String(x + i))
   const realURIs = new Array(amount).fill('ipfs://real_').map((x, i) => x + i)
-  const staticAttributes = new Array(amount).fill([5, 0, 0, 0, 0])
+  const staticAttributes = new Array(amount).fill([5, 114, 9, 9, 5])
   const tx = await blst
     .connect(deployer)
     .safeMint(
