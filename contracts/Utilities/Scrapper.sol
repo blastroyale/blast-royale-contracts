@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "./interfaces/IBlastEquipmentNFT.sol";
-import "./interfaces/ICraftSpiceToken.sol";
+import "./../interfaces/IBlastEquipmentNFT.sol";
+import "./../interfaces/ICraftSpiceToken.sol";
 
 error NoZeroAddress();
 

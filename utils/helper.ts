@@ -1,9 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import { ethers } from 'hardhat'
 import axios from 'axios'
+import ethers from 'ethers'
 import { MerkleTree } from 'merkletreejs'
-import TokenArgs from '../../constants/TokenArgs.json'
+import TokenArgs from '../constants/TokenArgs.json'
 
 const TOKEN_ARGS: any = TokenArgs
 

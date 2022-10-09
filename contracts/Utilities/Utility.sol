@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "./interfaces/IBlastEquipmentNFT.sol";
+import "./../interfaces/IBlastEquipmentNFT.sol";
 
 error NoZeroAddress();
 
@@ -87,7 +87,7 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
     }
 
-    function toggleIsUsingMatic() public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function flipIsUsingMatic() public onlyRole(DEFAULT_ADMIN_ROLE) {
         isUsingMatic = !isUsingMatic;
     }
 

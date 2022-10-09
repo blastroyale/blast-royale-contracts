@@ -135,6 +135,9 @@ contract BlastEquipmentNFT is
         onlyRole(REVEAL_ROLE)
     {
         _setTokenURI(_tokenId, realTokenURI[_tokenId]);
+        VariableAttributes storage _variableAttribute = attributes[_tokenId];
+        _variableAttribute.lastRepairTime = block.timestamp;
+
         emit PermanentURI(realTokenURI[_tokenId], _tokenId);
     }
 
@@ -153,7 +156,7 @@ contract BlastEquipmentNFT is
         hasGameRole
     {
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
-        require(_staticAttribute.maxLevel >= _newLevel, "Invalid level");
+        require(_staticAttribute.maxLevel >= _newLevel, "Max level reached");
 
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
@@ -213,6 +216,10 @@ contract BlastEquipmentNFT is
 
     function scrap(uint256 _tokenId) external override hasGameRole {
         _burn(_tokenId);
+        delete attributes[_tokenId];
+        delete staticAttributes[_tokenId];
+        delete hashValue[_tokenId];
+        delete realTokenURI[_tokenId];
     }
 
     function getAttributes(uint256 _tokenId)
@@ -266,6 +273,10 @@ contract BlastEquipmentNFT is
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
         uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / durabilityPointTimer;
         return (_durabilityPoint >= _staticAttribute.maxDurability ? _staticAttribute.maxDurability : _durabilityPoint);
+    }
+
+    function setStaticAttributes(uint256 _tokenId, StaticAttributes calldata _staticAttributes) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        staticAttributes[_tokenId] = _staticAttributes;
     }
 
     /// @notice Set the DurabilityPoint Timer

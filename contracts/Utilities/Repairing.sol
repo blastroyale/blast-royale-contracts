@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@prb/math/contracts/PRBMathUD60x18.sol";
-import "./interfaces/IBlastEquipmentNFT.sol";
+import "./../interfaces/IBlastEquipmentNFT.sol";
 import "./Utility.sol";
 
 contract Repairing is Utility {

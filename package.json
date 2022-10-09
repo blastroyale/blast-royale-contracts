@@ -10,7 +10,8 @@
     "test:loot": "hardhat test test/loot.ts",
     "export-abi": "hardhat export-abi",
     "clear-abi": "hardhat clear-abi",
-    "cucumber": "hardhat compile && tsc && cucumber-js"
+    "cucumber": "hardhat compile && tsc && cucumber-js",
+    "lint": "eslint . --ext .js,.ts --ignore-path .eslintignore"
   },
   "keywords": [],
   "author": "Jenson Collins",
@@ -27,6 +28,7 @@
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.23",
+    "@types/shelljs": "^0.8.11",
     "@typescript-eslint/eslint-plugin": "^5.18.0",
     "@typescript-eslint/parser": "^5.18.0",
     "chai": "^4.3.6",
@@ -42,6 +44,8 @@
     "ethers": "^5.6.2",
     "hardhat": "^2.9.3",
     "hardhat-abi-exporter": "^2.10.0",
+    "hardhat-deploy": "^0.11.18",
+    "hardhat-deploy-ethers": "^0.3.0-beta.13",
     "hardhat-gas-reporter": "^1.0.8",
     "prettier": "^2.6.2",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
