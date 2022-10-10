@@ -32,9 +32,10 @@ contract Repairing is Utility {
     }
 
     function getRepairPrice(uint256 _tokenId) public view returns (uint256) {
-        uint256 durabilityRestored;
-        uint256 durabilityPoint;
-        (, durabilityRestored, durabilityPoint, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+        (, uint256 durabilityRestored, uint256 durabilityPoint, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+        if ((durabilityRestored + durabilityPoint) > 6) {
+            return 0;
+        }
         uint256 temp = ((durabilityRestored * 2 + 10) * durabilityPoint) * 10 ** 17;
         if (temp == 0) {
             return 0;
@@ -43,19 +44,20 @@ contract Repairing is Utility {
     }
 
     function getRepairPriceBLST(uint256 _tokenId) public view returns (uint256) {
-        uint256 durabilityRestored;
-        uint256 durabilityPoint;
         int maticPrice = getLatestPrice();
-        (, durabilityRestored, durabilityPoint, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
-        uint256 temp = ((durabilityRestored + 1) * durabilityPoint);
-        if (temp == 0) {
-            return 0;
+        (, uint256 durabilityRestored, uint256 durabilityPoint, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
+        if ((durabilityRestored + durabilityPoint) > 6) {
+            uint256 temp = ((durabilityRestored + 1) * durabilityPoint);
+            if (temp == 0) {
+                return 0;
+            }
+            uint256 priceInBLST = PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * basePriceForBLST / DECIMAL_FACTOR;
+            if (isUsingMatic && maticPrice > 0) {
+                return priceInBLST * uint256(maticPrice) / 10 ** 8;
+            }
+            return priceInBLST;
         }
-        uint256 priceInBLST = PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * basePriceForBLST / DECIMAL_FACTOR;
-        if (isUsingMatic && maticPrice > 0) {
-            return priceInBLST * uint256(maticPrice) / 10 ** 8;
-        }
-        return priceInBLST;
+        return 0;
     }
 
     /// @notice Set Base Power for CS and BLST. It will affect to calculate repair price for CS & BLST
@@ -87,10 +89,7 @@ contract Repairing is Utility {
     ) external nonReentrant whenNotPaused {
         require(!isUsingMatic, "Using Matic");
         require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, "Caller is not owner");
-        uint256 durabilityRestored;
-        uint256 durabilityPoints;
-        uint256 repairCount;
-        (, durabilityRestored, durabilityPoints, , repairCount, ) = blastEquipmentNFT.getAttributes(_tokenId);
+        (, uint256 durabilityRestored, uint256 durabilityPoints, , uint256 repairCount, ) = blastEquipmentNFT.getAttributes(_tokenId);
         if ((durabilityRestored + durabilityPoints) > 6) {
             uint256 blstPrice = getRepairPriceBLST(_tokenId);
             require(blstPrice > 0, "Price can't be zero");
