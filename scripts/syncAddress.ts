@@ -5,7 +5,7 @@ async function main () {
   const { get } = hre.deployments
 
   const BlastEquipmentNFTAddress = (await get('BlastEquipmentNFT')).address
-  const BlastLootboxAddress = (await get('BlastLootbox')).address
+  const BlastLootboxAddress = (await get('BlastLootBox')).address
   const MarketplaceAddress = (await get('Marketplace')).address
   const MarketplaceLootboxAddress = (await get('MarketplaceLootbox')).address
   const PrimaryTokenAddress = (await get('PrimaryToken')).address
@@ -14,7 +14,7 @@ async function main () {
   const ReplicatorAddress = (await get('Replicator')).address
   const ScrapperAddress = (await get('Scrapper')).address
   const UpgraderAddress = (await get('Upgrader')).address
-  const VestingAddress = (await get('Vesting')).address
+  const VestingAddress = (await get('TokenVesting')).address
 
   writeAddress(hre.network.name, {
     BlastEquipmentNFT: BlastEquipmentNFTAddress,

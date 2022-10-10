@@ -11,7 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts }: any) {
 
   const EquipmentAddress = (await get('BlastEquipmentNFT')).address
 
-  await deploy('BlastLootbox', {
+  await deploy('BlastLootBox', {
     from: deployer,
     args: [
       lootboxArgs.name,
@@ -23,4 +23,4 @@ module.exports = async function ({ deployments, getNamedAccounts }: any) {
   })
 }
 
-module.exports.tags = ['BlastLootbox']
+module.exports.tags = ['BlastLootBox']

@@ -17,7 +17,7 @@ module.exports = async function ({ deployments, getNamedAccounts }: any) {
       secondaryTokenArgs.name,
       secondaryTokenArgs.symbol,
       BigNumber.from(secondaryTokenArgs.supply),
-      deployer.address
+      deployer
     ],
     log: true,
     waitConfirmations: 1

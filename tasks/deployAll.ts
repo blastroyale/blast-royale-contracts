@@ -2,17 +2,17 @@ import shell from 'shelljs'
 
 export const deployAll = async function (taskArgs: any, hre: any) {
   const contractNames = [
-    'BlastEquipmentNFT',
-    'BlastLootbox',
-    'Marketplace',
-    'MarketplaceLootbox',
     'PrimaryToken',
     'SecondaryToken',
+    'BlastEquipmentNFT',
+    'BlastLootBox',
+    'Marketplace',
+    'MarketplaceLootbox',
     'Repairing',
     'Replicator',
     'Scrapper',
     'Upgrader',
-    'Vesting'
+    'TokenVesting'
   ]
 
   await Promise.all(

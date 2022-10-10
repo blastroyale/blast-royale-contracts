@@ -12,7 +12,7 @@ const WHITELIST_SHEET_ID =
   '1MMJ9Rt6zk6Qpquar1Z2Q9cuBTVGbKtQRuIDgZGzO_Hg'
 
 export const writeAddress = (network: string, params: any) => {
-  const PROJECT_ROOT = path.resolve(__dirname, '../..')
+  const PROJECT_ROOT = path.resolve(__dirname, '..')
   const DEPLOYMENT_PATH = path.resolve(PROJECT_ROOT, 'deployments')
   const networkFolderPath = path.resolve(DEPLOYMENT_PATH, network)
 
@@ -57,6 +57,7 @@ const googleSheetLoadfromUrl = async (sheetNameParam = 'Whitelist') => {
   const sheetName = sheetNameParam
   const query = encodeURIComponent('Select *')
   const url = `${base}&sheet=${sheetName}&tq=${query}`
+  console.log(url)
 
   try {
     const { data: json } = await axios.get(url)
