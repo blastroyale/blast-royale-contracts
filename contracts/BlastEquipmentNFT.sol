@@ -286,16 +286,15 @@ contract BlastEquipmentNFT is
         durabilityPointTimer = _newTimer;
     }
 
-    /// @notice Pauses all token transfers.
-    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function pause() public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _pause();
-    }
-
-    /// @notice Unpauses all token transfers.
-    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function unpause() public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _unpause();
+    // @notice Pauses/Unpauses the contract
+    // @dev While paused, actions are not allowed
+    // @param stop whether to pause or unpause the contract.
+    function pause(bool stop) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     function _beforeTokenTransfer(

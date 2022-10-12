@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
 /// cannot create vesting schedule because not sufficient tokens
 error InsufficientTokens();
@@ -25,7 +26,7 @@ error ZeroAddress();
 /// When create vesting schedule, in case of start time should be future
 error StartTimeInvalid();
 
-contract TokenVesting is Ownable, ReentrancyGuard {
+contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     event CreatedVestingSchedule(address user, bytes32 scheduleId);
@@ -86,7 +87,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         uint256 _immediateReleaseAmount,
         uint256 _amountTotal,
         bool _revocable
-    ) public onlyOwner {
+    ) public whenNotPaused onlyOwner {
         if (_beneficiary == address(0)) revert ZeroAddress();
         if (getWithdrawableAmount() < (_amountTotal + _immediateReleaseAmount)) revert InsufficientTokens();
         if (_duration == 0) revert DurationInvalid();
@@ -121,7 +122,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      * @notice Revokes the vesting schedule for given identifier.
      * @param vestingScheduleId the vesting schedule identifier
      */
-    function revoke(bytes32 vestingScheduleId) public onlyOwner {
+    function revoke(bytes32 vestingScheduleId) public whenNotPaused onlyOwner {
         if (vestingSchedules[vestingScheduleId].revoked)
             revert ScheduleRevoked();
         VestingSchedule storage vestingSchedule = vestingSchedules[
@@ -143,6 +144,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     /// @notice Release vested amount of tokens.
     function release(bytes32 vestingScheduleId, uint256 amount)
         public
+        whenNotPaused
         nonReentrant
     {
         if (vestingSchedules[vestingScheduleId].revoked)
@@ -266,5 +268,13 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             getVestingSchedule(
                 computeVestingScheduleIdForAddressAndIndex(holder, index)
             );
+    }
+
+    function pause(bool stop) external onlyOwner {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 }

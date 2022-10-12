@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IBlastLootbox.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
 
@@ -23,6 +24,7 @@ contract BlastLootBox is
     ERC721,
     ERC721URIStorage,
     ERC721Holder,
+    Pausable,
     AccessControl
 {
     using Counters for Counters.Counter;
@@ -149,6 +151,25 @@ contract BlastLootBox is
         returns (string memory)
     {
         return super.tokenURI(tokenId);
+    }
+
+    // @notice Pauses/Unpauses the contract
+    // @dev While paused, actions are not allowed
+    // @param stop whether to pause or unpause the contract.
+    function pause(bool stop) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override whenNotPaused {
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 
     /// @dev See {IERC165-supportsInterface}.

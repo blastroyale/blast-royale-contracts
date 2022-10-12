@@ -109,16 +109,12 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
         signer = _signer;
     }
 
-    /// @notice Pauses the contract
-    /// @dev It stops transfer from happening. Only Owner can call it.
-    function pause() public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _pause();
-    }
-
-    /// @notice Unpauses the contract
-    /// @dev Transfers are possible again. Only Owner can call it.
-    function unpause() public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _unpause();
+    function pause(bool stop) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     /// @notice Verifications before Token Transfer
