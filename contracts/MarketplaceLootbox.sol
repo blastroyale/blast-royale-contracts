@@ -9,20 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IBlastLootbox.sol";
-
-error NoZeroAddress();
-error NoZeroPrice();
-error NotOwner();
-error NotActived();
-error InvalidParam();
-error ReachedMaxLimit();
-error NotEnough();
-error NotAbleToAdd();
-error NotAbleToBuy();
-error NotWhitelisted();
-error InvalidMerkleProof();
-error FailedToSendEther();
-error StartTimeInvalid();
+import { Errors } from "./libraries/Errors.sol";
 
 struct Listing {
     address owner;
@@ -88,7 +75,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         bytes32 _merkleRoot,
         bytes32 _luckyMerkleRoot
     ) {
-        if (address(lootboxAddress) == address(0)) revert NoZeroAddress();
+        require(address(lootboxAddress) != address(0), Errors.NO_ZERO_ADDRESS);
         lootboxContract = lootboxAddress;
         merkleRoot = _merkleRoot;
         luckyMerkleRoot = _luckyMerkleRoot;
@@ -106,14 +93,15 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         uint256 price,
         IERC20 payTokenAddress
     ) public onlyOwner nonReentrant whenNotPaused {
-        if (price == 0) revert NoZeroPrice();
+        require(price != 0, Errors.NO_ZERO_VALUE);
         if (address(payTokenAddress) != address(0)) {
-            if (!whitelistedTokens[address(payTokenAddress)])
-                revert NotWhitelisted();
+            require(
+                whitelistedTokens[address(payTokenAddress)],
+                Errors.TOKEN_NOT_WHITELISTED
+            );
         }
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            if (listings[tokenIds[i]].isActive)
-                revert NotAbleToAdd();
+            require(!listings[tokenIds[i]].isActive, Errors.LISTING_IS_NOT_ACTIVED);
         }
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -147,8 +135,8 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         whenNotPaused
     {
         Listing storage listing = listings[tokenId];
-        if (listing.owner != _msgSender()) revert NotOwner();
-        if (!listing.isActive) revert NotActived();
+        require(listing.owner == _msgSender(), Errors.NOT_OWNER);
+        require(listing.isActive, Errors.LISTING_IS_NOT_ACTIVED);
         listing.isActive = false;
         lootboxContract.transferFrom(address(this), _msgSender(), tokenId);
         activeListingCount = activeListingCount - 1;
@@ -166,8 +154,8 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         whenNotPaused
     {
         uint8 tokenType = lootboxContract.getTokenType(_tokenId);
-        if (tokenType == 0) revert NotAbleToBuy();
-        if (!listings[_tokenId].isActive) revert NotActived();
+        require(tokenType != 0, Errors.INVALID_PARAM);
+        require(listings[_tokenId].isActive, Errors.LISTING_IS_NOT_ACTIVED);
 
         bool userWhitelisted = MerkleProof.verify(
             _merkleProof,
@@ -179,18 +167,12 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
             luckyMerkleRoot,
             keccak256(abi.encodePacked(_msgSender()))
         );
+
+        require(userWhitelisted || isLuckyUser, Errors.INVALID_MERKLE_PROOF);
         if (userWhitelisted) {
-            if (
-                boughtCount[_msgSender()][tokenType] >=
-                getLimit(tokenType, true)
-            ) revert ReachedMaxLimit();
+            require(boughtCount[_msgSender()][tokenType] < getLimit(tokenType, true), Errors.MAX_LIMIT_REACHED);
         } else if (isLuckyUser) {
-            if (
-                boughtCount[_msgSender()][tokenType] >=
-                getLimit(tokenType, false)
-            ) revert ReachedMaxLimit();
-        } else {
-            revert InvalidMerkleProof();
+            require(boughtCount[_msgSender()][tokenType] < getLimit(tokenType, false), Errors.MAX_LIMIT_REACHED);
         }
 
         boughtCount[_msgSender()][tokenType] += 1;
@@ -198,13 +180,13 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         IERC20 payTokenAddress = listings[_tokenId].tokenAddress;
 
         if (address(payTokenAddress) == address(0)) {
-            if (msg.value != listings[_tokenId].price) revert NotEnough();
+            require(msg.value == listings[_tokenId].price, Errors.INVALID_AMOUNT);
             (bool sent, ) = payable(listings[_tokenId].owner).call{
                 value: msg.value
             }("");
-            if (!sent) revert FailedToSendEther();
+            require(sent, Errors.FAILED_TO_SEND_ETHER_USER);
         } else {
-            require(msg.value == 0, "Not allowed to deposit MATIC");
+            require(msg.value == 0, Errors.INVALID_AMOUNT);
             payTokenAddress.safeTransferFrom(
                 _msgSender(),
                 listings[_tokenId].owner,
@@ -307,7 +289,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         onlyOwner
     {
         for (uint256 i = 0; i < _whitelist.length; i++) {
-            if (_whitelist[i] == address(0)) revert NoZeroAddress();
+            require(_whitelist[i] != address(0), Errors.NO_ZERO_ADDRESS);
             whitelistedTokens[_whitelist[i]] = true;
         }
 
@@ -322,7 +304,7 @@ contract MarketplaceLootbox is ReentrancyGuard, Ownable, Pausable {
         onlyOwner
     {
         for (uint256 i = 0; i < _whitelist.length; i++) {
-            if (_whitelist[i] == address(0)) revert NoZeroAddress();
+            require(_whitelist[i] != address(0), Errors.NO_ZERO_ADDRESS);
             whitelistedTokens[_whitelist[i]] = false;
         }
 

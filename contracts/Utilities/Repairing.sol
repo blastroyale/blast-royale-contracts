@@ -63,8 +63,8 @@ contract Repairing is Utility {
     /// @notice Set Base Power for CS and BLST. It will affect to calculate repair price for CS & BLST
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function setBasePower(uint256 _basePowerForCS, uint256 _basePowerForBLST) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_basePowerForCS > 0, "Can't be zero");
-        require(_basePowerForBLST > 0, "Can't be zero");
+        require(_basePowerForCS > 0, Errors.NO_ZERO_VALUE);
+        require(_basePowerForBLST > 0, Errors.NO_ZERO_VALUE);
 
         basePowerForCS = _basePowerForCS;
         basePowerForBLST = _basePowerForBLST;
@@ -75,8 +75,8 @@ contract Repairing is Utility {
     /// @notice Set Base Price for CS and BLST. It will affect to calculate repair price for CS & BLST
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function setBasePrice(uint256 _basePriceForCS, uint256 _basePriceForBLST) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_basePriceForCS > 0, "Can't be zero");
-        require(_basePriceForBLST > 0, "Can't be zero");
+        require(_basePriceForCS > 0, Errors.NO_ZERO_VALUE);
+        require(_basePriceForBLST > 0, Errors.NO_ZERO_VALUE);
 
         basePriceForCS = _basePriceForCS;
         basePriceForBLST = _basePriceForBLST;
@@ -87,19 +87,19 @@ contract Repairing is Utility {
     function repair(
         uint256 _tokenId
     ) external nonReentrant whenNotPaused {
-        require(!isUsingMatic, "Using Matic");
-        require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, "Caller is not owner");
+        require(!isUsingMatic, Errors.USING_MATIC_NOW);
+        require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, Errors.NOT_OWNER);
         (, uint256 durabilityRestored, uint256 durabilityPoints, , uint256 repairCount, ) = blastEquipmentNFT.getAttributes(_tokenId);
         if ((durabilityRestored + durabilityPoints) > 6) {
             uint256 blstPrice = getRepairPriceBLST(_tokenId);
-            require(blstPrice > 0, "Price can't be zero");
+            require(blstPrice > 0, Errors.INVALID_AMOUNT);
 
             // Safe TransferFrom from msgSender to treasury
             blastToken.safeTransferFrom(_msgSender(), treasuryAddress, blstPrice / 4);
             blastToken.safeTransferFrom(_msgSender(), companyAddress, (blstPrice - blstPrice / 4));
         } else {
             uint256 price = getRepairPrice(_tokenId);
-            require(price > 0, "Price can't be zero");
+            require(price > 0, Errors.INVALID_AMOUNT);
 
             // Burning CS token from msgSender
             csToken.burnFrom(_msgSender(), price);
@@ -111,8 +111,8 @@ contract Repairing is Utility {
     }
 
     function repairUsingMatic(uint256 _tokenId) external payable nonReentrant whenNotPaused {
-        require(isUsingMatic, "Not using Matic");
-        require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, "Caller is not owner");
+        require(isUsingMatic, Errors.NOT_USING_MATIC_NOW);
+        require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, Errors.NOT_OWNER);
 
         uint256 durabilityRestored;
         uint256 durabilityPoints;
@@ -120,17 +120,17 @@ contract Repairing is Utility {
         (, durabilityRestored, durabilityPoints, , repairCount, ) = blastEquipmentNFT.getAttributes(_tokenId);
         if ((durabilityRestored + durabilityPoints) > 6) {
             uint256 blstPrice = getRepairPriceBLST(_tokenId);
-            require(blstPrice > 0, "Price can't be zero");
-            require(msg.value == blstPrice, "Repair:Invalid Matic Amount");
+            require(blstPrice > 0, Errors.INVALID_AMOUNT);
+            require(msg.value == blstPrice, Errors.INVALID_AMOUNT);
 
             // Safe TransferFrom from msgSender to treasury
             (bool sent1, ) = payable(treasuryAddress).call{value: blstPrice / 4}("");
-            require(sent1, "Failed to send treasuryAddress");
+            require(sent1, Errors.FAILED_TO_SEND_ETHER_TREASURY);
             (bool sent2, ) = payable(companyAddress).call{value: (blstPrice - blstPrice / 4)}("");
-            require(sent2, "Failed to send companyAddress");
+            require(sent2, Errors.FAILED_TO_SEND_ETHER_COMPANY);
         } else {
             uint256 price = getRepairPrice(_tokenId);
-            require(price > 0, "Price can't be zero");
+            require(price > 0, Errors.INVALID_AMOUNT);
 
             // Burning CS token from msgSender
             csToken.burnFrom(_msgSender(), price);

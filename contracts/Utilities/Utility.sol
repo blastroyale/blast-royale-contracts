@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./../interfaces/IBlastEquipmentNFT.sol";
-
-error NoZeroAddress();
+import { Errors } from "./../libraries/Errors.sol";
 
 abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
@@ -33,13 +32,14 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         address _treasuryAddress,
         address _companyAddress
     ) {
-        if (
-            address(_blastEquipmentNFT) == address(0) ||
-            address(_blastToken) == address(0) ||
-            address(_csToken) == address(0) ||
-            _treasuryAddress == address(0) ||
-            _companyAddress == address(0)
-        ) revert NoZeroAddress();
+        require(
+            address(_blastEquipmentNFT) != address(0) &&
+            address(_blastToken) != address(0) &&
+            address(_csToken) != address(0) &&
+            _treasuryAddress != address(0) &&
+            _companyAddress != address(0),
+            Errors.NO_ZERO_ADDRESS
+        );
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         blastEquipmentNFT = _blastEquipmentNFT;
@@ -55,7 +55,7 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (_treasury == address(0)) revert NoZeroAddress();
+        require(_treasury != address(0), Errors.NO_ZERO_ADDRESS);
         treasuryAddress = _treasury;
     }
 
@@ -63,7 +63,7 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (_company == address(0)) revert NoZeroAddress();
+        require(_company != address(0), Errors.NO_ZERO_ADDRESS);
         companyAddress = _company;
     }
 
@@ -71,7 +71,7 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(address(_blastEquipmentNFT) != address(0), "NoZeroAddress");
+        require(address(_blastEquipmentNFT) != address(0), Errors.NO_ZERO_ADDRESS);
         blastEquipmentNFT = _blastEquipmentNFT;
     }
 
@@ -79,7 +79,7 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(address(_blastToken) != address(0), "NoZeroAddress");
+        require(address(_blastToken) != address(0), Errors.NO_ZERO_ADDRESS);
         blastToken = _blastToken;
     }
 
@@ -87,7 +87,7 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(address(_csToken) != address(0), "NoZeroAddress");
+        require(address(_csToken) != address(0), Errors.NO_ZERO_ADDRESS);
         csToken = _csToken;
     }
 

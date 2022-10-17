@@ -7,8 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./../interfaces/IBlastEquipmentNFT.sol";
 import "./../interfaces/ICraftSpiceToken.sol";
-
-error NoZeroAddress();
+import { Errors } from "./../libraries/Errors.sol";
 
 contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     IBlastEquipmentNFT public blastEquipmentNFT;
@@ -33,10 +32,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     event Scrapped(uint256 tokenId, address user, uint256 csAmount);
 
     constructor (IBlastEquipmentNFT _blastEquipmentNFT, ICraftSpiceToken _csToken) {
-        if (
-            address(_blastEquipmentNFT) == address(0) ||
-            address(_csToken) == address(0)
-        ) revert NoZeroAddress();
+        require(address(_blastEquipmentNFT) != address(0) && address(_csToken) != address(0), Errors.NO_ZERO_ADDRESS);
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         blastEquipmentNFT = _blastEquipmentNFT;
@@ -46,7 +42,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     function scrap(uint256 _tokenId) external nonReentrant whenNotPaused {
         require(
             blastEquipmentNFT.ownerOf(_tokenId) == msg.sender,
-            "Scrapper: Not owner of token"
+            Errors.NOT_OWNER
         );
         uint256 csAmount = getCSPrice(_tokenId);
         csToken.claim(_msgSender(), csAmount);
@@ -65,7 +61,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(address(_blastEquipmentNFT) != address(0), "NoZeroAddress");
+        require(address(_blastEquipmentNFT) != address(0), Errors.NO_ZERO_ADDRESS);
         blastEquipmentNFT = _blastEquipmentNFT;
     }
 
@@ -73,7 +69,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(address(_csToken) != address(0), "NoZeroAddress");
+        require(address(_csToken) != address(0), Errors.NO_ZERO_ADDRESS);
         csToken = _csToken;
     }
 

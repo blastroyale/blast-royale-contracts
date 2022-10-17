@@ -34,6 +34,10 @@ async function main () {
   await blst.grantRole(REPLICATOR_ROLE, ReplicatorAddress)
 
   // Granting MINTER ROLE to scrapper contract
+  const REVEAL_ROLE = await blst.REVEAL_ROLE()
+  await blst.grantRole(REVEAL_ROLE, ReplicatorAddress)
+
+  // Granting MINTER ROLE to scrapper contract
   const MINTER_ROLE = await cs.MINTER_ROLE()
   await cs.grantRole(MINTER_ROLE, ScrapperAddress)
 }
