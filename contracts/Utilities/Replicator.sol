@@ -10,12 +10,6 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "./../interfaces/IBlastEquipmentNFT.sol";
 import "./Utility.sol";
 
-error NotOwner();
-error NotReadyMorph();
-error NotReadyReplicate();
-error InvalidParams();
-error InvalidSignature();
-
 contract Replicator is Utility {
     using SafeERC20 for IERC20;
 
@@ -85,7 +79,7 @@ contract Replicator is Utility {
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (_csPrices.length != 7) revert InvalidParams();
+        require(_csPrices.length == 7, Errors.INVALID_PARAM);
         for (uint8 i = 0; i < 7; i++) {
             csPrices[i] = _csPrices[i];
         }
@@ -95,7 +89,7 @@ contract Replicator is Utility {
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (_bltPrices.length != 7) revert InvalidParams();
+        require(_bltPrices.length == 7, Errors.INVALID_PARAM);
         for (uint8 i = 0; i < 7; i++) {
             bltPrices[i] = _bltPrices[i];
         }
@@ -109,13 +103,11 @@ contract Replicator is Utility {
         uint256 _p2,
         StaticAttributes calldata _staticAttribute
     ) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
-        require(!isUsingMatic, "Not available using Matic");
-        if (_p1 == _p2) revert InvalidParams();
+        require(!isUsingMatic, Errors.USING_MATIC_NOW);
+        require(_p1 != _p2, Errors.INVALID_PARAM);
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
-        if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
-
-        if (isReplicating[_p1] || isReplicating[_p2])
-            revert NotReadyReplicate();
+        require(tokenOwner == blastEquipmentNFT.ownerOf(_p2), Errors.INVALID_PARAM);
+        require(!isReplicating[_p1] && !isReplicating[_p2], Errors.NOT_READY_REPLICATE);
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
@@ -132,13 +124,11 @@ contract Replicator is Utility {
         uint256 _p2,
         StaticAttributes calldata _staticAttribute
     ) external payable onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
-        require(isUsingMatic, "Not using Matic");
-        if (_p1 == _p2) revert InvalidParams();
+        require(isUsingMatic, Errors.NOT_USING_MATIC_NOW);
+        require(_p1 != _p2, Errors.INVALID_PARAM);
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
-        if (tokenOwner != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
-
-        if (isReplicating[_p1] || isReplicating[_p2])
-            revert NotReadyReplicate();
+        require(tokenOwner == blastEquipmentNFT.ownerOf(_p2), Errors.INVALID_PARAM);
+        require(!isReplicating[_p1] && !isReplicating[_p2], Errors.NOT_READY_REPLICATE);
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
@@ -158,7 +148,7 @@ contract Replicator is Utility {
         if (bytes1(c) >= bytes1("A") && bytes1(c) <= bytes1("F")) {
             return 10 + c - uint8(bytes1("A"));
         }
-        revert("fail");
+        revert(Errors.INVALID_HEX_CHARACTER);
     }
 
     // Convert an hexadecimal string to raw bytes
@@ -183,13 +173,13 @@ contract Replicator is Utility {
         );
         uint256 totalBltAmount = getTotalBLSTAmount(currentReplicationCountP1, currentReplicationCountP2);
         if (isUsingMatic) {
-            require(msg.value == totalBltAmount, "Replicator:Invalid Matic Amount");
+            require(msg.value == totalBltAmount, Errors.INVALID_AMOUNT);
             (bool sent1, ) = payable(treasuryAddress).call{value: totalBltAmount / 4}("");
-            require(sent1, "Failed to send treasuryAddress");
+            require(sent1, Errors.FAILED_TO_SEND_ETHER_TREASURY);
             (bool sent2, ) = payable(companyAddress).call{value: (totalBltAmount * 3) / 4}("");
-            require(sent2, "Failed to send companyAddress");
+            require(sent2, Errors.FAILED_TO_SEND_ETHER_COMPANY);
         } else {
-            require(msg.value == 0, "Replicator:Invalid Value");
+            require(msg.value == 0, Errors.INVALID_AMOUNT);
             blastToken.safeTransferFrom(
                 tokenOwner,
                 treasuryAddress,
@@ -227,10 +217,8 @@ contract Replicator is Utility {
     }
 
     function morph(uint256 _childId) external nonReentrant whenNotPaused {
-        if (blastEquipmentNFT.ownerOf(_childId) != msg.sender)
-            revert NotOwner();
-
-        if (morphTimestamp[_childId] == 0 || morphTimestamp[_childId] > block.timestamp) revert NotReadyMorph();
+        require(blastEquipmentNFT.ownerOf(_childId) == msg.sender, Errors.NOT_OWNER);
+        require(morphTimestamp[_childId] != 0 && morphTimestamp[_childId] <= block.timestamp, Errors.NOT_READY_MORPH);
 
         Parent memory _parent = parents[_childId];
         isReplicating[_childId] = false;
@@ -247,7 +235,7 @@ contract Replicator is Utility {
     }
 
     function setReplicationTimer(uint _newTimer) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newTimer > 0, "Replicator:Invalid Timer");
+        require(_newTimer > 0, Errors.NO_ZERO_VALUE);
         replicationTimer = _newTimer;
     }
 

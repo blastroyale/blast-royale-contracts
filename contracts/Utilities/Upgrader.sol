@@ -10,10 +10,6 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "./../interfaces/IBlastEquipmentNFT.sol";
 import "./Utility.sol";
 
-error NotOwner();
-error InvalidParams();
-error MaxLevelReached();
-
 contract Upgrader is Utility {
     using SafeERC20 for IERC20;
 
@@ -89,17 +85,16 @@ contract Upgrader is Utility {
     }
 
     function upgrade(uint256 _tokenId) external nonReentrant whenNotPaused {
-        require(!isUsingMatic, "Not available using Matic");
-        if (_msgSender() != blastEquipmentNFT.ownerOf(_tokenId))
-            revert NotOwner();
+        require(!isUsingMatic, Errors.USING_MATIC_NOW);
+        require(_msgSender() == blastEquipmentNFT.ownerOf(_tokenId), Errors.NOT_OWNER);
 
         uint256 bltPrice = getRequiredPrice(0, _tokenId);
         uint256 csPrice = getRequiredPrice(1, _tokenId);
         (, , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
-        if (level == 0) revert InvalidParams();
-        if (level == maxLevelPerRarity[rarity]) revert MaxLevelReached();
-        if (bltPrice == 0 || csPrice == 0) revert InvalidParams();
+        require(level != 0, Errors.INVALID_PARAM);
+        require(level != maxLevelPerRarity[rarity], Errors.MAX_LEVEL_REACHED);
+        require(bltPrice != 0 && csPrice != 0, Errors.INVALID_PARAM);
 
         csToken.burnFrom(_msgSender(), csPrice);
         blastToken.safeTransferFrom(
@@ -119,24 +114,23 @@ contract Upgrader is Utility {
     }
 
     function upgradeUsingMatic(uint256 _tokenId) external payable nonReentrant whenNotPaused {
-        require(isUsingMatic, "Not using Matic");
-        if (_msgSender() != blastEquipmentNFT.ownerOf(_tokenId))
-            revert NotOwner();
+        require(isUsingMatic, Errors.NOT_USING_MATIC_NOW);
+        require(_msgSender() == blastEquipmentNFT.ownerOf(_tokenId), Errors.NOT_OWNER);
 
         uint256 bltPrice = getRequiredPrice(0, _tokenId);
         uint256 csPrice = getRequiredPrice(1, _tokenId);
         (, , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
-        if (level == 0) revert InvalidParams();
-        if (level == maxLevelPerRarity[rarity]) revert MaxLevelReached();
+        require(level != 0, Errors.INVALID_PARAM);
+        require(level != maxLevelPerRarity[rarity], Errors.MAX_LEVEL_REACHED);
+        require(bltPrice != 0 && csPrice != 0, Errors.INVALID_PARAM);
 
-        if (bltPrice == 0 || csPrice == 0) revert InvalidParams();
         csToken.burnFrom(_msgSender(), csPrice);
-        require(msg.value == bltPrice, "Upgrader:Invalid Matic Amount");
+        require(msg.value == bltPrice, Errors.INVALID_AMOUNT);
         (bool sent1, ) = payable(treasuryAddress).call{value: bltPrice / 4}("");
-        require(sent1, "Failed to send treasuryAddress");
+        require(sent1, Errors.FAILED_TO_SEND_ETHER_TREASURY);
         (bool sent2, ) = payable(companyAddress).call{value: (bltPrice * 3) / 4}("");
-        require(sent2, "Failed to send companyAddress");
+        require(sent2, Errors.FAILED_TO_SEND_ETHER_COMPANY);
 
         blastEquipmentNFT.setLevel(_tokenId, level + 1);
 
@@ -162,7 +156,7 @@ contract Upgrader is Utility {
         } else if (_tokenType == 1) {
             return (csAttribute.pricePerRarity[rarity] + csAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * csAttribute.pricePerLevel) * multiplierPerGrade[grade] / DECIMAL_FACTOR / DECIMAL_FACTOR / 100 * 10 ** 18;
         } else {
-            revert InvalidParams();
+            return 0;
         }
     }
 }

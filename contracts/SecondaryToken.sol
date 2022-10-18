@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/ICraftSpiceToken.sol";
+import { Errors } from "./libraries/Errors.sol";
 
 /// @title Blast Royale Token - Secondary Token
 /// @dev Based on OpenZeppelin Contracts.
@@ -49,11 +50,8 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
         external
         nonReentrant
     {
-        require(
-            block.timestamp <= _deadline,
-            "CS:Signature expired"
-        );
-        require(_verify(_hash(_msgSender(), _amount, nonces[_msgSender()], _deadline), _signature), "CS:Invalid Signature in claiming");
+        require(block.timestamp <= _deadline, Errors.CS_EXPIRED_DEADLINE);
+        require(_verify(_hash(_msgSender(), _amount, nonces[_msgSender()], _deadline), _signature), Errors.CS_INVALID_SIGNATURE);
         nonces[_msgSender()] ++;
         _mint(_msgSender(), _amount);
 
@@ -105,7 +103,7 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
     }
 
     function updateSigner(address _signer) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_signer != address(0), "signer can't be zero");
+        require(_signer != address(0), Errors.NO_ZERO_ADDRESS);
         signer = _signer;
     }
 

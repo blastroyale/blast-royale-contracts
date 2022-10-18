@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@prb/math/contracts/PRBMathUD60x18.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
+import { Errors } from "./libraries/Errors.sol";
 
 /// @title Blast Equipment NFT
 /// @dev BlastNFT ERC721 token
@@ -54,7 +55,7 @@ contract BlastEquipmentNFT is
             hasRole(GAME_ROLE, _msgSender()) ||
             hasRole(DEFAULT_ADMIN_ROLE, _msgSender()) ||
             hasRole(REPLICATOR_ROLE, _msgSender()),
-            "AccessControl: Missing role"
+            Errors.MISSING_GAME_ROLE
         );
         _;
     }
@@ -79,9 +80,9 @@ contract BlastEquipmentNFT is
         string[] calldata _realUri,
         StaticAttributes[] calldata _staticAttributes
     ) external onlyRole(MINTER_ROLE) {
-        require(_to != address(0), "To address can't be zero");
-        require(_uri.length == _hash.length, "Invalid params");
-        require(_uri.length == _realUri.length, "Invalid params");
+        require(_to != address(0), Errors.NO_ZERO_ADDRESS);
+        require(_uri.length == _hash.length, Errors.INVALID_PARAM);
+        require(_uri.length == _realUri.length, Errors.INVALID_PARAM);
 
         for (uint256 i = 0; i < _uri.length; i = i + 1) {
             _safeMint(_to, _uri[i], _hash[i], _realUri[i], _staticAttributes[i]);
@@ -95,7 +96,7 @@ contract BlastEquipmentNFT is
         string calldata _realUri,
         StaticAttributes memory _staticAttributes
     ) external override onlyRole(REPLICATOR_ROLE) returns (uint256) {
-        require(_to != address(0), "To address can't be zero");
+        require(_to != address(0), Errors.NO_ZERO_ADDRESS);
 
         return _safeMint(_to, _uri, _hash, _realUri, _staticAttributes);
     }
@@ -156,7 +157,7 @@ contract BlastEquipmentNFT is
         hasGameRole
     {
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
-        require(_staticAttribute.maxLevel >= _newLevel, "Max level reached");
+        require(_staticAttribute.maxLevel >= _newLevel, Errors.MAX_LEVEL_REACHED);
 
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
@@ -282,7 +283,7 @@ contract BlastEquipmentNFT is
     /// @notice Set the DurabilityPoint Timer
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
     function setDurabilityPointTimer(uint256 _newTimer) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newTimer > 0, "Durability point timer can't be zero");
+        require(_newTimer > 0, Errors.INVALID_PARAM);
         durabilityPointTimer = _newTimer;
     }
 
@@ -312,7 +313,7 @@ contract BlastEquipmentNFT is
         internal
         override(ERC721, ERC721URIStorage)
     {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "Not the owner");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), Errors.NOT_OWNER);
         super._burn(tokenId);
     }
 
