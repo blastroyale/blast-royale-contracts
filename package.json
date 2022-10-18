@@ -5,9 +5,6 @@
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
-    "deploy:mumbai": "hardhat run scripts/deploy.ts --network mumbai",
-    "verify:mumbai": "hardhat run scripts/verify.ts --network mumbai",
-    "test:loot": "hardhat test test/loot.ts",
     "export-abi": "hardhat export-abi",
     "clear-abi": "hardhat clear-abi",
     "cucumber": "hardhat compile && tsc && cucumber-js",
