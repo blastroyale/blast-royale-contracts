@@ -30,6 +30,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   address private treasury1;
   uint256 private fee2;
   address private treasury2;
+  bool public isUsingMatic;
 
   mapping (address => bool) public whitelistedTokens;
   mapping (uint256 => Listing) public listings;
@@ -144,7 +145,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     uint256 buyingFee1 = (fee1 * listedPrice / DECIMAL_FACTOR);
     uint256 buyingFee2 = (fee2 * listedPrice / DECIMAL_FACTOR);
 
-    if (address(payTokenAddress) == address(0)) {
+    if (isUsingMatic) {
       require(msg.value == listedPrice, Errors.INVALID_AMOUNT);
       if (buyingFee1 > 0) {
         (bool sent1, ) = payable(treasury1).call{value: buyingFee1}("");
@@ -237,6 +238,10 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     }
 
     emit WhitelistRemoved(_whitelist);
+  }
+
+  function flipIsUsingMatic() external onlyOwner {
+    isUsingMatic = !isUsingMatic;
   }
 
   // @notice Pauses/Unpauses the contract
