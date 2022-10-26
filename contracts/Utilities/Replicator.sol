@@ -44,22 +44,16 @@ contract Replicator is Utility {
     mapping(uint256 => bool) public isReplicating;
 
     uint256[7] public csPrices = [
-        1250e18,
-        1800e18,
-        3200e18,
-        5000e18,
-        9000e18,
-        14000e18,
-        22500e18
+        1250e18, 1800e18, 3200e18, 5000e18,
+        9000e18, 14000e18, 22500e18
+    ];
+    uint256[7] public maticCsPrices = [
+        4050e18, 5400e18, 8000e18, 11000e18,
+        17000e18, 24000e18, 34500e18
     ];
     uint256[7] public bltPrices = [
-        7e18,
-        9e18,
-        12e18,
-        15e18,
-        20e18,
-        25e18,
-        30e18
+        7e18, 9e18, 12e18, 15e18,
+        20e18, 25e18, 30e18
     ];
 
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
@@ -103,7 +97,6 @@ contract Replicator is Utility {
         uint256 _p2,
         StaticAttributes calldata _staticAttribute
     ) external onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
-        require(!isUsingMatic, Errors.USING_MATIC_NOW);
         require(_p1 != _p2, Errors.INVALID_PARAM);
         address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
         require(tokenOwner == blastEquipmentNFT.ownerOf(_p2), Errors.INVALID_PARAM);
@@ -115,27 +108,6 @@ contract Replicator is Utility {
 
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
-
-    function replicateUsingMatic(
-        string calldata _uri,
-        string calldata _hashString,
-        string calldata _realUri,
-        uint256 _p1,
-        uint256 _p2,
-        StaticAttributes calldata _staticAttribute
-    ) external payable onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant whenNotPaused {
-        require(isUsingMatic, Errors.NOT_USING_MATIC_NOW);
-        require(_p1 != _p2, Errors.INVALID_PARAM);
-        address tokenOwner = blastEquipmentNFT.ownerOf(_p1);
-        require(tokenOwner == blastEquipmentNFT.ownerOf(_p2), Errors.INVALID_PARAM);
-        require(!isReplicating[_p1] && !isReplicating[_p2], Errors.NOT_READY_REPLICATE);
-
-        setReplicatorCount(_p1, _p2, tokenOwner);
-
-        uint childTokenId = mintChild(tokenOwner, _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
-
-        emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
-    } 
 
     // Convert an hexadecimal character to their value
     function fromHexChar(uint8 c) internal pure returns (uint8) {
@@ -166,20 +138,10 @@ contract Replicator is Utility {
     function setReplicatorCount(uint256 _p1, uint256 _p2, address tokenOwner) internal {
         (, , , , , uint256 currentReplicationCountP1) = blastEquipmentNFT.getAttributes(_p1);
         (, , , , , uint256 currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
-        csToken.burnFrom(
-            tokenOwner,
-            csPrices[currentReplicationCountP1] +
-                csPrices[currentReplicationCountP2]
-        );
+        uint256 totalCSAmount = getTotalCSAmount(currentReplicationCountP1, currentReplicationCountP2);
+        csToken.burnFrom(tokenOwner, totalCSAmount);
         uint256 totalBltAmount = getTotalBLSTAmount(currentReplicationCountP1, currentReplicationCountP2);
-        if (isUsingMatic) {
-            require(msg.value == totalBltAmount, Errors.INVALID_AMOUNT);
-            (bool sent1, ) = payable(treasuryAddress).call{value: totalBltAmount / 4}("");
-            require(sent1, Errors.FAILED_TO_SEND_ETHER_TREASURY);
-            (bool sent2, ) = payable(companyAddress).call{value: (totalBltAmount * 3) / 4}("");
-            require(sent2, Errors.FAILED_TO_SEND_ETHER_COMPANY);
-        } else {
-            require(msg.value == 0, Errors.INVALID_AMOUNT);
+        if (!isUsingMatic) {
             blastToken.safeTransferFrom(
                 tokenOwner,
                 treasuryAddress,
@@ -237,6 +199,13 @@ contract Replicator is Utility {
     function setReplicationTimer(uint _newTimer) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newTimer > 0, Errors.NO_ZERO_VALUE);
         replicationTimer = _newTimer;
+    }
+
+    function getTotalCSAmount(uint256 currentReplicationCountP1, uint256 currentReplicationCountP2) public view returns (uint256) {
+        if (isUsingMatic) {
+            return maticCsPrices[currentReplicationCountP1] + maticCsPrices[currentReplicationCountP2];
+        }
+        return csPrices[currentReplicationCountP1] + csPrices[currentReplicationCountP2];
     }
 
     function getTotalBLSTAmount(uint256 currentReplicationCountP1, uint256 currentReplicationCountP2) public view returns (uint256) {
