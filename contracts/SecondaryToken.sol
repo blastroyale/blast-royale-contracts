@@ -23,6 +23,7 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
     mapping(address => uint256) public nonces;
 
     event Claimed(address user, uint256 amount);
+    event MintedFromScrap(address user, uint256 amount);
 
     /// @notice Token constructor
     /// @dev Creates the token and setup the initial supply and the Admin Role.
@@ -94,12 +95,24 @@ contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, EIP712, ERC20
     /// @param _amount Token Amount
     function claim(address _to, uint256 _amount)
         external
-        override
         onlyRole(MINTER_ROLE)
     {
         _mint(_to, _amount);
 
         emit Claimed(_to, _amount);
+    }
+
+    /// @notice Mint new tokens
+    /// @param _to Target Address
+    /// @param _amount Token Amount
+    function mintFromScrap(address _to, uint256 _amount)
+        external
+        override
+        onlyRole(MINTER_ROLE)
+    {
+        _mint(_to, _amount);
+
+        emit MintedFromScrap(_to, _amount);
     }
 
     function updateSigner(address _signer) external onlyRole(DEFAULT_ADMIN_ROLE) {

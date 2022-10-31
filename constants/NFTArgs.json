@@ -2,11 +2,15 @@
     "Equipment": {
         "polygon": {
             "name": "Blast Equipment NFT",
-            "symbol": "BEN"
+            "symbol": "BEN",
+            "previewURI": "https://static.blastroyale.com/nftstaticmetadata/preview_metadata.json",
+            "baseURI": "https://testnet-prod-metadata.blastroyale.com/"
         },
         "mumbai": {
             "name": "Blast Equipment",
-            "symbol": "TestBEN"
+            "symbol": "TestBEN",
+            "previewURI": "https://static.blastroyale.com/nftstaticmetadata/preview_metadata.json",
+            "baseURI": "https://testnet-prod-metadata.blastroyale.com/"
         },
         "hardhat": {
             "name": "Test Blast Equipment",
