@@ -11,7 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts, loadDeployment
 
   await deploy('BlastEquipmentNFT', {
     from: deployer,
-    args: [equipmentArgs.name, equipmentArgs.symbol],
+    args: [equipmentArgs.name, equipmentArgs.symbol, equipmentArgs.previewURI, equipmentArgs.baseURI],
     log: true,
     waitConfirmations: 1
   })

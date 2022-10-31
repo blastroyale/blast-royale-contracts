@@ -6,7 +6,9 @@
         },
         "mumbai": {
             "name": "Blast Equipment",
-            "symbol": "TestBEN"
+            "symbol": "TestBEN",
+            "previewURI": "https://static.blastroyale.com/nftstaticmetadata/preview_metadata.json",
+            "baseURI": "https://testnet-prod-metadata.blastroyale.com/"
         },
         "hardhat": {
             "name": "Test Blast Equipment",

@@ -48,7 +48,10 @@ contract BlastEquipmentNFT is
     mapping(uint256 => bytes32) public hashValue;
     mapping(uint256 => VariableAttributes) public attributes;
     mapping(uint256 => StaticAttributes) public staticAttributes;
+    mapping(uint256 => uint256) private revealed;
     mapping(uint256 => string) private realTokenURI;
+    string private previewURI;
+    string private baseURI;
 
     modifier hasGameRole() {
         require(
@@ -63,29 +66,30 @@ contract BlastEquipmentNFT is
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol, string memory _previewURI, string memory _baseURI) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
         _setupRole(REVEAL_ROLE, _msgSender());
         _setupRole(REPLICATOR_ROLE, _msgSender());
+
+        previewURI = _previewURI;
+        baseURI = _baseURI;
     }
 
     /// @notice Creates a new token for `to`. Its token ID will be automatically
     /// @dev The caller must have the `MINTER_ROLE`.
     function safeMint(
         address _to,
-        string[] calldata _uri,
         bytes32[] calldata _hash,
         string[] calldata _realUri,
         StaticAttributes[] calldata _staticAttributes
     ) external onlyRole(MINTER_ROLE) {
         require(_to != address(0), Errors.NO_ZERO_ADDRESS);
-        require(_uri.length == _hash.length, Errors.INVALID_PARAM);
-        require(_uri.length == _realUri.length, Errors.INVALID_PARAM);
+        require(_hash.length == _realUri.length, Errors.INVALID_PARAM);
 
-        for (uint256 i = 0; i < _uri.length; i = i + 1) {
-            _safeMint(_to, _uri[i], _hash[i], _realUri[i], _staticAttributes[i]);
+        for (uint256 i = 0; i < _hash.length; i = i + 1) {
+            _safeMint(_to, _hash[i], _realUri[i], _staticAttributes[i]);
         }
     }
 
@@ -98,12 +102,11 @@ contract BlastEquipmentNFT is
     ) external override onlyRole(REPLICATOR_ROLE) returns (uint256) {
         require(_to != address(0), Errors.NO_ZERO_ADDRESS);
 
-        return _safeMint(_to, _uri, _hash, _realUri, _staticAttributes);
+        return _safeMint(_to, _hash, _realUri, _staticAttributes);
     }
 
     function _safeMint(
         address _to,
-        string memory _uri,
         bytes32 _hash,
         string memory _realUri,
         StaticAttributes memory _staticAttributes
@@ -123,7 +126,6 @@ contract BlastEquipmentNFT is
         staticAttributes[tokenId] = _staticAttributes;
 
         _mint(_to, tokenId);
-        _setTokenURI(tokenId, _uri);
 
         emit AttributeUpdated(tokenId, 1, 0, 0, block.timestamp, 0, 0);
 
@@ -135,7 +137,7 @@ contract BlastEquipmentNFT is
         override
         onlyRole(REVEAL_ROLE)
     {
-        _setTokenURI(_tokenId, realTokenURI[_tokenId]);
+        revealed[_tokenId] = 1;
         VariableAttributes storage _variableAttribute = attributes[_tokenId];
         _variableAttribute.lastRepairTime = block.timestamp;
 
@@ -147,7 +149,7 @@ contract BlastEquipmentNFT is
         override
         onlyRole(REVEAL_ROLE)
     {
-        _setTokenURI(_tokenId, _realUri);
+        realTokenURI[_tokenId] = _realUri;
         emit PermanentURI(_realUri, _tokenId);
     }
 
@@ -325,7 +327,12 @@ contract BlastEquipmentNFT is
         override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
-        return super.tokenURI(tokenId);
+        _requireMinted(tokenId);
+
+        if (revealed[tokenId] == 0) {
+            return previewURI;
+        }
+        return string(abi.encodePacked(baseURI, realTokenURI[tokenId]));
     }
 
     /// @dev See {IERC165-supportsInterface}.
