@@ -22,17 +22,10 @@ contract Upgrader is Utility {
         uint256 pricePerLevel; // decimal factor 100000
     }
 
+    uint256 public durabilityEffectDivider = 48;
     uint256[10] public maxLevelPerRarity = [
-        10,
-        12,
-        15,
-        17,
-        20,
-        22,
-        25,
-        27,
-        30,
-        35
+        10, 12, 15, 17, 20,
+        22, 25, 27, 30, 35
     ];
     uint16[5] public multiplierPerGrade = [1740, 1520, 1320, 1150, 1000];
     Attributes public bltAttribute;
@@ -46,29 +39,13 @@ contract Upgrader is Utility {
         address _companyAddress
     ) Utility(_blastEquipmentNFT, _blastToken, _csToken, _treasuryAddress, _companyAddress) {
         uint16[10] memory _bltPricePerRarity = [
-            uint16(3),
-            4,
-            4,
-            5,
-            5,
-            6,
-            7,
-            7,
-            8,
-            9
+            uint16(3), 4, 4, 5, 5,
+            6, 7, 7, 8, 9
         ];
         uint8[10] memory _bltPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
         uint16[10] memory _csPricePerRarity = [
-            100,
-            144,
-            207,
-            297,
-            427,
-            613,
-            881,
-            1266,
-            1819,
-            2613
+            100, 144, 207, 297, 427,
+            613, 881, 1266, 1819, 2613
         ];
         uint8[10] memory _csPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
 
@@ -82,6 +59,11 @@ contract Upgrader is Utility {
             pricePerAdjective: _csPricePerAdjective,
             pricePerLevel: 2500
         });
+    }
+
+    function setDurabilityEffectDivider (uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_newValue > 0, Errors.NO_ZERO_ADDRESS);
+        durabilityEffectDivider = _newValue;
     }
 
     function upgrade(uint256 _tokenId) external nonReentrant whenNotPaused {
@@ -142,19 +124,19 @@ contract Upgrader is Utility {
         view
         returns (uint256)
     {
-        (, , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
+        (, uint8 maxDurability, uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
             .getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
 
         if (_tokenType == 0) {
-            uint256 price = (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10;
+            uint256 price = (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 * maxDurability / durabilityEffectDivider;
             int maticPrice = getLatestPrice();
             if (isUsingMatic && maticPrice > 0) {
                 return price * uint256(maticPrice) / 10 ** 8;
             }
             return price;
         } else if (_tokenType == 1) {
-            return (csAttribute.pricePerRarity[rarity] + csAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * csAttribute.pricePerLevel) * multiplierPerGrade[grade] / DECIMAL_FACTOR / DECIMAL_FACTOR / 100 * 10 ** 18;
+            return (csAttribute.pricePerRarity[rarity] + csAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * csAttribute.pricePerLevel) * multiplierPerGrade[grade] / DECIMAL_FACTOR / DECIMAL_FACTOR / 100 * 10 ** 18 * maxDurability / durabilityEffectDivider;
         } else {
             return 0;
         }
