@@ -13,6 +13,7 @@ contract Repairing is Utility {
     uint256 private basePowerForBLST = 2025; // 2.025
     uint256 private basePriceForCS = 20000; // 20
     uint256 private basePriceForBLST = 50; // 0.05
+    uint16 private significanceK = 200; // DECIMAL_FACTOR 100
 
     /// @notice Event Base Power Updated
     event BasePowerUpdated(uint256 _basePowerCS, uint256 _basePowerBLST);
@@ -36,7 +37,7 @@ contract Repairing is Utility {
         if ((durabilityRestored + durabilityPoint) > 6) {
             return 0;
         }
-        uint256 temp = ((durabilityRestored * 2 + 10) * durabilityPoint) * 10 ** 17;
+        uint256 temp = ((durabilityRestored * significanceK + DECIMAL_FACTOR) * durabilityPoint) * 10 ** 18 / DECIMAL_FACTOR;
         if (temp == 0) {
             return 0;
         }
@@ -62,7 +63,7 @@ contract Repairing is Utility {
 
     /// @notice Set Base Power for CS and BLST. It will affect to calculate repair price for CS & BLST
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function setBasePower(uint256 _basePowerForCS, uint256 _basePowerForBLST) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setBasePower(uint256 _basePowerForCS, uint256 _basePowerForBLST) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_basePowerForCS > 0, Errors.NO_ZERO_VALUE);
         require(_basePowerForBLST > 0, Errors.NO_ZERO_VALUE);
 
@@ -72,9 +73,16 @@ contract Repairing is Utility {
         emit BasePowerUpdated(_basePowerForCS, _basePowerForBLST);
     }
 
+    /// @notice Set significanceK value
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setSignificanceK(uint16 _significanceK) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_significanceK > 0, Errors.NO_ZERO_VALUE);
+        significanceK = _significanceK;
+    }
+
     /// @notice Set Base Price for CS and BLST. It will affect to calculate repair price for CS & BLST
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function setBasePrice(uint256 _basePriceForCS, uint256 _basePriceForBLST) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setBasePrice(uint256 _basePriceForCS, uint256 _basePriceForBLST) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_basePriceForCS > 0, Errors.NO_ZERO_VALUE);
         require(_basePriceForBLST > 0, Errors.NO_ZERO_VALUE);
 
