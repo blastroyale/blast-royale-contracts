@@ -289,6 +289,12 @@ contract BlastEquipmentNFT is
         durabilityPointTimer = _newTimer;
     }
 
+    /// @notice Set BaseURI for token metadata URI
+    /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
+    function setBaseURI(string memory _baseURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseURI = _baseURI;
+    }
+
     // @notice Pauses/Unpauses the contract
     // @dev While paused, actions are not allowed
     // @param stop whether to pause or unpause the contract.
