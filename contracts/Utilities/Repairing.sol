@@ -44,7 +44,6 @@ contract Repairing is Utility {
     }
 
     function getRepairPriceBLST(uint256 _tokenId) public view returns (uint256) {
-        int maticPrice = getLatestPrice();
         (, uint256 durabilityRestored, uint256 durabilityPoint, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
         if ((durabilityRestored + durabilityPoint) > 6) {
             uint256 temp = ((durabilityRestored + 1) * durabilityPoint);
@@ -52,8 +51,9 @@ contract Repairing is Utility {
                 return 0;
             }
             uint256 priceInBLST = PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * basePriceForBLST / DECIMAL_FACTOR;
-            if (isUsingMatic && maticPrice > 0) {
-                return priceInBLST * uint256(maticPrice) / 10 ** 8;
+            if (isUsingMatic) {
+                int maticPrice = getLatestPrice();
+                return maticPrice > 0 ? priceInBLST * uint256(maticPrice) / 10 ** 8 : priceInBLST;
             }
             return priceInBLST;
         }
@@ -119,14 +119,14 @@ contract Repairing is Utility {
         uint256 repairCount;
         (, durabilityRestored, durabilityPoints, , repairCount, ) = blastEquipmentNFT.getAttributes(_tokenId);
         if ((durabilityRestored + durabilityPoints) > 6) {
-            uint256 blstPrice = getRepairPriceBLST(_tokenId);
-            require(blstPrice > 0, Errors.INVALID_AMOUNT);
-            require(msg.value == blstPrice, Errors.INVALID_AMOUNT);
+            uint256 maticPrice = getRepairPriceBLST(_tokenId);
+            require(maticPrice > 0, Errors.INVALID_AMOUNT);
+            require(msg.value == maticPrice, Errors.INVALID_AMOUNT);
 
             // Safe TransferFrom from msgSender to treasury
-            (bool sent1, ) = payable(treasuryAddress).call{value: blstPrice / 4}("");
+            (bool sent1, ) = payable(treasuryAddress).call{value: maticPrice / 4}("");
             require(sent1, Errors.FAILED_TO_SEND_ETHER_TREASURY);
-            (bool sent2, ) = payable(companyAddress).call{value: (blstPrice - blstPrice / 4)}("");
+            (bool sent2, ) = payable(companyAddress).call{value: (maticPrice - maticPrice / 4)}("");
             require(sent2, Errors.FAILED_TO_SEND_ETHER_COMPANY);
         } else {
             uint256 price = getRepairPrice(_tokenId);
