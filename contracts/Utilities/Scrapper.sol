@@ -73,6 +73,16 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
     }
 
+    function setCSAdditiveValuePerAdjective(uint256[10] memory _csAdditiveValuePerAdjective)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_csAdditiveValuePerAdjective.length == 10, Errors.INVALID_PARAM);
+        for (uint8 i = 0; i < 10; i++) {
+            csAdditiveValuePerAdjective[i] = _csAdditiveValuePerAdjective[i];
+        }
+    }
+
     // @notice Pauses/Unpauses the contract
     // @dev While paused, addListing, and buy are not allowed
     // @param stop whether to pause or unpause the contract.

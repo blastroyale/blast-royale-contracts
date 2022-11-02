@@ -61,9 +61,16 @@ contract Upgrader is Utility {
         });
     }
 
-    function setDurabilityEffectDivider (uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setDurabilityEffectDivider(uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newValue > 0, Errors.NO_ZERO_ADDRESS);
         durabilityEffectDivider = _newValue;
+    }
+
+    function setMultiplierPerGrade(uint16[5] memory _multiplierPerGrade) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_multiplierPerGrade.length == 5, Errors.NO_ZERO_ADDRESS);
+        for (uint8 i = 0; i < 5; i++) {
+            multiplierPerGrade[i] = _multiplierPerGrade[i];
+        }
     }
 
     function upgrade(uint256 _tokenId) external nonReentrant whenNotPaused {
@@ -130,9 +137,9 @@ contract Upgrader is Utility {
 
         if (_tokenType == 0) {
             uint256 price = (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 * maxDurability / durabilityEffectDivider;
-            int maticPrice = getLatestPrice();
-            if (isUsingMatic && maticPrice > 0) {
-                return price * uint256(maticPrice) / 10 ** 8;
+            if (isUsingMatic) {
+                int maticPrice = getLatestPrice();
+                return maticPrice > 0 ? price * uint256(maticPrice) / 10 ** 8 : price;
             }
             return price;
         } else if (_tokenType == 1) {

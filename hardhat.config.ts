@@ -44,7 +44,7 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
     },
     polygon: {
-      url: 'https://speedy-nodes-nyc.moralis.io/99e98b2333a911011f42606d/polygon/mainnet',
+      url: 'https://polygon-mainnet.g.alchemy.com/v2/jTV72NyhEAhoLQHDaEE4ReaXL-8ecyRC',
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : []
     }

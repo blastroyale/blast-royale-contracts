@@ -140,8 +140,8 @@ contract Replicator is Utility {
         (, , , , , uint256 currentReplicationCountP2) = blastEquipmentNFT.getAttributes(_p2);
         uint256 totalCSAmount = getTotalCSAmount(currentReplicationCountP1, currentReplicationCountP2);
         csToken.burnFrom(tokenOwner, totalCSAmount);
-        uint256 totalBltAmount = getTotalBLSTAmount(currentReplicationCountP1, currentReplicationCountP2);
         if (!isUsingMatic) {
+            uint256 totalBltAmount = getTotalBLSTAmount(currentReplicationCountP1, currentReplicationCountP2);
             blastToken.safeTransferFrom(
                 tokenOwner,
                 treasuryAddress,
@@ -209,10 +209,6 @@ contract Replicator is Utility {
     }
 
     function getTotalBLSTAmount(uint256 currentReplicationCountP1, uint256 currentReplicationCountP2) public view returns (uint256) {
-        int maticPrice = getLatestPrice();
-        if (isUsingMatic && maticPrice > 0) {
-            return (bltPrices[currentReplicationCountP1] + bltPrices[currentReplicationCountP2]) * uint256(maticPrice) / 10 ** 8;
-        }
         return bltPrices[currentReplicationCountP1] + bltPrices[currentReplicationCountP2];
     }
 }
