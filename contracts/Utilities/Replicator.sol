@@ -48,8 +48,8 @@ contract Replicator is Utility {
         9000e18, 14000e18, 22500e18
     ];
     uint256[7] public maticCsPrices = [
-        4050e18, 5400e18, 8000e18, 11000e18,
-        17000e18, 24000e18, 34500e18
+        250e18, 350e18, 500e18, 700e18,
+        1000e18, 1500e18, 2000e18
     ];
     uint256[7] public bltPrices = [
         7e18, 9e18, 12e18, 15e18,
@@ -86,6 +86,16 @@ contract Replicator is Utility {
         require(_bltPrices.length == 7, Errors.INVALID_PARAM);
         for (uint8 i = 0; i < 7; i++) {
             bltPrices[i] = _bltPrices[i];
+        }
+    }
+
+    function setMaticCSPrices(uint256[] calldata _maticCsPrices)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_maticCsPrices.length == 7, Errors.INVALID_PARAM);
+        for (uint8 i = 0; i < 7; i++) {
+            maticCsPrices[i] = _maticCsPrices[i];
         }
     }
 

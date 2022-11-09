@@ -34,9 +34,6 @@ contract Repairing is Utility {
 
     function getRepairPrice(uint256 _tokenId) public view returns (uint256) {
         (, uint256 durabilityRestored, uint256 durabilityPoint, , , ) = blastEquipmentNFT.getAttributes(_tokenId);
-        if ((durabilityRestored + durabilityPoint) > 6) {
-            return 0;
-        }
         uint256 temp = ((durabilityRestored * significanceK + DECIMAL_FACTOR) * durabilityPoint) * 10 ** 18 / DECIMAL_FACTOR;
         if (temp == 0) {
             return 0;
