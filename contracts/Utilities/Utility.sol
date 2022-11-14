@@ -41,14 +41,14 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
             Errors.NO_ZERO_ADDRESS
         );
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
         blastToken = _blastToken;
         csToken = _csToken;
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
 
-        priceFeed = AggregatorV3Interface(0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada);
+        priceFeed = AggregatorV3Interface(0xAB594600376Ec9fD91F8e885dADF0CE036862dE0);
     }
 
     function setTreasuryAddress(address _treasury)

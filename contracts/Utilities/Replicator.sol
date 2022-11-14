@@ -100,7 +100,6 @@ contract Replicator is Utility {
     }
 
     function replicate(
-        string calldata _uri,
         string calldata _hashString,
         string calldata _realUri,
         uint256 _p1,
@@ -114,7 +113,7 @@ contract Replicator is Utility {
 
         setReplicatorCount(_p1, _p2, tokenOwner);
 
-        uint childTokenId = mintChild(tokenOwner, _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
+        uint childTokenId = mintChild(tokenOwner, _hashString, _realUri, _p1, _p2, _staticAttribute);
 
         emit Replicated(_p1, _p2, childTokenId, tokenOwner, block.timestamp);
     }
@@ -173,10 +172,9 @@ contract Replicator is Utility {
         );
     }
 
-    function mintChild(address tokenOwner, string calldata _uri, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
+    function mintChild(address tokenOwner, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
         uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
             tokenOwner,
-            _uri,
             bytes32(fromHex(_hashString)),
             _realUri,
             _staticAttribute
@@ -189,7 +187,7 @@ contract Replicator is Utility {
     }
 
     function morph(uint256 _childId) external nonReentrant whenNotPaused {
-        require(blastEquipmentNFT.ownerOf(_childId) == msg.sender, Errors.NOT_OWNER);
+        require(blastEquipmentNFT.ownerOf(_childId) == _msgSender(), Errors.NOT_OWNER);
         require(morphTimestamp[_childId] != 0 && morphTimestamp[_childId] <= block.timestamp, Errors.NOT_READY_MORPH);
 
         Parent memory _parent = parents[_childId];
@@ -201,7 +199,7 @@ contract Replicator is Utility {
             _parent.parent0,
             _parent.parent1,
             _childId,
-            msg.sender,
+            _msgSender(),
             block.timestamp
         );
     }

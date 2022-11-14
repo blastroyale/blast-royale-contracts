@@ -120,7 +120,7 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
   function removeListing(uint256 listingId) public nonReentrant
   {
     Listing storage listing = listings[listingId];
-    require(listing.owner == _msgSender(), Errors.NOT_OWNER);
+    require(listing.owner == _msgSender() || owner() == _msgSender(), Errors.NOT_OWNER);
     require(listing.isActive, Errors.LISTING_IS_NOT_ACTIVED);
     listing.isActive = false;
     erc721Contract.transferFrom(

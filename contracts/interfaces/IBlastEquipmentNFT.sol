@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 struct StaticAttributes {
     uint8 maxLevel;
     uint8 maxDurability;
+    uint8 maxReplication;
     uint8 adjective;
     uint8 rarity;
     uint8 grade;
@@ -28,7 +29,7 @@ interface IBlastEquipmentNFT is IERC721 {
     /// @notice Event Revealed TokenURI
     event PermanentURI(string _value, uint256 indexed _id);
 
-    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri, StaticAttributes calldata _staticAttribute) external returns (uint);
+    function safeMintReplicator(address _to, bytes32 _hash, string calldata _realUri, StaticAttributes calldata _staticAttribute) external returns (uint);
 
     function revealRealTokenURI(uint _tokenId) external;
 
@@ -45,5 +46,5 @@ interface IBlastEquipmentNFT is IERC721 {
 
     function getAttributes(uint256 _tokenId) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
 
-    function getStaticAttributes(uint256 _tokenId) external view returns (uint8, uint8, uint8, uint8, uint8);
+    function getStaticAttributes(uint256 _tokenId) external view returns (uint8, uint8, uint8, uint8, uint8, uint8);
 }

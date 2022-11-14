@@ -34,14 +34,14 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     constructor (IBlastEquipmentNFT _blastEquipmentNFT, ICraftSpiceToken _csToken) {
         require(address(_blastEquipmentNFT) != address(0) && address(_csToken) != address(0), Errors.NO_ZERO_ADDRESS);
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
         csToken = _csToken;
     }
 
     function scrap(uint256 _tokenId) external nonReentrant whenNotPaused {
         require(
-            blastEquipmentNFT.ownerOf(_tokenId) == msg.sender,
+            blastEquipmentNFT.ownerOf(_tokenId) == _msgSender(),
             Errors.NOT_OWNER
         );
         uint256 csAmount = getCSPrice(_tokenId);
@@ -52,7 +52,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     }
 
     function getCSPrice(uint256 _tokenId) public view returns (uint256) {
-        (, , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT.getStaticAttributes(_tokenId);
+        (, , , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         return ((csValuePerRarity[rarity] + csAdditiveValuePerAdjective[adjective]) + (csValuePerRarity[rarity] + csAdditiveValuePerAdjective[adjective]) * (level - 1) * csPercentagePerLevel / 1000) * gradeMultiplierPerGrade[grade] / 100 * 10 ** 18;
     }

@@ -152,15 +152,15 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         VestingSchedule storage vestingSchedule = vestingSchedules[
             vestingScheduleId
         ];
-        bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
-        bool isOwner = msg.sender == owner();
+        bool isBeneficiary = _msgSender() == vestingSchedule.beneficiary;
+        bool isOwner = _msgSender() == owner();
         if (!isBeneficiary && !isOwner) revert BeneficiayrOrOwner();
         uint256 releasableAmount = _computeReleasableAmount(vestingSchedule);
         if (releasableAmount < amount) revert NotEnoughTokens();
         vestingSchedule.released = vestingSchedule.released + amount;
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - amount;
         blastToken.safeTransfer(vestingSchedule.beneficiary, amount);
-        emit Released(msg.sender, vestingScheduleId, amount, block.timestamp);
+        emit Released(_msgSender(), vestingScheduleId, amount, block.timestamp);
     }
 
     /// <=============== VIEWS ===============>
