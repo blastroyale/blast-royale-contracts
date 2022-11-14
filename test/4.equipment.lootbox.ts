@@ -1,57 +1,38 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
+import { deployBLST, deployLootbox, deployPrimary, deploySecondary, mintBLST } from './helper'
 
 // const uri = "https://blastroyale.com/nft/";
 
 describe('Blast LootBox Contract', function () {
   let owner: any
-  let player1: any
-  let player2: any
-  let bet: any
+  let treasury: any
+  let addr1: any
+  let addr2: any
+  let blst: any
   let blb: any
+  let primary: any
+  let secondary: any
 
   before('deploying', async () => {
-    [owner, player1, player2] = await ethers.getSigners()
+    [owner, treasury, addr1, addr2] = await ethers.getSigners()
+    primary = await deployPrimary(owner, owner, treasury)
+    secondary = await deploySecondary(owner)
+    blst = await deployBLST(owner)
+    blb = await deployLootbox(owner, blst.address)
+    await secondary
+      .connect(owner)
+      .claim(addr1.address, ethers.utils.parseEther('10000'))
 
-    // BlastEquipment NFT Deploying
-    const BlastEquipmentToken = await ethers.getContractFactory(
-      'BlastEquipmentNFT'
-    )
-    bet = await BlastEquipmentToken.connect(owner).deploy(
-      'Blast Equipment',
-      'BLT'
-    )
-    await bet.deployed()
+    await primary
+      .connect(treasury)
+      .transfer(addr1.address, ethers.utils.parseEther('10000000'))
 
-    // BlastLootbox NFT Deploying
-    const BlastLootBox = await ethers.getContractFactory('BlastLootBox')
-    blb = await BlastLootBox.connect(owner).deploy(
-      'Blast LootBox',
-      'BLB',
-      bet.address
-    )
-    await blb.deployed()
+    await mintBLST(owner, blst, blb.address, 3)
 
-    // Equipment NFT minting process
-    const mintTx = await bet.connect(owner).safeMint(
-      blb.address,
-      ['ipfs://111', 'ipfs://222', 'ipfs://333'],
-      [
-        ethers.utils.keccak256('0x1000'),
-        ethers.utils.keccak256('0x2000'),
-        ethers.utils.keccak256('0x3000')
-      ],
-      ['ipfs://111_real', 'ipfs://222_real', 'ipfs://333_real'],
-      [
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0]
-      ]
-    )
-    await mintTx.wait()
     // Grant REVEAL_ROLE to Lootbox contract
-    const REVEAL_ROLE = await bet.REVEAL_ROLE()
-    await bet.connect(owner).grantRole(REVEAL_ROLE, blb.address)
+    const REVEAL_ROLE = await blst.REVEAL_ROLE()
+    await blst.connect(owner).grantRole(REVEAL_ROLE, blb.address)
 
     // Lootbox Minting to address with Equipment NFT ids [0, 1, 2]
     const tx = await blb.connect(owner).safeMint(
@@ -71,9 +52,9 @@ describe('Blast LootBox Contract', function () {
 
   it('Open function test', async function () {
     // Lootbox contract has 3 Equipment NFT items
-    expect(await bet.balanceOf(blb.address)).to.equal(3)
+    expect(await blst.balanceOf(blb.address)).to.equal(3)
     // Owner don't have Equipment NFT
-    expect(await bet.balanceOf(owner.address)).to.equal(0)
+    expect(await blst.balanceOf(owner.address)).to.equal(0)
     // Owner only have 1 Lootbox NFT
     expect(await blb.balanceOf(owner.address)).to.equal(1)
 
@@ -83,31 +64,23 @@ describe('Blast LootBox Contract', function () {
     await openTx.wait()
 
     // Now, 3 Equipment items which Lootbox contract had transferred to Owner
-    expect(await bet.balanceOf(blb.address)).to.equal(0)
+    expect(await blst.balanceOf(blb.address)).to.equal(0)
     // Owner balance of Equipment NFT is 3
-    expect(await bet.balanceOf(owner.address)).to.equal(3)
+    expect(await blst.balanceOf(owner.address)).to.equal(3)
     // Owner has no Lootbox NFT because it's already burnt
     expect(await blb.balanceOf(owner.address)).to.equal(0)
 
     // Reveal test
 
-    expect(await bet.tokenURI(0)).to.equal('ipfs://111_real')
-    expect(await bet.tokenURI(1)).to.equal('ipfs://222_real')
-    expect(await bet.tokenURI(2)).to.equal('ipfs://333_real')
+    expect(await blst.tokenURI(0)).to.equal('https://static.blastroyale.com/ipfs://real_0')
+    expect(await blst.tokenURI(1)).to.equal('https://static.blastroyale.com/ipfs://real_1')
+    expect(await blst.tokenURI(2)).to.equal('https://static.blastroyale.com/ipfs://real_2')
   })
 
   it('Open multiple lootbox items', async () => {
     // Equipment NFT minting process
-    const mintTx1 = await bet.connect(owner).safeMint(
+    const mintTx1 = await blst.connect(owner).safeMint(
       blb.address,
-      [
-        'ipfs://111',
-        'ipfs://222',
-        'ipfs://333',
-        'ipfs://444',
-        'ipfs://555',
-        'ipfs://666'
-      ],
       [
         ethers.utils.keccak256('0x1000'),
         ethers.utils.keccak256('0x2000'),
@@ -125,18 +98,18 @@ describe('Blast LootBox Contract', function () {
         'ipfs://666_real'
       ],
       [
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0],
-        [5, 0, 0, 0, 0]
+        [5, 0, 3, 0, 0, 0],
+        [5, 0, 3, 0, 0, 0],
+        [5, 0, 3, 0, 0, 0],
+        [5, 0, 3, 0, 0, 0],
+        [5, 0, 3, 0, 0, 0],
+        [5, 0, 3, 0, 0, 0]
       ]
     )
     await mintTx1.wait()
 
     const tx = await blb.connect(owner).safeMint(
-      [player1.address, player1.address],
+      [addr1.address, addr1.address],
       ['ipfs://111', 'ipfs://222'],
       [
         {
@@ -154,16 +127,16 @@ describe('Blast LootBox Contract', function () {
     )
     await tx.wait()
 
-    expect(await blb.balanceOf(player1.address)).to.eq(2)
+    expect(await blb.balanceOf(addr1.address)).to.eq(2)
 
-    const openTx = await blb.connect(owner).openTo(1, player1.address)
+    const openTx = await blb.connect(owner).openTo(1, addr1.address)
     await openTx.wait()
   })
 
   it('Can create an empty lootbox with no Blast Equipment minted', async () => {
     // creating a lootbox with tokens that do not exist
     const tx = await blb.connect(owner).safeMint(
-      [player2.address],
+      [addr2.address],
       ['ipfs://999'],
       [
         {
@@ -176,12 +149,12 @@ describe('Blast LootBox Contract', function () {
     )
     await tx.wait()
 
-    expect(await blb.balanceOf(player2.address)).to.eq(1)
+    expect(await blb.balanceOf(addr2.address)).to.eq(1)
 
-    expect(blb.connect(owner).openTo(3, player2.address)).to.be.revertedWith(
+    expect(blb.connect(owner).openTo(3, addr2.address)).to.be.revertedWith(
       'ERC721: operator query for nonexistent token'
     )
     // player should not receive any equipment NFT
-    expect(await bet.balanceOf(player2.address)).to.equal(0)
+    expect(await blst.balanceOf(addr2.address)).to.equal(0)
   })
 })

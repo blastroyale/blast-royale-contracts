@@ -204,7 +204,7 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
 
         setReplicatorCount(_p1, _p2, blastEquipmentNFT.ownerOf(_p1));
 
-        uint childTokenId = mintChild(blastEquipmentNFT.ownerOf(_p1), _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
+        uint childTokenId = mintChild(blastEquipmentNFT.ownerOf(_p1), _hashString, _realUri, _p1, _p2, _staticAttribute);
 
         emit Replicated(_p1, _p2, childTokenId, blastEquipmentNFT.ownerOf(_p1), block.timestamp);
     }
@@ -276,10 +276,9 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
         );
     }
 
-    function mintChild(address tokenOwner, string calldata _uri, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
+    function mintChild(address tokenOwner, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
         uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
             tokenOwner,
-            _uri,
             bytes32(fromHex(_hashString)),
             _realUri,
             _staticAttribute

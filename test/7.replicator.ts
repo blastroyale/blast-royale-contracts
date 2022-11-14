@@ -61,10 +61,9 @@ describe('Replicator Contract', () => {
       .connect(addr1)
       .approve(replicator.address, ethers.utils.parseEther('45000'))
 
-    const eggMetadataUrl =
-      'https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/replicator/egg_metadata_preview.json'
+    const eggMetadataUrl = 'https://static.blastroyale.com/previewMetadata.json'
     const realMetadataUrl =
-      'https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json'
+      'nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json'
     const hash =
       '8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d'
 
@@ -72,9 +71,10 @@ describe('Replicator Contract', () => {
     await expect(
       replicator
         .connect(addr2)
-        .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1, {
+        .replicate(hash, realMetadataUrl, 0, 1, {
           maxLevel: 6,
           maxDurability: 0,
+          maxReplication: 3,
           adjective: 0,
           rarity: 0,
           grade: 0
@@ -86,9 +86,10 @@ describe('Replicator Contract', () => {
     await expect(
       replicator
         .connect(owner)
-        .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1, {
+        .replicate(hash, realMetadataUrl, 0, 1, {
           maxLevel: 6,
           maxDurability: 0,
+          maxReplication: 3,
           adjective: 0,
           rarity: 0,
           grade: 0
@@ -105,13 +106,13 @@ describe('Replicator Contract', () => {
     expect(await blst.tokenURI(3)).to.eq(eggMetadataUrl)
 
     // Time increase to test morphTo function
-    await network.provider.send('evm_increaseTime', [3600 * 24 * 6])
+    await network.provider.send('evm_increaseTime', [3600 * 24 * 600])
     await network.provider.send('evm_mine')
 
     // Executing morphTo function
     const morphTx = await replicator.connect(addr1).morph(3)
     await morphTx.wait()
 
-    expect(await blst.tokenURI(3)).to.eq(realMetadataUrl)
+    expect(await blst.tokenURI(3)).to.eq('https://static.blastroyale.com/nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json')
   })
 })

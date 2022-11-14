@@ -32,9 +32,31 @@ export const deploySecondary = async (deployer: Signer) => {
 
 export const deployBLST = async (deployer: Signer) => {
   const BLST = await ethers.getContractFactory('BlastEquipmentNFT')
-  const blst = await BLST.connect(deployer).deploy('Blast Equipment', '$BLST')
+  const blst = await BLST.connect(deployer).deploy(
+    'Blast Equipment', '$BLST',
+    'https://static.blastroyale.com/previewMetadata.json',
+    'https://static.blastroyale.com/'
+  )
   await blst.deployed()
   return blst
+}
+
+export const deployLootbox = async (deployer: Signer, blstAddress: string) => {
+  const BLB = await ethers.getContractFactory('BlastLootBox')
+  const blb = await BLB.connect(deployer).deploy(
+    'Blast LootBox',
+    'BLB',
+    blstAddress
+  )
+  await blb.deployed()
+  return blb
+}
+
+export const deployMarketplace = async (deployer: Signer, blstAddress: string) => {
+  const BLB = await ethers.getContractFactory('Marketplace')
+  const blb = await BLB.connect(deployer).deploy(blstAddress)
+  await blb.deployed()
+  return blb
 }
 
 export const deployReplicator = async (
@@ -102,25 +124,33 @@ export const deployScrapper = async (
 export const mintBLST = async (
   deployer: Signer,
   blst: any,
-  target: Signer,
+  target: Signer | string,
   amount: number
 ) => {
-  const fakeURIs = new Array(amount).fill('ipfs://').map((x, i) => x + i)
   const fakeHashes = new Array(amount)
     .fill('0x000')
     .map((x, i) => ethers.utils.formatBytes32String(x + i))
   const realURIs = new Array(amount).fill('ipfs://real_').map((x, i) => x + i)
-  const staticAttributes = new Array(amount).fill([5, 114, 9, 9, 5])
+  const staticAttributes = new Array(amount).fill([5, 114, 3, 9, 9, 5])
   const tx = await blst
     .connect(deployer)
     .safeMint(
-      await target.getAddress(),
-      fakeURIs,
+      typeof target === 'string' ? target : await target.getAddress(),
       fakeHashes,
       realURIs,
       staticAttributes
     )
   await tx.wait()
+}
+
+export const configureMarketplace = async (
+  marketplace: any,
+  treasury1: string,
+  treasury2: string,
+  fee1: string,
+  fee2: string
+) => {
+  await marketplace.setFee(fee1, treasury1, fee2, treasury2)
 }
 
 export const getTimestampByBlockNumber = async (
