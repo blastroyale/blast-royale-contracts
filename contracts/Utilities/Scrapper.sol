@@ -24,8 +24,8 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         20, 40, 70, 100, 100,
         200, 200, 350, 500, 500
     ];
-    uint256[6] public gradeMultiplierPerGrade = [
-        100, 110, 120, 140, 165, 200 // DECIMAL FACTOR = 100
+    uint256[5] public gradeMultiplierPerGrade = [
+        165, 140, 120, 110, 100 // DECIMAL FACTOR = 100
     ];
     uint256 public csPercentagePerLevel = 25;
 
@@ -80,6 +80,26 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         require(_csAdditiveValuePerAdjective.length == 10, Errors.INVALID_PARAM);
         for (uint8 i = 0; i < 10; i++) {
             csAdditiveValuePerAdjective[i] = _csAdditiveValuePerAdjective[i];
+        }
+    }
+
+    function setCsValuePerRarity(uint256[10] memory _csValuePerRarity)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_csValuePerRarity.length == 10, Errors.INVALID_PARAM);
+        for (uint8 i = 0; i < 10; i++) {
+            csValuePerRarity[i] = _csValuePerRarity[i];
+        }
+    }
+
+    function setGradeMultiplierPerGrade(uint256[5] memory _gradeMultiplierPerGrade)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_gradeMultiplierPerGrade.length == 5, Errors.INVALID_PARAM);
+        for (uint8 i = 0; i < 10; i++) {
+            gradeMultiplierPerGrade[i] = _gradeMultiplierPerGrade[i];
         }
     }
 
