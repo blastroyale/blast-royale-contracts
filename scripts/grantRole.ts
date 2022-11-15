@@ -12,6 +12,7 @@ async function main () {
   const RepairingAddress = (await get('Repairing')).address
   const ReplicatorAddress = (await get('Replicator')).address
   const UpgraderAddress = (await get('Upgrader')).address
+  const LootboxAddress = (await get('BlastLootBox')).address
 
   const blst = new ethers.Contract(
     BlastEquipmentNFTAddress,
@@ -36,6 +37,7 @@ async function main () {
   // Granting MINTER ROLE to scrapper contract
   const REVEAL_ROLE = await blst.REVEAL_ROLE()
   await blst.grantRole(REVEAL_ROLE, ReplicatorAddress)
+  await blst.grantRole(REVEAL_ROLE, LootboxAddress)
 
   // Granting MINTER ROLE to scrapper contract
   const MINTER_ROLE = await cs.MINTER_ROLE()
