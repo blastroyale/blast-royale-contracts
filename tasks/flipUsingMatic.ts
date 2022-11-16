@@ -2,7 +2,8 @@ export const flipUsingMatic = async function (taskArgs: any, hre: any) {
   const contractNames = [
     'Repairing',
     'Replicator',
-    'Upgrader'
+    'Upgrader',
+    'Marketplace'
   ]
 
   const { get } = hre.deployments

@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { providers } from 'ethers'
+// import { providers } from 'ethers'
 import { ethers } from 'hardhat'
 
 describe('Blast Royale Token', function () {
@@ -51,9 +51,9 @@ describe('Blast Royale Token', function () {
 
   it('Pause the contract', async function () {
     // only ADMIN_ROLE role can pause
-    await expect(cs.connect(addr1).pause()).to.be.reverted
+    await expect(cs.connect(addr1).pause(true)).to.be.reverted
 
-    await cs.connect(owner).pause()
+    await cs.connect(owner).pause(true)
 
     await expect(
       cs.connect(owner).transfer(addr1.address, ethers.utils.parseEther('100'))
@@ -62,9 +62,9 @@ describe('Blast Royale Token', function () {
 
   it('Unpause the contract', async function () {
     // only ADMIN_ROLE role can unpause
-    await expect(cs.connect(addr1).unpause()).to.be.reverted
+    await expect(cs.connect(addr1).pause(false)).to.be.reverted
 
-    await cs.connect(owner).unpause()
+    await cs.connect(owner).pause(false)
 
     expect(
       await cs
@@ -77,7 +77,7 @@ describe('Blast Royale Token', function () {
     )
   })
 
-  it('Self Claiming Test', async function () {
+  /* it('Self Claiming Test', async function () {
     const block = await providers.getDefaultProvider().getBlock('latest')
     const blockTimestamp = block.timestamp
     const deadline = blockTimestamp + 3600
@@ -146,5 +146,5 @@ describe('Blast Royale Token', function () {
     expect(await cs.balanceOf(addr2.address)).to.equal(
       prevBalance.add(ethers.utils.parseEther('1'))
     )
-  })
+  }) */
 })

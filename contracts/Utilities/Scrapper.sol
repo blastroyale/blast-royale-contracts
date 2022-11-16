@@ -24,8 +24,8 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         20, 40, 70, 100, 100,
         200, 200, 350, 500, 500
     ];
-    uint256[6] public gradeMultiplierPerGrade = [
-        100, 110, 120, 140, 165, 200 // DECIMAL FACTOR = 100
+    uint256[5] public gradeMultiplierPerGrade = [
+        165, 140, 120, 110, 100 // DECIMAL FACTOR = 100
     ];
     uint256 public csPercentagePerLevel = 25;
 
@@ -34,14 +34,14 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     constructor (IBlastEquipmentNFT _blastEquipmentNFT, ICraftSpiceToken _csToken) {
         require(address(_blastEquipmentNFT) != address(0) && address(_csToken) != address(0), Errors.NO_ZERO_ADDRESS);
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
         csToken = _csToken;
     }
 
     function scrap(uint256 _tokenId) external nonReentrant whenNotPaused {
         require(
-            blastEquipmentNFT.ownerOf(_tokenId) == msg.sender,
+            blastEquipmentNFT.ownerOf(_tokenId) == _msgSender(),
             Errors.NOT_OWNER
         );
         uint256 csAmount = getCSPrice(_tokenId);
@@ -52,7 +52,7 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
     }
 
     function getCSPrice(uint256 _tokenId) public view returns (uint256) {
-        (, , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT.getStaticAttributes(_tokenId);
+        (, , , uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         return ((csValuePerRarity[rarity] + csAdditiveValuePerAdjective[adjective]) + (csValuePerRarity[rarity] + csAdditiveValuePerAdjective[adjective]) * (level - 1) * csPercentagePerLevel / 1000) * gradeMultiplierPerGrade[grade] / 100 * 10 ** 18;
     }
@@ -80,6 +80,26 @@ contract Scrapper is AccessControl, ReentrancyGuard, Pausable {
         require(_csAdditiveValuePerAdjective.length == 10, Errors.INVALID_PARAM);
         for (uint8 i = 0; i < 10; i++) {
             csAdditiveValuePerAdjective[i] = _csAdditiveValuePerAdjective[i];
+        }
+    }
+
+    function setCsValuePerRarity(uint256[10] memory _csValuePerRarity)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_csValuePerRarity.length == 10, Errors.INVALID_PARAM);
+        for (uint8 i = 0; i < 10; i++) {
+            csValuePerRarity[i] = _csValuePerRarity[i];
+        }
+    }
+
+    function setGradeMultiplierPerGrade(uint256[5] memory _gradeMultiplierPerGrade)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_gradeMultiplierPerGrade.length == 5, Errors.INVALID_PARAM);
+        for (uint8 i = 0; i < 10; i++) {
+            gradeMultiplierPerGrade[i] = _gradeMultiplierPerGrade[i];
         }
     }
 

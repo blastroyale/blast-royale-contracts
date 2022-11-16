@@ -23,6 +23,7 @@ contract Upgrader is Utility {
     }
 
     uint256 public durabilityEffectDivider = 48;
+    uint256 private effectMaticPriceValue = 10;
     uint256[10] public maxLevelPerRarity = [
         10, 12, 15, 17, 20,
         22, 25, 27, 30, 35
@@ -62,12 +63,17 @@ contract Upgrader is Utility {
     }
 
     function setDurabilityEffectDivider(uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newValue > 0, Errors.NO_ZERO_ADDRESS);
+        require(_newValue > 0, Errors.NO_ZERO_VALUE);
         durabilityEffectDivider = _newValue;
     }
 
+    function setEffectMaticPriceValue(uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_newValue > 0, Errors.NO_ZERO_VALUE);
+        effectMaticPriceValue = _newValue;
+    }
+
     function setMultiplierPerGrade(uint16[5] memory _multiplierPerGrade) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_multiplierPerGrade.length == 5, Errors.NO_ZERO_ADDRESS);
+        require(_multiplierPerGrade.length == 5, Errors.INVALID_PARAM);
         for (uint8 i = 0; i < 5; i++) {
             multiplierPerGrade[i] = _multiplierPerGrade[i];
         }
@@ -79,7 +85,7 @@ contract Upgrader is Utility {
 
         uint256 bltPrice = getRequiredPrice(0, _tokenId);
         uint256 csPrice = getRequiredPrice(1, _tokenId);
-        (, , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
+        (, , , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         require(level != 0, Errors.INVALID_PARAM);
         require(level != maxLevelPerRarity[rarity], Errors.MAX_LEVEL_REACHED);
@@ -108,7 +114,7 @@ contract Upgrader is Utility {
 
         uint256 bltPrice = getRequiredPrice(0, _tokenId);
         uint256 csPrice = getRequiredPrice(1, _tokenId);
-        (, , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
+        (, , , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         require(level != 0, Errors.INVALID_PARAM);
         require(level != maxLevelPerRarity[rarity], Errors.MAX_LEVEL_REACHED);
@@ -131,7 +137,7 @@ contract Upgrader is Utility {
         view
         returns (uint256)
     {
-        (, uint8 maxDurability, uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
+        (, uint8 maxDurability, ,uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
             .getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
 
@@ -139,7 +145,7 @@ contract Upgrader is Utility {
             uint256 price = (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 * maxDurability / durabilityEffectDivider;
             if (isUsingMatic) {
                 int maticPrice = getLatestPrice();
-                return maticPrice > 0 ? price * uint256(maticPrice) / 10 ** 8 : price;
+                return maticPrice > 0 ? (price * (uint256(maticPrice) / 10 ** 6) / 10 ** 2 / effectMaticPriceValue) : (price / effectMaticPriceValue);
             }
             return price;
         } else if (_tokenType == 1) {

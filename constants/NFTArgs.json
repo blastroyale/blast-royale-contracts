@@ -4,7 +4,7 @@
             "name": "Blast Equipment NFT",
             "symbol": "BEN",
             "previewURI": "https://static.blastroyale.com/nftstaticmetadata/preview_metadata.json",
-            "baseURI": "https://testnet-prod-metadata.blastroyale.com/"
+            "baseURI": "https://mainnet-prod-metadata.blastroyale.com/"
         },
         "mumbai": {
             "name": "Blast Equipment",

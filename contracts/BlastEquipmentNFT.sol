@@ -95,7 +95,6 @@ contract BlastEquipmentNFT is
 
     function safeMintReplicator(
         address _to,
-        string calldata _uri,
         bytes32 _hash,
         string calldata _realUri,
         StaticAttributes memory _staticAttributes
@@ -153,6 +152,13 @@ contract BlastEquipmentNFT is
         emit PermanentURI(_realUri, _tokenId);
     }
 
+    function setPreviewTokenURI(string calldata _previewURI)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        previewURI = _previewURI;
+    }
+
     function setLevel(uint256 _tokenId, uint256 _newLevel)
         external
         override
@@ -203,6 +209,9 @@ contract BlastEquipmentNFT is
         override
         hasGameRole
     {
+        StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
+        require(_staticAttribute.maxReplication >= _newReplicationCount, Errors.MAX_REPLICATION_COUNT_REACHED);
+
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.replicationCount = _newReplicationCount;
         uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
@@ -259,6 +268,7 @@ contract BlastEquipmentNFT is
             uint8,
             uint8,
             uint8,
+            uint8,
             uint8
         )
     {
@@ -266,6 +276,7 @@ contract BlastEquipmentNFT is
         return (
             _attribute.maxLevel,
             _attribute.maxDurability,
+            _attribute.maxReplication,
             _attribute.adjective,
             _attribute.rarity,
             _attribute.grade

@@ -51,7 +51,7 @@ contract Repairing is Utility {
             uint256 priceInBLST = PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * basePriceForBLST / DECIMAL_FACTOR;
             if (isUsingMatic) {
                 int maticPrice = getLatestPrice();
-                return maticPrice > 0 ? priceInBLST * uint256(maticPrice) / 10 ** 8 : priceInBLST;
+                return maticPrice > 0 ? priceInBLST * (uint256(maticPrice) / 10 ** 6) / 10 ** 2 : priceInBLST;
             }
             return priceInBLST;
         }
@@ -93,7 +93,7 @@ contract Repairing is Utility {
         uint256 _tokenId
     ) external nonReentrant whenNotPaused {
         require(!isUsingMatic, Errors.USING_MATIC_NOW);
-        require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, Errors.NOT_OWNER);
+        require(blastEquipmentNFT.ownerOf(_tokenId) == _msgSender(), Errors.NOT_OWNER);
         (, uint256 durabilityRestored, uint256 durabilityPoints, , uint256 repairCount, ) = blastEquipmentNFT.getAttributes(_tokenId);
         if ((durabilityRestored + durabilityPoints) > 6) {
             uint256 blstPrice = getRepairPriceBLST(_tokenId);
@@ -117,7 +117,7 @@ contract Repairing is Utility {
 
     function repairUsingMatic(uint256 _tokenId) external payable nonReentrant whenNotPaused {
         require(isUsingMatic, Errors.NOT_USING_MATIC_NOW);
-        require(blastEquipmentNFT.ownerOf(_tokenId) == msg.sender, Errors.NOT_OWNER);
+        require(blastEquipmentNFT.ownerOf(_tokenId) == _msgSender(), Errors.NOT_OWNER);
 
         uint256 durabilityRestored;
         uint256 durabilityPoints;

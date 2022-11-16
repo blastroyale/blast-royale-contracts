@@ -105,7 +105,7 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
             _signer == address(0)
         ) revert NoZeroAddress();
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
         blastToken = _blastToken;
         csToken = _csToken;
@@ -192,7 +192,7 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
     ) external payable nonReentrant whenNotPaused {
         if (_p1 == _p2) revert InvalidParams();
         if (blastEquipmentNFT.ownerOf(_p1) != blastEquipmentNFT.ownerOf(_p2)) revert InvalidParams();
-        if (blastEquipmentNFT.ownerOf(_p1) != msg.sender) revert InvalidParams();
+        if (blastEquipmentNFT.ownerOf(_p1) != _msgSender()) revert InvalidParams();
 
         if (isReplicating[_p1] || isReplicating[_p2])
             revert NotReadyReplicate();
@@ -204,7 +204,7 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
 
         setReplicatorCount(_p1, _p2, blastEquipmentNFT.ownerOf(_p1));
 
-        uint childTokenId = mintChild(blastEquipmentNFT.ownerOf(_p1), _uri, _hashString, _realUri, _p1, _p2, _staticAttribute);
+        uint childTokenId = mintChild(blastEquipmentNFT.ownerOf(_p1), _hashString, _realUri, _p1, _p2, _staticAttribute);
 
         emit Replicated(_p1, _p2, childTokenId, blastEquipmentNFT.ownerOf(_p1), block.timestamp);
     }
@@ -276,10 +276,9 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
         );
     }
 
-    function mintChild(address tokenOwner, string calldata _uri, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
+    function mintChild(address tokenOwner, string calldata _hashString, string calldata _realUri, uint256 _p1, uint256 _p2, StaticAttributes calldata _staticAttribute) internal returns (uint256) {
         uint256 childTokenId = blastEquipmentNFT.safeMintReplicator(
             tokenOwner,
-            _uri,
             bytes32(fromHex(_hashString)),
             _realUri,
             _staticAttribute
@@ -321,7 +320,7 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
     }
 
     function morph(uint256 _childId) external nonReentrant whenNotPaused {
-        if (blastEquipmentNFT.ownerOf(_childId) != msg.sender)
+        if (blastEquipmentNFT.ownerOf(_childId) != _msgSender())
             revert NotOwner();
         if (morphTimestamp[_childId] > block.timestamp) revert NotReadyMorph();
 
@@ -334,7 +333,7 @@ contract ReplicatorSignature is AccessControl, EIP712, ReentrancyGuard, Pausable
             _parent.parent0,
             _parent.parent1,
             _childId,
-            msg.sender,
+            _msgSender(),
             block.timestamp
         );
     }

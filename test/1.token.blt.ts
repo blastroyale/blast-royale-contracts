@@ -28,11 +28,11 @@ describe('Blast Royale Token', function () {
 
   it('Pause Token Transfer', async function () {
     // only owner can pause
-    await expect(blt.connect(addr1).pause()).to.be.revertedWith(
+    await expect(blt.connect(addr1).pause(true)).to.be.revertedWith(
       'Ownable: caller is not the owner'
     )
 
-    await blt.connect(owner).pause()
+    await blt.connect(owner).pause(true)
     // token transfer not allowed when the contract is paused
     await expect(
       blt
@@ -43,11 +43,11 @@ describe('Blast Royale Token', function () {
 
   it('Unpause Token Transfer', async function () {
     // only owner can unpause
-    await expect(blt.connect(addr1).unpause()).to.be.revertedWith(
+    await expect(blt.connect(addr1).pause(false)).to.be.revertedWith(
       'Ownable: caller is not the owner'
     )
 
-    await blt.connect(owner).unpause()
+    await blt.connect(owner).pause(false)
 
     await blt
       .connect(treasury)

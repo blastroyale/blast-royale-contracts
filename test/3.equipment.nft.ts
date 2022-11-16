@@ -34,14 +34,15 @@ describe('Blast Equipment NFT', function () {
   })
 
   it("Check if attributes 'static, variable' is updated after minting", async () => {
-    const [maxLevel, maxDurability, adjective, rarity, grade] =
+    const [maxLevel, maxDurability, maxReplication, adjective, rarity, grade] =
       await blst.getStaticAttributes(0)
 
     expect(maxLevel).to.equal(5)
-    expect(maxDurability).to.equal(0)
-    expect(adjective).to.equal(0)
-    expect(rarity).to.equal(0)
-    expect(grade).to.equal(0)
+    expect(maxDurability).to.equal(114)
+    expect(maxReplication).to.equal(3)
+    expect(adjective).to.equal(9)
+    expect(rarity).to.equal(9)
+    expect(grade).to.equal(5)
 
     const [
       level,
@@ -64,17 +65,17 @@ describe('Blast Equipment NFT', function () {
       .connect(owner)
       .safeMintReplicator(
         await addr2.getAddress(),
-        'ipfs://999',
         ethers.utils.formatBytes32String('0x999'),
         'ipfs://real_999',
-        [6, 1, 1, 1, 1]
+        [6, 1, 3, 1, 1, 1]
       )
 
-    const [maxLevel, maxDurability, adjective, rarity, grade] =
+    const [maxLevel, maxDurability, maxReplication, adjective, rarity, grade] =
       await blst.getStaticAttributes(3)
 
     expect(maxLevel).to.equal(6)
     expect(maxDurability).to.equal(1)
+    expect(maxReplication).to.equal(3)
     expect(adjective).to.equal(1)
     expect(rarity).to.equal(1)
     expect(grade).to.equal(1)
@@ -88,11 +89,11 @@ describe('Blast Equipment NFT', function () {
     expect(lastRepairTime.toNumber()).to.equal(repairTime)
 
     const tokenURI = await blst.tokenURI(2)
-    expect(tokenURI).to.equal('ipfs://real_2')
+    expect(tokenURI).to.equal('https://static.blastroyale.com/ipfs://real_2')
   })
 
   it('Check setLevel function', async () => {
-    await expect(blst.setLevel(0, 6)).revertedWith('Max level reached')
+    await expect(blst.setLevel(0, 6)).revertedWith('12')
 
     await expect(blst.setLevel(0, 5)).to.emit(blst, 'AttributeUpdated')
     const [level, , , , , ,] = await blst.getAttributes(0)
@@ -106,21 +107,23 @@ describe('Blast Equipment NFT', function () {
   })
 
   it('Check setReplicationCount function', async () => {
-    await expect(blst.setReplicationCount(0, 1)).to.emit(
+    await expect(blst.setReplicationCount(0, 5)).revertedWith('24')
+    await expect(blst.setReplicationCount(0, 3)).to.emit(
       blst,
       'AttributeUpdated'
     )
     const [, , , , , replicationCount] = await blst.getAttributes(0)
-    expect(replicationCount.toNumber()).to.equal(1)
+    expect(replicationCount.toNumber()).to.equal(3)
   })
 
   it('Check setStaticAttributes function', async () => {
-    await blst.setStaticAttributes(0, [6, 1, 1, 1, 1])
+    await blst.setStaticAttributes(0, [6, 1, 3, 1, 1, 1])
 
-    const [maxLevel, maxDurability, adjective, rarity, grade] =
+    const [maxLevel, maxDurability, maxReplication, adjective, rarity, grade] =
       await blst.getStaticAttributes(0)
     expect(maxLevel).to.equal(6)
     expect(maxDurability).to.equal(1)
+    expect(maxReplication).to.equal(3)
     expect(adjective).to.equal(1)
     expect(rarity).to.equal(1)
     expect(grade).to.equal(1)

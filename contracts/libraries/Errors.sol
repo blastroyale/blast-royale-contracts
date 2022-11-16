@@ -38,6 +38,7 @@ library Errors {
 
     // BlastEquipmentNFT contract
     string public constant MAX_LEVEL_REACHED = "12"; // Max level reached
+    string public constant MAX_REPLICATION_COUNT_REACHED = "24"; // Max replication counter reached
 
     // Marektplace contract
     string public constant TOKEN_NOT_WHITELISTED = "13"; // Caller is not whitelisted
