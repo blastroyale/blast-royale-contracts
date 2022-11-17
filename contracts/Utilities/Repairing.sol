@@ -13,13 +13,8 @@ contract Repairing is Utility {
     uint256 private basePowerForBLST = 2025; // 2.025
     uint256 private basePriceForCS = 20000; // 20
     uint256 private basePriceForBLST = 50; // 0.05
+    uint256 private basePriceForMATIC = 5; // 0.05
     uint16 private significanceK = 200; // DECIMAL_FACTOR 100
-
-    /// @notice Event Base Power Updated
-    event BasePowerUpdated(uint256 _basePowerCS, uint256 _basePowerBLST);
-
-    /// @notice Event Base Price Updated
-    event BasePriceUpdated(uint256 _basePriceCS, uint256 _basePriceBLST);
 
     event Repaired(uint256 tokenId, uint256 repairTimestamp);
 
@@ -48,12 +43,7 @@ contract Repairing is Utility {
             if (temp == 0) {
                 return 0;
             }
-            uint256 priceInBLST = PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * basePriceForBLST / DECIMAL_FACTOR;
-            if (isUsingMatic) {
-                int maticPrice = getLatestPrice();
-                return maticPrice > 0 ? priceInBLST * (uint256(maticPrice) / 10 ** 6) / 10 ** 2 : priceInBLST;
-            }
-            return priceInBLST;
+            return PRBMathUD60x18.exp2(PRBMathUD60x18.div(PRBMathUD60x18.mul(PRBMathUD60x18.log2(temp * 10 ** 18), basePowerForBLST), DECIMAL_FACTOR)) * (isUsingMatic ? basePriceForMATIC : basePriceForBLST) / DECIMAL_FACTOR;
         }
         return 0;
     }
@@ -66,8 +56,6 @@ contract Repairing is Utility {
 
         basePowerForCS = _basePowerForCS;
         basePowerForBLST = _basePowerForBLST;
-
-        emit BasePowerUpdated(_basePowerForCS, _basePowerForBLST);
     }
 
     /// @notice Set significanceK value
@@ -79,14 +67,14 @@ contract Repairing is Utility {
 
     /// @notice Set Base Price for CS and BLST. It will affect to calculate repair price for CS & BLST
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function setBasePrice(uint256 _basePriceForCS, uint256 _basePriceForBLST) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setBasePrice(uint256 _basePriceForCS, uint256 _basePriceForBLST, uint256 _basePriceForMATIC) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_basePriceForCS > 0, Errors.NO_ZERO_VALUE);
         require(_basePriceForBLST > 0, Errors.NO_ZERO_VALUE);
+        require(_basePriceForMATIC > 0, Errors.NO_ZERO_VALUE);
 
         basePriceForCS = _basePriceForCS;
         basePriceForBLST = _basePriceForBLST;
-
-        emit BasePriceUpdated(_basePriceForCS, _basePriceForBLST);
+        basePriceForMATIC = _basePriceForMATIC;
     }
 
     function repair(

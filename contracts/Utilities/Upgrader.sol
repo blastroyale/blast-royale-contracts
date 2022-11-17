@@ -18,18 +18,18 @@ contract Upgrader is Utility {
     // Calculation related variables
     struct Attributes {
         uint16[10] pricePerRarity;
-        uint8[10] pricePerAdjective;
+        uint16[10] pricePerAdjective;
         uint256 pricePerLevel; // decimal factor 100000
     }
 
     uint256 public durabilityEffectDivider = 48;
-    uint256 private effectMaticPriceValue = 10;
     uint256[10] public maxLevelPerRarity = [
         10, 12, 15, 17, 20,
         22, 25, 27, 30, 35
     ];
     uint16[5] public multiplierPerGrade = [1740, 1520, 1320, 1150, 1000];
     Attributes public bltAttribute;
+    Attributes public maticAttribute;
     Attributes public csAttribute;
 
     constructor(
@@ -43,16 +43,35 @@ contract Upgrader is Utility {
             uint16(3), 4, 4, 5, 5,
             6, 7, 7, 8, 9
         ];
-        uint8[10] memory _bltPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
+        uint16[10] memory _bltPricePerAdjective = [
+            uint16(0), 0, 0, 1, 1,
+            2, 2, 3, 4, 4
+        ];
+        uint16[10] memory _maticPricePerRarity = [
+            uint16(30), 40, 40, 50, 50,
+            60, 70, 70, 80, 90
+        ];
+        uint16[10] memory _maticPricePerAdjective = [
+            uint16(0), 0, 0, 13, 13,
+            27, 27, 40, 53, 53
+        ];
         uint16[10] memory _csPricePerRarity = [
             100, 144, 207, 297, 427,
             613, 881, 1266, 1819, 2613
         ];
-        uint8[10] memory _csPricePerAdjective = [0, 0, 0, 1, 1, 2, 2, 3, 4, 4];
+        uint16[10] memory _csPricePerAdjective = [
+            0, 20, 50, 80, 80,
+            180, 180, 330, 480, 480
+        ];
 
         bltAttribute = Attributes({
             pricePerRarity: _bltPricePerRarity,
             pricePerAdjective: _bltPricePerAdjective,
+            pricePerLevel: 500
+        });
+        maticAttribute = Attributes({
+            pricePerRarity: _maticPricePerRarity, // DECIMAL 100
+            pricePerAdjective: _maticPricePerAdjective, // DECIMAL 100
             pricePerLevel: 500
         });
         csAttribute = Attributes({
@@ -65,11 +84,6 @@ contract Upgrader is Utility {
     function setDurabilityEffectDivider(uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newValue > 0, Errors.NO_ZERO_VALUE);
         durabilityEffectDivider = _newValue;
-    }
-
-    function setEffectMaticPriceValue(uint256 _newValue) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newValue > 0, Errors.NO_ZERO_VALUE);
-        effectMaticPriceValue = _newValue;
     }
 
     function setMultiplierPerGrade(uint16[5] memory _multiplierPerGrade) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -142,12 +156,10 @@ contract Upgrader is Utility {
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
 
         if (_tokenType == 0) {
-            uint256 price = (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 * maxDurability / durabilityEffectDivider;
             if (isUsingMatic) {
-                int maticPrice = getLatestPrice();
-                return maticPrice > 0 ? (price * (uint256(maticPrice) / 10 ** 6) / 10 ** 2 / effectMaticPriceValue) : (price / effectMaticPriceValue);
+                return (maticAttribute.pricePerRarity[rarity] + maticAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * maticAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 / 100 * maxDurability / durabilityEffectDivider;
             }
-            return price;
+            return (bltAttribute.pricePerRarity[rarity] + bltAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * bltAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 * maxDurability / durabilityEffectDivider;
         } else if (_tokenType == 1) {
             return (csAttribute.pricePerRarity[rarity] + csAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * csAttribute.pricePerLevel) * multiplierPerGrade[grade] / DECIMAL_FACTOR / DECIMAL_FACTOR / 100 * 10 ** 18 * maxDurability / durabilityEffectDivider;
         } else {

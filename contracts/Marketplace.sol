@@ -125,11 +125,11 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
     listing.isActive = false;
     erc721Contract.transferFrom(
       address(this),
-      _msgSender(),
+      listing.owner,
       listing.tokenId
     );
     activeListingCount = activeListingCount - 1;
-    emit ItemDelisted(listingId, listing.tokenId, _msgSender() );
+    emit ItemDelisted(listingId, listing.tokenId, listing.owner);
   }
 
   /// @notice Buys a listed NFT

@@ -14,7 +14,6 @@ import { Errors } from "./../libraries/Errors.sol";
 abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
-    AggregatorV3Interface internal priceFeed;
     uint256 public constant DECIMAL_FACTOR = 1000;
 
     IBlastEquipmentNFT public blastEquipmentNFT;
@@ -47,8 +46,6 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         csToken = _csToken;
         treasuryAddress = _treasuryAddress;
         companyAddress = _companyAddress;
-
-        priceFeed = AggregatorV3Interface(0xAB594600376Ec9fD91F8e885dADF0CE036862dE0);
     }
 
     function setTreasuryAddress(address _treasury)
@@ -95,20 +92,6 @@ abstract contract Utility is AccessControl, ReentrancyGuard, Pausable {
         isUsingMatic = !isUsingMatic;
     }    
     
-    /**
-     * Returns the latest price
-     */
-    function getLatestPrice() public view returns (int) {
-        (
-            /*uint80 roundID*/,
-            int price,
-            /*uint startedAt*/,
-            /*uint timeStamp*/,
-            /*uint80 answeredInRound*/
-        ) = priceFeed.latestRoundData();
-        return price;
-    }
-
     // @notice Pauses/Unpauses the contract
     // @dev While paused, addListing, and buy are not allowed
     // @param stop whether to pause or unpause the contract.
