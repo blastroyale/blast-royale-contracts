@@ -131,7 +131,7 @@ export const mintBLST = async (
     .fill('0x000')
     .map((x, i) => ethers.utils.formatBytes32String(x + i))
   const realURIs = new Array(amount).fill('ipfs://real_').map((x, i) => x + i)
-  const staticAttributes = new Array(amount).fill([5, 114, 3, 9, 9, 5])
+  const staticAttributes = new Array(amount).fill([5, 114, 3, 3, 4, 4])
   const tx = await blst
     .connect(deployer)
     .safeMint(
