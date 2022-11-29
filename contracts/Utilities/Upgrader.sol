@@ -93,12 +93,12 @@ contract Upgrader is Utility {
         }
     }
 
-    function upgrade(uint256 _tokenId) external nonReentrant whenNotPaused {
+    function upgrade(uint256 _tokenId, uint256 _increaseLevel) external nonReentrant whenNotPaused {
         require(!isUsingMatic, Errors.USING_MATIC_NOW);
         require(_msgSender() == blastEquipmentNFT.ownerOf(_tokenId), Errors.NOT_OWNER);
 
-        uint256 bltPrice = getRequiredPrice(0, _tokenId);
-        uint256 csPrice = getRequiredPrice(1, _tokenId);
+        uint256 bltPrice = getMultipleRequiredPrice(0, _tokenId, _increaseLevel);
+        uint256 csPrice = getMultipleRequiredPrice(1, _tokenId, _increaseLevel);
         (, , , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         require(level != 0, Errors.INVALID_PARAM);
@@ -117,17 +117,17 @@ contract Upgrader is Utility {
             (bltPrice * 3) / 4
         );
 
-        blastEquipmentNFT.setLevel(_tokenId, level + 1);
+        blastEquipmentNFT.setLevel(_tokenId, level + _increaseLevel);
 
-        emit LevelUpgraded(_tokenId, _msgSender(), level + 1);
+        emit LevelUpgraded(_tokenId, _msgSender(), level + _increaseLevel);
     }
 
-    function upgradeUsingMatic(uint256 _tokenId) external payable nonReentrant whenNotPaused {
+    function upgradeUsingMatic(uint256 _tokenId, uint256 _increaseLevel) external payable nonReentrant whenNotPaused {
         require(isUsingMatic, Errors.NOT_USING_MATIC_NOW);
         require(_msgSender() == blastEquipmentNFT.ownerOf(_tokenId), Errors.NOT_OWNER);
 
-        uint256 bltPrice = getRequiredPrice(0, _tokenId);
-        uint256 csPrice = getRequiredPrice(1, _tokenId);
+        uint256 bltPrice = getMultipleRequiredPrice(0, _tokenId, _increaseLevel);
+        uint256 csPrice = getMultipleRequiredPrice(1, _tokenId, _increaseLevel);
         (, , , , uint8 rarity, ) = blastEquipmentNFT.getStaticAttributes(_tokenId);
         (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
         require(level != 0, Errors.INVALID_PARAM);
@@ -141,20 +141,12 @@ contract Upgrader is Utility {
         (bool sent2, ) = payable(companyAddress).call{value: (bltPrice * 3) / 4}("");
         require(sent2, Errors.FAILED_TO_SEND_ETHER_COMPANY);
 
-        blastEquipmentNFT.setLevel(_tokenId, level + 1);
+        blastEquipmentNFT.setLevel(_tokenId, level + _increaseLevel);
 
-        emit LevelUpgraded(_tokenId, _msgSender(), level + 1);
+        emit LevelUpgraded(_tokenId, _msgSender(), level + _increaseLevel);
     }
 
-    function getRequiredPrice(uint8 _tokenType, uint256 _tokenId)
-        public
-        view
-        returns (uint256)
-    {
-        (, uint8 maxDurability, ,uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT
-            .getStaticAttributes(_tokenId);
-        (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
-
+    function getPrice(uint8 _tokenType, uint8 maxDurability, uint8 adjective, uint8 rarity, uint8 grade, uint256 level) internal view returns (uint256) {
         if (_tokenType == 0) {
             if (isUsingMatic) {
                 return (maticAttribute.pricePerRarity[rarity] + maticAttribute.pricePerAdjective[adjective]) * (100000 + (level - 1) * maticAttribute.pricePerLevel) * multiplierPerGrade[grade] * 10 ** 10 / 100 * maxDurability / durabilityEffectDivider;
@@ -165,5 +157,17 @@ contract Upgrader is Utility {
         } else {
             return 0;
         }
+    }
+
+    function getMultipleRequiredPrice(uint8 _tokenType, uint256 _tokenId, uint256 _increaseLevel) public view returns (uint256) {
+        (, uint8 maxDurability, ,uint8 adjective, uint8 rarity, uint8 grade) = blastEquipmentNFT.getStaticAttributes(_tokenId);
+        (uint256 level, , , , ,) = blastEquipmentNFT.getAttributes(_tokenId);
+
+        uint256 totalPrice;
+        for (uint256 i = 0; i < _increaseLevel; i++) {
+            totalPrice += getPrice(_tokenType, maxDurability, adjective, rarity, grade, level + i);
+        }
+
+        return totalPrice;
     }
 }
