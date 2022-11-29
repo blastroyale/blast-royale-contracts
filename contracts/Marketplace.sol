@@ -26,15 +26,15 @@ contract Marketplace is ReentrancyGuard, Ownable, Pausable {
 
   uint256 public listingCount;
   uint256 public activeListingCount;
-  uint256 private fee1;
-  address private treasury1;
-  uint256 private fee2;
-  address private treasury2;
+  uint256 public fee1;
+  address public treasury1;
+  uint256 public fee2;
+  address public treasury2;
   bool public isUsingMatic;
 
   mapping (address => bool) public whitelistedTokens;
   mapping (uint256 => Listing) public listings;
-  IERC721 private erc721Contract;
+  IERC721 public erc721Contract;
 
   /// @notice Event Listed
   event ItemListed(
