@@ -6,25 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-
-/// cannot create vesting schedule because not sufficient tokens
-error InsufficientTokens();
-/// duration must be > 0
-error DurationInvalid();
-/// amount must be > 0
-error AmountInvalid();
-/// only beneficiary and owner can release vested tokens
-error BeneficiayrOrOwner();
-/// cannot release tokens, not enough vested tokens
-error NotEnoughTokens();
-/// Reverts if the vesting schedule has been revoked
-error ScheduleRevoked();
-/// Vesting is not revocable
-error NotRevocable();
-/// In case the address is zero
-error ZeroAddress();
-/// When create vesting schedule, in case of start time should be future
-error StartTimeInvalid();
+import { Errors } from "./../libraries/Errors.sol";
 
 contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
@@ -33,10 +15,8 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
     /// <=============== STATE VARIABLES ===============>
 
-    // uint public constant DECIMAL_FACTOR = 10 ** 6;
-
     /// Blast TOKEN
-    IERC20 public immutable blastToken;
+    IERC20 public blastToken;
 
     struct VestingSchedule {
         // beneficiary of tokens after they are released
@@ -87,13 +67,13 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         uint256 _immediateReleaseAmount,
         uint256 _amountTotal,
         bool _revocable
-    ) public whenNotPaused onlyOwner {
-        if (_beneficiary == address(0)) revert ZeroAddress();
-        if (getWithdrawableAmount() < (_amountTotal + _immediateReleaseAmount)) revert InsufficientTokens();
-        if (_duration == 0) revert DurationInvalid();
-        if (_amountTotal == 0) revert AmountInvalid();
-        if (_start <= block.timestamp) revert StartTimeInvalid();
-        if (_cliffDuration > _duration) revert DurationInvalid();
+    ) external whenNotPaused onlyOwner {
+        require(_beneficiary != address(0), Errors.NO_ZERO_ADDRESS);
+        require(getWithdrawableAmount() >= (_amountTotal + _immediateReleaseAmount), Errors.INSUFFICIENT_TOKENS);
+        require(_duration > 0, Errors.DURATION_INVALID);
+        require(_amountTotal > 0, Errors.INVALID_AMOUNT);
+        require(_start > block.timestamp, Errors.START_TIME_INVALID);
+        require(_cliffDuration <= _duration, Errors.DURATION_INVALID);
 
         bytes32 vestingScheduleId = computeNextVestingScheduleIdForHolder(
             _beneficiary
@@ -122,13 +102,10 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
      * @notice Revokes the vesting schedule for given identifier.
      * @param vestingScheduleId the vesting schedule identifier
      */
-    function revoke(bytes32 vestingScheduleId) public whenNotPaused onlyOwner {
-        if (vestingSchedules[vestingScheduleId].revoked)
-            revert ScheduleRevoked();
-        VestingSchedule storage vestingSchedule = vestingSchedules[
-            vestingScheduleId
-        ];
-        if (!vestingSchedule.revocable) revert NotRevocable();
+    function revoke(bytes32 vestingScheduleId) external whenNotPaused onlyOwner {
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        require(!vestingSchedule.revoked, Errors.SCHEDULE_REVOKED);
+        require(vestingSchedule.revocable, Errors.NOT_REVOCABLE);
         uint256 releasableAmount = _computeReleasableAmount(vestingSchedule);
         if (releasableAmount > 0) {
             release(vestingScheduleId, releasableAmount);
@@ -137,6 +114,7 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
             vestingSchedule.released;
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - unreleased;
         vestingSchedule.revoked = true;
+        blastToken.safeTransfer(owner(), unreleased);
 
         emit Revoked(vestingScheduleId, block.timestamp);
     }
@@ -147,19 +125,17 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         whenNotPaused
         nonReentrant
     {
-        if (vestingSchedules[vestingScheduleId].revoked)
-            revert ScheduleRevoked();
-        VestingSchedule storage vestingSchedule = vestingSchedules[
-            vestingScheduleId
-        ];
-        bool isBeneficiary = _msgSender() == vestingSchedule.beneficiary;
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        require(!vestingSchedule.revoked, Errors.SCHEDULE_REVOKED);
+        address beneficiary = vestingSchedule.beneficiary;
+        bool isBeneficiary = _msgSender() == beneficiary;
         bool isOwner = _msgSender() == owner();
-        if (!isBeneficiary && !isOwner) revert BeneficiayrOrOwner();
+        require(isBeneficiary || isOwner, Errors.BENEFICIARY_OR_OWNER);
         uint256 releasableAmount = _computeReleasableAmount(vestingSchedule);
-        if (releasableAmount < amount) revert NotEnoughTokens();
+        require(releasableAmount >= amount, Errors.NOT_ENOUGH_TOKENS);
         vestingSchedule.released = vestingSchedule.released + amount;
         vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - amount;
-        blastToken.safeTransfer(vestingSchedule.beneficiary, amount);
+        blastToken.safeTransfer(beneficiary, amount);
         emit Released(_msgSender(), vestingScheduleId, amount, block.timestamp);
     }
 
@@ -204,12 +180,11 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
      * @return the vested amount
      */
     function computeReleasableAmount(bytes32 vestingScheduleId)
-        public
+        external
         view
         returns (uint256)
     {
-        if (vestingSchedules[vestingScheduleId].revoked)
-            revert ScheduleRevoked();
+        require(!vestingSchedules[vestingScheduleId].revoked, Errors.SCHEDULE_REVOKED);
         VestingSchedule storage vestingSchedule = vestingSchedules[
             vestingScheduleId
         ];

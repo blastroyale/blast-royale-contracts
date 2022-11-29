@@ -60,4 +60,13 @@ library Errors {
     string public constant NOT_READY_REPLICATE = "21"; // Not ready to replicate
     string public constant NOT_READY_MORPH = "22"; // Not ready to morph
     string public constant INVALID_HEX_CHARACTER = "23"; // Not ready to morph
+
+    // Vesting contract
+    string public constant INSUFFICIENT_TOKENS = "25"; // Insufficient tokens
+    string public constant DURATION_INVALID = "26"; // Duration is invalid
+    string public constant BENEFICIARY_OR_OWNER = "27"; // Beneficiary or owner
+    string public constant NOT_ENOUGH_TOKENS = "28"; // Not enough tokens
+    string public constant SCHEDULE_REVOKED = "29"; // Schedule revoked
+    string public constant NOT_REVOCABLE = "30"; // Not revocable
+    string public constant START_TIME_INVALID = "31"; // Start time is invalid
 }
