@@ -12,6 +12,16 @@
           "internalType": "string",
           "name": "symbol",
           "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_previewURI",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_baseURI",
+          "type": "string"
         }
       ],
       "stateMutability": "nonpayable",
@@ -562,6 +572,11 @@
           "internalType": "uint8",
           "name": "",
           "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
         }
       ],
       "stateMutability": "view",
@@ -767,11 +782,6 @@
           "type": "address"
         },
         {
-          "internalType": "string[]",
-          "name": "_uri",
-          "type": "string[]"
-        },
-        {
           "internalType": "bytes32[]",
           "name": "_hash",
           "type": "bytes32[]"
@@ -791,6 +801,11 @@
             {
               "internalType": "uint8",
               "name": "maxDurability",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "maxReplication",
               "type": "uint8"
             },
             {
@@ -827,11 +842,6 @@
           "type": "address"
         },
         {
-          "internalType": "string",
-          "name": "_uri",
-          "type": "string"
-        },
-        {
           "internalType": "bytes32",
           "name": "_hash",
           "type": "bytes32"
@@ -851,6 +861,11 @@
             {
               "internalType": "uint8",
               "name": "maxDurability",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "maxReplication",
               "type": "uint8"
             },
             {
@@ -970,6 +985,19 @@
     {
       "inputs": [
         {
+          "internalType": "string",
+          "name": "_baseURI",
+          "type": "string"
+        }
+      ],
+      "name": "setBaseURI",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "_newTimer",
           "type": "uint256"
@@ -994,6 +1022,19 @@
         }
       ],
       "name": "setLevel",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_previewURI",
+          "type": "string"
+        }
+      ],
+      "name": "setPreviewTokenURI",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1073,6 +1114,11 @@
             },
             {
               "internalType": "uint8",
+              "name": "maxReplication",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
               "name": "adjective",
               "type": "uint8"
             },
@@ -1115,6 +1161,11 @@
         {
           "internalType": "uint8",
           "name": "maxDurability",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "maxReplication",
           "type": "uint8"
         },
         {

@@ -475,6 +475,32 @@
     {
       "inputs": [
         {
+          "internalType": "uint256[10]",
+          "name": "_csValuePerRarity",
+          "type": "uint256[10]"
+        }
+      ],
+      "name": "setCsValuePerRarity",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[5]",
+          "name": "_gradeMultiplierPerGrade",
+          "type": "uint256[5]"
+        }
+      ],
+      "name": "setGradeMultiplierPerGrade",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "bytes4",
           "name": "interfaceId",
           "type": "bytes4"

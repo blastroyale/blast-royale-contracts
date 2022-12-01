@@ -318,19 +318,6 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "getLatestPrice",
-      "outputs": [
-        {
-          "internalType": "int256",
-          "name": "",
-          "type": "int256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "internalType": "bytes32",
@@ -613,11 +600,6 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "_uri",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
           "name": "_hashString",
           "type": "string"
         },
@@ -646,6 +628,11 @@
             {
               "internalType": "uint8",
               "name": "maxDurability",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "maxReplication",
               "type": "uint8"
             },
             {

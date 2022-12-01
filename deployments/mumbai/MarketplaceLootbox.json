@@ -522,7 +522,7 @@
       "stateMutability": "view",
       "type": "function"
     }
-  ],
+  ],  
   "transactionHash": "0x685c39e7560497f5e4ef044d0227c406d5f3dedb15852bd9f2486b13d526cb2f",
   "receipt": {
     "to": null,
