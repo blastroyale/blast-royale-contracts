@@ -65,12 +65,15 @@ describe('Blast Royale Marketplace', function () {
     expect(listing.isActive).to.equal(true)
     expect(listing.price).to.equal(ethers.utils.parseUnits('10'))
     expect(listing.amount).to.equal(ethers.utils.parseUnits('2'))
+    expect(listing.amount).to.equal(ethers.utils.parseUnits('2'))
+    expect(await cs.balanceOf(player1.address)).to.equal(ethers.utils.parseUnits('98'))
   })
 
   it('Delist a CS listing from the marketplace', async function () {
     await expect(market.connect(player1).removeListing(0))
       .to.emit(market, 'ItemDelisted')
       .withArgs(0, ethers.utils.parseUnits('2'), player1.address)
+    expect(await cs.balanceOf(player1.address)).to.equal(ethers.utils.parseUnits('100'))
   })
 
   it('Buy CS', async function () {
@@ -101,6 +104,7 @@ describe('Blast Royale Marketplace', function () {
 
     // Check NFT was exchanged.
     expect(await cs.balanceOf(player2.address)).to.equal(ethers.utils.parseUnits('2'))
+    expect(await cs.balanceOf(player1.address)).to.equal(ethers.utils.parseUnits('96'))
 
     // Check Eth was paid from player2 to player1
     const player1NewBalance = await player1.getBalance()
