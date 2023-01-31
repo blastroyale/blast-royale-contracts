@@ -74,7 +74,7 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
 
     /// @notice Token constructor
     /// @dev Setup the two contracts it will interact with : CS token and ERC20
-    /// @param erc20Address Address of the NFT Contract.
+    /// @param erc20Address Address of the CS Contract.
     constructor(IERC20 erc20Address) {
         require(address(erc20Address) != address(0), Errors.NO_ZERO_ADDRESS);
         erc20Contract = erc20Address;
@@ -83,7 +83,7 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
     /// @notice add a Listing to the Marketplace
     /// @dev Creates a new entry for a Listing object and transfers the Token to the contract
     /// @param amount amount of CS.
-    /// @param price Price in NFTs.
+    /// @param price Price of CS.
     function addListing(
         uint256 amount,
         uint256 price,
