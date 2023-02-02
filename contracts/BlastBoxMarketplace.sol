@@ -37,7 +37,7 @@ contract BlastBoxMarketplace is ReentrancyGuard, Ownable, Pausable {
     IERC721 public erc721Contract;
 
     /// @notice Event Listed
-    event ItemListed(
+    event BlastboxListed(
         uint256 listingId,
         uint256 tokenId,
         address seller,
@@ -46,10 +46,10 @@ contract BlastBoxMarketplace is ReentrancyGuard, Ownable, Pausable {
     );
 
     /// @notice Event Delisted
-    event ItemDelisted(uint256 listingId, uint256 tokenId, address seller);
+    event BlastboxDelisted(uint256 listingId, uint256 tokenId, address seller);
 
-    /// @notice EventItem Sold
-    event ItemSold(
+    /// @notice EventBlastbox Sold
+    event BlastboxSold(
         uint256 listingId,
         uint256 tokenId,
         address seller,
@@ -109,7 +109,7 @@ contract BlastBoxMarketplace is ReentrancyGuard, Ownable, Pausable {
         activeListingCount = activeListingCount + 1;
         erc721Contract.transferFrom(_msgSender(), address(this), tokenId);
 
-        emit ItemListed(
+        emit BlastboxListed(
             listingId,
             tokenId,
             _msgSender(),
@@ -135,7 +135,7 @@ contract BlastBoxMarketplace is ReentrancyGuard, Ownable, Pausable {
             listing.tokenId
         );
         activeListingCount = activeListingCount - 1;
-        emit ItemDelisted(listingId, listing.tokenId, listing.owner);
+        emit BlastboxDelisted(listingId, listing.tokenId, listing.owner);
     }
 
     /// @notice Buys a listed NFT
@@ -193,7 +193,7 @@ contract BlastBoxMarketplace is ReentrancyGuard, Ownable, Pausable {
         );
         activeListingCount = activeListingCount - 1;
 
-        emit ItemSold(
+        emit BlastboxSold(
             listingId,
             listings[listingId].tokenId,
             listings[listingId].owner,

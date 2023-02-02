@@ -37,7 +37,7 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
     IERC20 public erc20Contract;
 
     /// @notice Event Listed
-    event ItemListed(
+    event CSListed(
         uint256 listingId,
         uint256 amount,
         address seller,
@@ -46,10 +46,10 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
     );
 
     /// @notice Event Delisted
-    event ItemDelisted(uint256 listingId, uint256 amount, address seller);
+    event CSDelisted(uint256 listingId, uint256 amount, address seller);
 
     /// @notice EventItem Sold
-    event ItemSold(
+    event CSSold(
         uint256 listingId,
         uint256 amount,
         address seller,
@@ -109,7 +109,7 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
         activeListingCount = activeListingCount + 1;
         erc20Contract.safeTransferFrom(_msgSender(), address(this), amount);
 
-        emit ItemListed(
+        emit CSListed(
             listingId,
             amount,
             _msgSender(),
@@ -131,7 +131,7 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
         listing.isActive = false;
         erc20Contract.transfer(listing.owner, listing.amount);
         activeListingCount = activeListingCount - 1;
-        emit ItemDelisted(listingId, listing.amount, listing.owner);
+        emit CSDelisted(listingId, listing.amount, listing.owner);
     }
 
     /// @notice Buys an amount of listed CS
@@ -185,7 +185,7 @@ contract CSMarketplace is ReentrancyGuard, Ownable, Pausable {
         erc20Contract.transfer(_msgSender(), listings[listingId].amount);
         activeListingCount = activeListingCount - 1;
 
-        emit ItemSold(
+        emit CSSold(
             listingId,
             listings[listingId].amount,
             listings[listingId].owner,
