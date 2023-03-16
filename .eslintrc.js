@@ -3,22 +3,16 @@ module.exports = {
     browser: false,
     es2021: true,
     mocha: true,
-    node: true,
+    node: true
   },
-  plugins: ["@typescript-eslint"],
-  extends: [
-    "standard",
-    "plugin:prettier/recommended",
-    "plugin:node/recommended",
-  ],
-  parser: "@typescript-eslint/parser",
+  plugins: ['@typescript-eslint'],
+  extends: ['standard'],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 12,
+    ecmaVersion: 12
   },
   rules: {
-    "node/no-unsupported-features/es-syntax": [
-      "error",
-      { ignores: ["modules"] },
-    ],
-  },
-};
+    semi: ['error', 'never'],
+    indent: ['error', 2]
+  }
+}

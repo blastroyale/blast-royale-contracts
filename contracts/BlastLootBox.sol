@@ -7,14 +7,10 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IBlastLootbox.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
-
-error NoZeroAddress();
-error InvalidParams();
-error NotOwner();
-error NonExistToken();
-error NotAvailableToOpen();
+import { Errors } from "./libraries/Errors.sol";
 
 /// @title Blast LootBox NFT
 /// @dev BlastLootBox ERC721 token
@@ -23,6 +19,7 @@ contract BlastLootBox is
     ERC721,
     ERC721URIStorage,
     ERC721Holder,
+    Pausable,
     AccessControl
 {
     using Counters for Counters.Counter;
@@ -48,7 +45,7 @@ contract BlastLootBox is
         string memory symbol,
         IBlastEquipmentNFT _blastEquipmentNFT
     ) ERC721(name, symbol) {
-        if (address(_blastEquipmentNFT) == address(0)) revert NoZeroAddress();
+        require(address(_blastEquipmentNFT) != address(0), Errors.NO_ZERO_ADDRESS);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
         blastEquipmentNFT = _blastEquipmentNFT;
@@ -63,9 +60,8 @@ contract BlastLootBox is
         LootBox[] calldata _eqtIds,
         uint8 _tokenType
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (_to.length != _uri.length || _to.length != _eqtIds.length)
-            revert InvalidParams();
-        if (_tokenType != 1 && _tokenType != 2) revert InvalidParams();
+        require(_to.length == _uri.length && _to.length == _eqtIds.length, Errors.INVALID_PARAM);
+        require(_tokenType == 1 || _tokenType == 2, Errors.INVALID_PARAM);
 
         for (uint256 i = 0; i < _to.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
@@ -78,9 +74,9 @@ contract BlastLootBox is
     }
 
     function open(uint256 _tokenId) external {
-        if (!_exists(_tokenId)) revert NonExistToken();
-        if (_msgSender() != ownerOf(_tokenId)) revert NotOwner();
-        if (openAvailable == false) revert NotAvailableToOpen();
+        require(_exists(_tokenId), Errors.NOT_EXIST_TOKEN_ID);
+        require(_msgSender() == ownerOf(_tokenId), Errors.NOT_OWNER);
+        require(openAvailable, Errors.NOT_AVAILABLE_TO_OPEN);
 
         _open(_tokenId, _msgSender());
     }
@@ -89,9 +85,9 @@ contract BlastLootBox is
         external
         onlyRole(GAME_ROLE)
     {
-        if (!_exists(_tokenId)) revert NonExistToken();
-        if (_to != ownerOf(_tokenId)) revert NotOwner();
-        if (openAvailable == false) revert NotAvailableToOpen();
+        require(_exists(_tokenId), Errors.NOT_EXIST_TOKEN_ID);
+        require(_to == ownerOf(_tokenId), Errors.NOT_OWNER);
+        require(openAvailable, Errors.NOT_AVAILABLE_TO_OPEN);
 
         _open(_tokenId, _to);
     }
@@ -149,6 +145,25 @@ contract BlastLootBox is
         returns (string memory)
     {
         return super.tokenURI(tokenId);
+    }
+
+    // @notice Pauses/Unpauses the contract
+    // @dev While paused, actions are not allowed
+    // @param stop whether to pause or unpause the contract.
+    function pause(bool stop) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override whenNotPaused {
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 
     /// @dev See {IERC165-supportsInterface}.

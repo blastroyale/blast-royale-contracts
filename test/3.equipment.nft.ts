@@ -1,93 +1,131 @@
-import { expect } from "chai";
-import { ethers, network } from "hardhat";
+import { expect } from 'chai'
+import { ethers } from 'hardhat'
+import {
+  deployPrimary,
+  deploySecondary,
+  deployBLST,
+  mintBLST,
+  getTimestampByBlockNumber
+} from './helper'
 
-// const uri = "https://blastroyale.com/nft/";
+describe('Blast Equipment NFT', function () {
+  let owner: any
+  let treasury: any
+  let addr1: any
+  let addr2: any
+  let blst: any
+  let primary: any
+  let secondary: any
 
-describe("Blast Equipment NFT", function () {
-  let owner: any;
-  let addr1: any;
-  let blt: any;
-  before("deploying", async () => {
-    const signers = await ethers.getSigners();
-    [owner, addr1] = signers;
-  });
-  it("Test NFT", async function () {
-    const BlastEquipmentToken = await ethers.getContractFactory(
-      "BlastEquipmentNFT"
-    );
-    blt = await BlastEquipmentToken.connect(owner).deploy(
-      "Blast Equipment",
-      "BLT"
-    );
-    await blt.deployed();
-
-    const tx = await blt
+  beforeEach(async () => {
+    [owner, treasury, addr1, addr2] = await ethers.getSigners()
+    primary = await deployPrimary(owner, owner, treasury)
+    secondary = await deploySecondary(owner)
+    blst = await deployBLST(owner)
+    await secondary
       .connect(owner)
-      .safeMint(
-        addr1.address,
-        ["ipfs://111", "ipfs://222"],
-        [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
-        ["ipfs://111_real", "ipfs://222_real"]
-      );
-    await tx.wait();
+      .claim(addr1.address, ethers.utils.parseEther('10000'))
 
-    await blt.connect(owner).setLevel(0, 3);
-    // await blt.connect(owner).extendDurability(0);
-    await blt.connect(owner).setRepairCount(0, 1);
-    await blt.connect(owner).setReplicationCount(0, 4);
+    await primary
+      .connect(treasury)
+      .transfer(addr1.address, ethers.utils.parseEther('10000000'))
 
-    expect(await blt.balanceOf(addr1.address)).to.equal(2);
-    expect(await blt.tokenURI(0)).to.equal("ipfs://111");
-    expect(await blt.tokenURI(1)).to.equal("ipfs://222");
-    expect(await blt.hashValue(0)).to.equal(ethers.utils.keccak256("0x1000"));
+    await mintBLST(owner, blst, addr1, 3)
+  })
 
-    let nftAttributes = await blt.getAttributes(0);
-    const level = nftAttributes[0].toNumber();
-    const durabilityRemaining = nftAttributes[1].toNumber();
-    const repairCount = nftAttributes[2].toNumber();
-    const replicationCount = nftAttributes[3].toNumber();
-    expect(level).to.equal(3);
-    expect(durabilityRemaining).to.equal(0);
-    expect(repairCount).to.equal(1);
-    expect(replicationCount).to.equal(4);
+  it("Check if attributes 'static, variable' is updated after minting", async () => {
+    const [maxLevel, maxDurability, maxReplication, adjective, rarity, grade] =
+      await blst.getStaticAttributes(0)
 
-    // Time increase to test morphTo function
-    // Week 1. maxDurability: 96, durability: 1
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    nftAttributes = await blt.getAttributes(0);
-    expect(nftAttributes[1].toNumber()).to.eq(1);
+    expect(maxLevel).to.equal(5)
+    expect(maxDurability).to.equal(114)
+    expect(maxReplication).to.equal(3)
+    expect(adjective).to.equal(9)
+    expect(rarity).to.equal(9)
+    expect(grade).to.equal(5)
 
-    // Week 2. maxDurability: 96, durability: 2
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    nftAttributes = await blt.getAttributes(0);
-    expect(nftAttributes[1].toNumber()).to.eq(2);
+    const [
+      level,
+      durabilityRestored,
+      _durabilityPoint,
+      ,
+      repairCount,
+      replicationCount
+    ] = await blst.getAttributes(0)
 
-    // We do Repair on Week 2. It gives us maxDurability: 96, durability: 0, durabilityRestored: 2
-    await blt.extendDurability(0);
+    expect(level.toNumber()).to.equal(1)
+    expect(durabilityRestored.toNumber()).to.equal(0)
+    expect(_durabilityPoint.toNumber()).to.equal(0)
+    expect(repairCount.toNumber()).to.equal(0)
+    expect(replicationCount.toNumber()).to.equal(0)
+  })
 
-    nftAttributes = await blt.getAttributes(0);
-    const attributes = await blt.attributes(0);
-    expect(attributes.durabilityRestored.toNumber()).to.eq(2);
-    expect(nftAttributes[1].toNumber()).to.eq(0);
+  it('Check if attributes is updated after safeMintReplicator', async () => {
+    await blst
+      .connect(owner)
+      .safeMintReplicator(
+        await addr2.getAddress(),
+        ethers.utils.formatBytes32String('0x999'),
+        'ipfs://real_999',
+        [6, 1, 3, 1, 1, 1]
+      )
 
-    // Week 3, maxDurability: 96, durability: 1, durabilityRestored: 2
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7]);
-    await network.provider.send("evm_mine");
-    nftAttributes = await blt.getAttributes(0);
-    expect(nftAttributes[1].toNumber()).to.eq(1);
+    const [maxLevel, maxDurability, maxReplication, adjective, rarity, grade] =
+      await blst.getStaticAttributes(3)
 
-    // Week 98, maxDurability: 96, durability: 96, durabilityRestored: 2. On this week the item becomes unusable in game.
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 95]);
-    await network.provider.send("evm_mine");
-    nftAttributes = await blt.getAttributes(0);
-    expect(nftAttributes[1].toNumber()).to.eq(96);
+    expect(maxLevel).to.equal(6)
+    expect(maxDurability).to.equal(1)
+    expect(maxReplication).to.equal(3)
+    expect(adjective).to.equal(1)
+    expect(rarity).to.equal(1)
+    expect(grade).to.equal(1)
+  })
 
-    // Week 100, maxDurability: 96, durability: 96, durabilityRestored: 2
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 7 * 2]);
-    await network.provider.send("evm_mine");
-    nftAttributes = await blt.getAttributes(0);
-    expect(nftAttributes[1].toNumber()).to.eq(96);
-  });
-});
+  it('Check lastRepairTime & tokenURI after reveal', async () => {
+    const tx = await blst.revealRealTokenURI(2)
+    const repairTime = await getTimestampByBlockNumber(tx.blockNumber)
+
+    const [, , , lastRepairTime, , ,] = await blst.getAttributes(2)
+    expect(lastRepairTime.toNumber()).to.equal(repairTime)
+
+    const tokenURI = await blst.tokenURI(2)
+    expect(tokenURI).to.equal('https://static.blastroyale.com/ipfs://real_2')
+  })
+
+  it('Check setLevel function', async () => {
+    await expect(blst.setLevel(0, 6)).revertedWith('12')
+
+    await expect(blst.setLevel(0, 5)).to.emit(blst, 'AttributeUpdated')
+    const [level, , , , , ,] = await blst.getAttributes(0)
+    expect(level.toNumber()).to.equal(5)
+  })
+
+  it('Check setRepairCount function', async () => {
+    await expect(blst.setRepairCount(0, 1)).to.emit(blst, 'AttributeUpdated')
+    const [, , , , repairCount, ,] = await blst.getAttributes(0)
+    expect(repairCount.toNumber()).to.equal(1)
+  })
+
+  it('Check setReplicationCount function', async () => {
+    await expect(blst.setReplicationCount(0, 5)).revertedWith('24')
+    await expect(blst.setReplicationCount(0, 3)).to.emit(
+      blst,
+      'AttributeUpdated'
+    )
+    const [, , , , , replicationCount] = await blst.getAttributes(0)
+    expect(replicationCount.toNumber()).to.equal(3)
+  })
+
+  it('Check setStaticAttributes function', async () => {
+    await blst.setStaticAttributes(0, [6, 1, 3, 1, 1, 1])
+
+    const [maxLevel, maxDurability, maxReplication, adjective, rarity, grade] =
+      await blst.getStaticAttributes(0)
+    expect(maxLevel).to.equal(6)
+    expect(maxDurability).to.equal(1)
+    expect(maxReplication).to.equal(3)
+    expect(adjective).to.equal(1)
+    expect(rarity).to.equal(1)
+    expect(grade).to.equal(1)
+  })
+})

@@ -27,16 +27,12 @@ contract PrimaryToken is ERC20, ERC20Pausable, Ownable {
         _transferOwnership(_owner);
     }
 
-    /// @notice Pauses the contract
-    /// @dev It stops transfer from happening. Only Owner can call it.
-    function pause() public virtual onlyOwner {
-        _pause();
-    }
-
-    /// @notice Unpauses the contract
-    /// @dev Transfers are possible again. Only Owner can call it.
-    function unpause() public virtual onlyOwner {
-        _unpause();
+    function pause(bool stop) public onlyOwner {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     /// @notice Verifications before Token Transfer

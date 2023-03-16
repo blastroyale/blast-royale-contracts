@@ -1,145 +1,118 @@
-/* eslint-disable node/no-missing-import */
-import { expect } from "chai";
-import { BigNumber } from "ethers";
-import { ethers, network } from "hardhat";
-import { getContractArguments } from "../scripts/deploy/helper";
+import { expect } from 'chai'
+import { ethers, network } from 'hardhat'
+import {
+  deployPrimary,
+  deploySecondary,
+  deployBLST,
+  deployReplicator,
+  mintBLST
+} from './helper'
 
-describe("Replicator Contract", () => {
-  it("Replicate function test", async function () {
-    const [owner, addr1, company, treasury] = await ethers.getSigners();
-    // BlastEquipment NFT Deploying
-    const BlastEquipmentToken = await ethers.getContractFactory(
-      "BlastEquipmentNFT"
-    );
-    const bet = await BlastEquipmentToken.connect(owner).deploy(
-      "Blast Equipment",
-      "BLT"
-    );
-    await bet.deployed();
+describe('Replicator Contract', () => {
+  let owner: any
+  let treasury: any
+  let company: any
+  let addr1: any
+  let addr2: any
+  let blst: any
+  let primary: any
+  let secondary: any
+  let replicator: any
 
-    // Blast Token Deploying
-    const primaryTokenArgs = getContractArguments(network.name, "PrimaryToken");
-    const BlastToken = await ethers.getContractFactory("PrimaryToken");
-    const blt = await BlastToken.deploy(
-      primaryTokenArgs.name,
-      primaryTokenArgs.symbol,
-      owner.address, // owner address
-      owner.address, // treasury address
-      BigNumber.from(primaryTokenArgs.supply) // fixed supply 512M
-    );
-    await blt.deployed();
-    await (
-      await blt
-        .connect(owner)
-        .transfer(addr1.address, ethers.utils.parseEther("200"))
-    ).wait();
+  beforeEach(async () => {
+    [owner, treasury, company, addr1, addr2] = await ethers.getSigners()
+    primary = await deployPrimary(owner, owner, owner)
+    secondary = await deploySecondary(owner)
+    blst = await deployBLST(owner)
+    replicator = await deployReplicator(
+      owner,
+      blst.address,
+      primary.address,
+      secondary.address,
+      treasury.address,
+      company.address
+    )
 
-    // CS Token deploying
-    const secondaryTokenArgs = getContractArguments(
-      network.name,
-      "SecondaryToken"
-    );
-    const CraftToken = await ethers.getContractFactory("SecondaryToken");
-    const cs = await CraftToken.deploy(
-      secondaryTokenArgs.name,
-      secondaryTokenArgs.symbol,
-      BigNumber.from(secondaryTokenArgs.supply)
-    );
-    await cs.deployed();
-    await (
-      await cs
-        .connect(owner)
-        .transfer(addr1.address, ethers.utils.parseEther("45000"))
-    ).wait();
-
-    // Replicator Contract Deploying
-    const replicator = await ethers.getContractFactory("Replicator");
-    const replicatorContract = await replicator
+    await primary
       .connect(owner)
-      .deploy(
-        bet.address,
-        blt.address,
-        cs.address,
-        treasury.address,
-        company.address
-      );
-    await replicatorContract.deployed();
+      .transfer(addr1.address, ethers.utils.parseEther('14'))
+
+    await secondary
+      .connect(owner)
+      .claim(addr1.address, ethers.utils.parseEther('45000'))
+
+    await mintBLST(owner, blst, addr1, 3)
 
     // Granting Replicator role to replicator contract address
-    const REPLICATOR_ROLE = await bet.REPLICATOR_ROLE();
-    await bet.grantRole(REPLICATOR_ROLE, replicatorContract.address);
+    const REPLICATOR_ROLE = await blst.REPLICATOR_ROLE()
+    await blst.grantRole(REPLICATOR_ROLE, replicator.address)
 
     // Granting Replicator role to replicator contract address
-    const REVEAL_ROLE = await bet.REVEAL_ROLE();
-    await bet.grantRole(REVEAL_ROLE, replicatorContract.address);
+    const REVEAL_ROLE = await blst.REVEAL_ROLE()
+    await blst.grantRole(REVEAL_ROLE, replicator.address)
+  })
 
-    // NFT equipment items minting
-    const tx = await bet
-      .connect(owner)
-      .safeMint(
-        addr1.address,
-        ["ipfs://111", "ipfs://222"],
-        [ethers.utils.keccak256("0x1000"), ethers.utils.keccak256("0x2000")],
-        ["ipfs://111_real", "ipfs://222_real"]
-      );
-    await tx.wait();
-
-    // Approve token
-    const approveTx1 = await cs
+  it('Replicate function test', async function () {
+    // Approve primary and secondary token
+    await primary
       .connect(addr1)
-      .approve(replicatorContract.address, ethers.utils.parseEther("45000"));
-    await approveTx1.wait();
-    const approveTx2 = await blt
+      .approve(replicator.address, ethers.utils.parseEther('14'))
+    await secondary
       .connect(addr1)
-      .approve(replicatorContract.address, ethers.utils.parseEther("14"));
-    await approveTx2.wait();
+      .approve(replicator.address, ethers.utils.parseEther('45000'))
 
-    const eggMetadataUrl =
-      "https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/replicator/egg_metadata_preview.json";
+    const eggMetadataUrl = 'https://static.blastroyale.com/previewMetadata.json'
     const realMetadataUrl =
-      "https://flgmarketplacestorage.z33.web.core.windows.net/nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json";
+      'nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json'
     const hash =
-      "0x8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d";
+      '8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d'
 
-    await (
-      await bet.connect(addr1).approve(replicatorContract.address, 0)
-    ).wait();
-    await (
-      await bet.connect(addr1).approve(replicatorContract.address, 1)
-    ).wait();
+    // Expecting event emitted
+    await expect(
+      replicator
+        .connect(addr2)
+        .replicate(hash, realMetadataUrl, 0, 1, {
+          maxLevel: 6,
+          maxDurability: 0,
+          maxReplication: 3,
+          adjective: 0,
+          rarity: 0,
+          grade: 0
+        })
+    ).to.revertedWith(
+      `AccessControl: account ${addr2.address.toLowerCase()} is missing role 0x0000000000000000000000000000000000000000000000000000000000000000`
+    )
 
-    // Replicate in Replicator Contract
-    await (
-      await replicatorContract
+    await expect(
+      replicator
         .connect(owner)
-        .replicate(eggMetadataUrl, hash, realMetadataUrl, 0, 1)
-    ).wait();
+        .replicate(hash, realMetadataUrl, 0, 1, {
+          maxLevel: 6,
+          maxDurability: 0,
+          maxReplication: 3,
+          adjective: 0,
+          rarity: 0,
+          grade: 0
+        })
+    ).to.emit(replicator, 'Replicated')
 
-    // There should be backend logic here after emitting replicated event
-    // Will simulate how it works
+    expect(await primary.balanceOf(company.address)).to.eq(
+      ethers.utils.parseEther('10.5')
+    )
+    expect(await primary.balanceOf(treasury.address)).to.eq(
+      ethers.utils.parseEther('3.5')
+    )
 
-    // const replicateTxFrom = await bet
-    //   .connect(addr1)
-    //   .replicate(0, 1);
-    // await replicateTxFrom.wait();
-
-    expect(await blt.balanceOf(company.address)).to.eq(
-      ethers.utils.parseEther("10.5")
-    );
-    expect(await blt.balanceOf(treasury.address)).to.eq(
-      ethers.utils.parseEther("3.5")
-    );
-
-    expect(await bet.tokenURI(2)).to.eq(eggMetadataUrl);
+    expect(await blst.tokenURI(3)).to.eq(eggMetadataUrl)
 
     // Time increase to test morphTo function
-    await network.provider.send("evm_increaseTime", [3600 * 24 * 6]);
-    await network.provider.send("evm_mine");
+    await network.provider.send('evm_increaseTime', [3600 * 24 * 600])
+    await network.provider.send('evm_mine')
 
     // Executing morphTo function
-    const morphTx = await replicatorContract.connect(addr1).morph(2);
-    await morphTx.wait();
+    const morphTx = await replicator.connect(addr1).morph(3)
+    await morphTx.wait()
 
-    expect(await bet.tokenURI(2)).to.eq(realMetadataUrl);
-  });
-});
+    expect(await blst.tokenURI(3)).to.eq('https://static.blastroyale.com/nftmetadata/0/1/8d7d4991d2fb7363c6bc337665451841cb9374e341b100172fd9cfacd445eb9d.json')
+  })
+})

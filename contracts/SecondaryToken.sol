@@ -5,11 +5,17 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./interfaces/ICraftSpiceToken.sol";
+import { Errors } from "./libraries/Errors.sol";
 
 /// @title Blast Royale Token - Secondary Token
 /// @dev Based on OpenZeppelin Contracts.
-contract SecondaryToken is ERC20, ERC20Burnable, ERC20Pausable, AccessControl {
+contract SecondaryToken is ERC20, ERC20Burnable, ICraftSpiceToken, ERC20Pausable, AccessControl, ReentrancyGuard {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    event Claimed(address user, uint256 amount);
+    event MintedFromScrap(address user, uint256 amount);
 
     /// @notice Token constructor
     /// @dev Creates the token and setup the initial supply and the Admin Role.
@@ -19,8 +25,10 @@ contract SecondaryToken is ERC20, ERC20Burnable, ERC20Pausable, AccessControl {
     constructor(
         string memory name,
         string memory symbol,
-        uint256 _initialSupply
+        uint256 _initialSupply,
+        address _signer
     ) ERC20(name, symbol) {
+        require(_signer != address(0));
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _mint(_msgSender(), _initialSupply);
@@ -34,18 +42,29 @@ contract SecondaryToken is ERC20, ERC20Burnable, ERC20Pausable, AccessControl {
         onlyRole(MINTER_ROLE)
     {
         _mint(_to, _amount);
+
+        emit Claimed(_to, _amount);
     }
 
-    /// @notice Pauses the contract
-    /// @dev It stops transfer from happening. Only Owner can call it.
-    function pause() public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _pause();
+    /// @notice Mint new tokens
+    /// @param _to Target Address
+    /// @param _amount Token Amount
+    function mintFromScrap(address _to, uint256 _amount)
+        external
+        override
+        onlyRole(MINTER_ROLE)
+    {
+        _mint(_to, _amount);
+
+        emit MintedFromScrap(_to, _amount);
     }
 
-    /// @notice Unpauses the contract
-    /// @dev Transfers are possible again. Only Owner can call it.
-    function unpause() public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _unpause();
+    function pause(bool stop) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (stop) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     /// @notice Verifications before Token Transfer

@@ -2,24 +2,26 @@
 pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
+struct StaticAttributes {
+    uint8 maxLevel;
+    uint8 maxDurability;
+    uint8 maxReplication;
+    uint8 adjective;
+    uint8 rarity;
+    uint8 grade;
+}
+
 /**
  * @dev required interface of an Equipment NFT.
  */
 interface IBlastEquipmentNFT is IERC721 {
-    /// @notice Event Attribute Added
-    event AttributeAdded(
-        uint256 tokenId,
-        uint256 level,
-        uint256 durabilityRemaining,
-        uint256 repairCount,
-        uint256 replicationCount
-    );
-
     /// @notice Event Attribute Updated
     event AttributeUpdated(
         uint256 tokenId,
         uint256 level,
-        uint256 durabilityRemaining,
+        uint256 durabilityRestored,
+        uint256 durability,
+        uint256 lastRepairTime,
         uint256 repairCount,
         uint256 replicationCount
     );
@@ -27,27 +29,22 @@ interface IBlastEquipmentNFT is IERC721 {
     /// @notice Event Revealed TokenURI
     event PermanentURI(string _value, uint256 indexed _id);
 
-    function safeMint(
-        address _to,
-        string[] memory _uri,
-        bytes32[] memory _hash,
-        string[] memory _realUri
-    ) external;
-
-    function safeMintReplicator(address _to, string calldata _uri, bytes32 _hash, string calldata _realUri) external returns (uint);
+    function safeMintReplicator(address _to, bytes32 _hash, string calldata _realUri, StaticAttributes calldata _staticAttribute) external returns (uint);
 
     function revealRealTokenURI(uint _tokenId) external;
 
-    function setLevel(uint256 _tokenId, uint256 _newLevel) external;
+    function setRealTokenURI(uint _tokenId, string calldata _realUri) external;
 
-    function extendDurability(uint256 _tokenId) external;
+    function setLevel(uint256 _tokenId, uint256 _newLevel) external;
 
     function setRepairCount(uint256 _tokenId, uint256 _newRepairCount) external;
 
     function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
         external;
 
-    // function replicate(address _to, string memory _uri, string memory _realUri, bytes32 _hash, uint _f1, uint _f2) external;
+    function scrap(uint256 _tokenId) external;
 
-    function getAttributes(uint _tokenId) external view returns (uint, uint, uint, uint);
+    function getAttributes(uint256 _tokenId) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
+
+    function getStaticAttributes(uint256 _tokenId) external view returns (uint8, uint8, uint8, uint8, uint8, uint8);
 }
