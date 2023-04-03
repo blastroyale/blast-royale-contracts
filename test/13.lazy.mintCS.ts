@@ -4,7 +4,7 @@ import { expect } from 'chai'
 import { Contract, Contract, Signer } from 'ethers'
 import { ethers } from 'hardhat'
 
-const SIGNING_DOMAIN_NAME = 'LazyNFT-Voucher'
+const SIGNING_DOMAIN_NAME = 'LazyCS-Voucher'
 const SIGNING_DOMAIN_VERSION = '1'
 
 let lazyMint: Contract
@@ -109,19 +109,18 @@ describe('Lazy mint CS', function () {
 
   it('can redeem CS', async function () {
     // give minter role to the lazymint contract
-    const minterRole = cs.MINTER_ROLE()
+    const minterRole = await cs.MINTER_ROLE()
     await cs.connect(admin).grantRole(minterRole, lazyMint.address)
     // create voucher
     const lazyminter = new LazyMinter({
       contract: lazyMint.address,
       signer: admin
     })
-    const voucher = await lazyminter.createVoucher(
+    const voucher1 = await lazyminter.createVoucher(
       '1000000000000000000',
       player1.address
     )
-
-    await lazyMint.connect(player1).redeem(voucher)
+    await lazyMint.connect(player1).redeem(voucher1)
     const player1CSBalance = await cs.balanceOf(player1.address)
     expect(player1CSBalance).to.equal('1000000000000000000')
   })
@@ -145,5 +144,40 @@ describe('Lazy mint CS', function () {
         .connect(player1)
         .redeem(voucher)
     ).to.be.revertedWith('Signature invalid or unauthorized')
+  })
+
+  it('owner can change admin', async function () {
+    await lazyMint.connect(admin).setAdminAddress(player2.address)
+    // create voucher
+    const lazyminter = new LazyMinter({
+      contract: lazyMint.address,
+      signer: player2
+    })
+    const voucher = await lazyminter.createVoucher(
+      '1000000000000000000',
+      player2.address
+    )
+
+    const lazyminterAdmin = new LazyMinter({
+      contract: lazyMint.address,
+      signer: admin
+    })
+
+    const voucherAdmin = await lazyminterAdmin.createVoucher(
+      '1000000000000000000',
+      admin.address
+    )
+
+    await lazyMint.connect(player2).redeem(voucher)
+    const player2CSBalance = await cs.balanceOf(player2.address)
+    expect(player2CSBalance).to.equal('1000000000000000000')
+
+    await expect(
+      lazyMint
+        .connect(admin)
+        .redeem(voucherAdmin)
+    ).to.be.revertedWith('Signature invalid or unauthorized')
+
+    await lazyMint.connect(admin).setAdminAddress(admin.address)
   })
 })
