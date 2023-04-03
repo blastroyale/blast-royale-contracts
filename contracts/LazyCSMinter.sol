@@ -12,7 +12,7 @@ import "./ICraftSpiceToken.sol";
 
 contract LazyCSMinter is EIP712, Ownable {
     //   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    string private constant SIGNING_DOMAIN = "LazyNFT-Voucher";
+    string private constant SIGNING_DOMAIN = "LazyCS-Voucher";
     string private constant SIGNATURE_VERSION = "1";
 
     address public adminAddress;
@@ -28,7 +28,7 @@ contract LazyCSMinter is EIP712, Ownable {
         adminAddress = _adminAddress;
     }
 
-    /// @notice Represents an un-minted NFT, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real NFT using the redeem function.
+    /// @notice Represents an un-minted amount of CS, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real CS using the redeem function.
     struct CSVoucher {
         /// @notice The amount of CS.
         uint256 amount;
@@ -38,15 +38,15 @@ contract LazyCSMinter is EIP712, Ownable {
         bytes signature;
     }
 
-    /// @notice Redeems an CSVoucher for an actual NFT, creating it in the process.
-    /// @param voucher A signed CSVoucher that describes the NFT to be redeemed.
+    /// @notice Redeems an CSVoucher for an actual amount of CS, creating it in the process.
+    /// @param voucher A signed CSVoucher that describes the amount of CS to be redeemed.
     function redeem(
         CSVoucher calldata voucher
     ) public payable returns (uint256) {
         // make sure signature is valid and get the address of the signer
         address signer = _verify(voucher);
 
-        // make sure that the signer is authorized to mint NFTs
+        // make sure that the signer is authorized to mint CS
         require(signer == adminAddress, "Signature invalid or unauthorized");
 
         // first assign the token to the signer, to establish provenance on-chain
@@ -86,7 +86,7 @@ contract LazyCSMinter is EIP712, Ownable {
     }
 
     /// @notice Verifies the signature for a given CSVoucher, returning the address of the signer.
-    /// @dev Will revert if the signature is invalid. Does not verify that the signer is authorized to mint NFTs.
+    /// @dev Will revert if the signature is invalid. Does not verify that the signer is authorized to mint CS.
     /// @param voucher An CSVoucher describing an unminted amount of CS.
     function _verify(
         CSVoucher calldata voucher
