@@ -122,11 +122,11 @@ describe('Lazy mint CS', function () {
     )
 
     await lazyMint.connect(player1).redeem(voucher)
-    const player1CSBalance = await cs.balanceOf(player1.address);
+    const player1CSBalance = await cs.balanceOf(player1.address)
     expect(player1CSBalance).to.equal('1000000000000000000')
   })
 
-  it('cannot redeem CS if the voucher is incorrect', async function () {
+  it('cannot redeem CS if the voucher is not signed by admin', async function () {
     // give minter role to the lazymint contract
     const minterRole = cs.MINTER_ROLE()
     await cs.connect(admin).grantRole(minterRole, lazyMint.address)
