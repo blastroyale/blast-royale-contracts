@@ -8,14 +8,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ICraftSpiceToken.sol";
 
-contract LazyCSMinter is EIP712, Ownable {
-    //   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+contract LazyCSMinter is EIP712, Ownable, ReentrancyGuard {
     string private constant SIGNING_DOMAIN = "LazyCS-Voucher";
     string private constant SIGNATURE_VERSION = "1";
 
     address public adminAddress;
+
+    mapping(uint256 => bool) public idUsed;
 
     ICraftSpiceToken public csToken;
 
@@ -30,9 +32,11 @@ contract LazyCSMinter is EIP712, Ownable {
 
     /// @notice Represents an un-minted amount of CS, which has not yet been recorded into the blockchain. A signed voucher can be redeemed for a real CS using the redeem function.
     struct CSVoucher {
+        /// @notice claim id to prevent using the same voucher twice.
+        uint256 id;
         /// @notice The amount of CS.
         uint256 amount;
-        // @notice The minter of this token.
+        /// @notice The minter of this token.
         address minter;
         /// @notice the EIP-712 signature of all other fields in the CSVoucher struct. For a voucher to be valid, it must be signed by an account with the MINTER_ROLE.
         bytes signature;
@@ -42,15 +46,18 @@ contract LazyCSMinter is EIP712, Ownable {
     /// @param voucher A signed CSVoucher that describes the amount of CS to be redeemed.
     function redeem(
         CSVoucher calldata voucher
-    ) public payable returns (uint256) {
+    ) public payable nonReentrant returns (uint256) {
+        // make sure the voucher has not been used
+        require(!idUsed[voucher.id], "voucher had been used");
         // make sure signature is valid and get the address of the signer
         address signer = _verify(voucher);
-
         // make sure that the signer is authorized to mint CS
         require(signer == adminAddress, "Signature invalid or unauthorized");
 
         // first assign the token to the signer, to establish provenance on-chain
         csToken.claim(voucher.minter, voucher.amount);
+        // set id used as true
+        idUsed[voucher.id] = true;
 
         return voucher.amount;
     }
@@ -62,7 +69,10 @@ contract LazyCSMinter is EIP712, Ownable {
             _hashTypedDataV4(
                 keccak256(
                     abi.encode(
-                        keccak256("CSVoucher(uint256 amount,address minter)"),
+                        keccak256(
+                            "CSVoucher(uint256 id,uint256 amount,address minter)"
+                        ),
+                        voucher.id,
                         voucher.amount,
                         voucher.minter
                     )

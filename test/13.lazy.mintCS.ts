@@ -1,7 +1,7 @@
 import { Provider } from '@ethersproject/abstract-provider'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { Contract, Contract, Signer } from 'ethers'
+import { Contract, Signer } from 'ethers'
 import { ethers } from 'hardhat'
 
 const SIGNING_DOMAIN_NAME = 'LazyCS-Voucher'
@@ -38,11 +38,12 @@ class LazyMinter {
    *
    * @returns {CSVoucher}
    */
-  async createVoucher (amount: string, minter: any) {
-    const voucher = { amount, minter }
+  async createVoucher (id: number, amount: string, minter: any) {
+    const voucher = { id, amount, minter }
     const domain = await this._signingDomain()
     const types = {
       CSVoucher: [
+        { name: 'id', type: 'uint256' },
         { name: 'amount', type: 'uint256' },
         { name: 'minter', type: 'address' }
       ]
@@ -117,12 +118,37 @@ describe('Lazy mint CS', function () {
       signer: admin
     })
     const voucher1 = await lazyminter.createVoucher(
+      0,
       '1000000000000000000',
       player1.address
     )
     await lazyMint.connect(player1).redeem(voucher1)
     const player1CSBalance = await cs.balanceOf(player1.address)
     expect(player1CSBalance).to.equal('1000000000000000000')
+  })
+
+  it('cannot redeem twice using the same voucher', async function () {
+    // give minter role to the lazymint contract
+    const minterRole = await cs.MINTER_ROLE()
+    await cs.connect(admin).grantRole(minterRole, lazyMint.address)
+    // create voucher
+    const lazyminter = new LazyMinter({
+      contract: lazyMint.address,
+      signer: admin,
+    })
+    const voucher10 = await lazyminter.createVoucher(
+      10,
+      '1000000000000000000',
+      player1.address
+    )
+    await lazyMint.connect(player1).redeem(voucher10)
+    await expect(
+      lazyMint
+        .connect(player1)
+        .redeem(voucher10)
+    ).to.be.revertedWith('voucher had been used')
+    const player1CSBalance = await cs.balanceOf(player1.address)
+    expect(player1CSBalance).to.equal('2000000000000000000')
   })
 
   it('cannot redeem CS if the voucher is not signed by admin', async function () {
@@ -135,6 +161,7 @@ describe('Lazy mint CS', function () {
       signer: player1
     })
     const voucher = await lazyminter.createVoucher(
+      1,
       '1000000000000000000',
       player1.address
     )
@@ -154,6 +181,7 @@ describe('Lazy mint CS', function () {
       signer: player2
     })
     const voucher = await lazyminter.createVoucher(
+      2,
       '1000000000000000000',
       player2.address
     )
@@ -164,6 +192,7 @@ describe('Lazy mint CS', function () {
     })
 
     const voucherAdmin = await lazyminterAdmin.createVoucher(
+      3,
       '1000000000000000000',
       admin.address
     )

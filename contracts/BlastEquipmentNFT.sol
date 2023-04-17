@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@prb/math/contracts/PRBMathUD60x18.sol";
 import "./interfaces/IBlastEquipmentNFT.sol";
-import { Errors } from "./libraries/Errors.sol";
+import {Errors} from "./libraries/Errors.sol";
 
 /// @title Blast Equipment NFT
 /// @dev BlastNFT ERC721 token
@@ -56,8 +56,8 @@ contract BlastEquipmentNFT is
     modifier hasGameRole() {
         require(
             hasRole(GAME_ROLE, _msgSender()) ||
-            hasRole(DEFAULT_ADMIN_ROLE, _msgSender()) ||
-            hasRole(REPLICATOR_ROLE, _msgSender()),
+                hasRole(DEFAULT_ADMIN_ROLE, _msgSender()) ||
+                hasRole(REPLICATOR_ROLE, _msgSender()),
             Errors.MISSING_GAME_ROLE
         );
         _;
@@ -66,7 +66,12 @@ contract BlastEquipmentNFT is
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
     /// @param name Name of the contract
     /// @param symbol Symbol of the contract
-    constructor(string memory name, string memory symbol, string memory _previewURI, string memory _baseURI) ERC721(name, symbol) {
+    constructor(
+        string memory name,
+        string memory symbol,
+        string memory _previewURI,
+        string memory _baseURI
+    ) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(GAME_ROLE, _msgSender());
@@ -131,11 +136,9 @@ contract BlastEquipmentNFT is
         return tokenId;
     }
 
-    function revealRealTokenURI(uint256 _tokenId)
-        external
-        override
-        onlyRole(REVEAL_ROLE)
-    {
+    function revealRealTokenURI(
+        uint256 _tokenId
+    ) external override onlyRole(REVEAL_ROLE) {
         revealed[_tokenId] = 1;
         VariableAttributes storage _variableAttribute = attributes[_tokenId];
         _variableAttribute.lastRepairTime = block.timestamp;
@@ -143,29 +146,29 @@ contract BlastEquipmentNFT is
         emit PermanentURI(realTokenURI[_tokenId], _tokenId);
     }
 
-    function setRealTokenURI(uint256 _tokenId, string calldata _realUri)
-        external
-        override
-        onlyRole(REVEAL_ROLE)
-    {
+    function setRealTokenURI(
+        uint256 _tokenId,
+        string calldata _realUri
+    ) external override onlyRole(REVEAL_ROLE) {
         realTokenURI[_tokenId] = _realUri;
         emit PermanentURI(_realUri, _tokenId);
     }
 
-    function setPreviewTokenURI(string calldata _previewURI)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function setPreviewTokenURI(
+        string calldata _previewURI
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         previewURI = _previewURI;
     }
 
-    function setLevel(uint256 _tokenId, uint256 _newLevel)
-        external
-        override
-        hasGameRole
-    {
+    function setLevel(
+        uint256 _tokenId,
+        uint256 _newLevel
+    ) external override hasGameRole {
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
-        require(_staticAttribute.maxLevel >= _newLevel, Errors.MAX_LEVEL_REACHED);
+        require(
+            _staticAttribute.maxLevel >= _newLevel,
+            Errors.MAX_LEVEL_REACHED
+        );
 
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.level = _newLevel;
@@ -181,15 +184,17 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function setRepairCount(uint256 _tokenId, uint256 _newRepairCount)
-        external
-        override
-        hasGameRole
-    {
+    function setRepairCount(
+        uint256 _tokenId,
+        uint256 _newRepairCount
+    ) external override hasGameRole {
         VariableAttributes storage _attribute = attributes[_tokenId];
 
         _attribute.repairCount = _newRepairCount;
-        _attribute.durabilityRestored += getDurabilityPoints(_attribute, _tokenId);
+        _attribute.durabilityRestored += getDurabilityPoints(
+            _attribute,
+            _tokenId
+        );
         _attribute.lastRepairTime = block.timestamp;
 
         uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
@@ -204,13 +209,15 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function setReplicationCount(uint256 _tokenId, uint256 _newReplicationCount)
-        external
-        override
-        hasGameRole
-    {
+    function setReplicationCount(
+        uint256 _tokenId,
+        uint256 _newReplicationCount
+    ) external override hasGameRole {
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
-        require(_staticAttribute.maxReplication >= _newReplicationCount, Errors.MAX_REPLICATION_COUNT_REACHED);
+        require(
+            _staticAttribute.maxReplication >= _newReplicationCount,
+            Errors.MAX_REPLICATION_COUNT_REACHED
+        );
 
         VariableAttributes storage _attribute = attributes[_tokenId];
         _attribute.replicationCount = _newReplicationCount;
@@ -234,18 +241,13 @@ contract BlastEquipmentNFT is
         delete realTokenURI[_tokenId];
     }
 
-    function getAttributes(uint256 _tokenId)
+    function getAttributes(
+        uint256 _tokenId
+    )
         external
         view
         override
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
+        returns (uint256, uint256, uint256, uint256, uint256, uint256)
     {
         VariableAttributes memory _attribute = attributes[_tokenId];
         uint256 _durabilityPoint = getDurabilityPoints(_attribute, _tokenId);
@@ -259,18 +261,13 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function getStaticAttributes(uint256 _tokenId)
+    function getStaticAttributes(
+        uint256 _tokenId
+    )
         external
         view
         override
-        returns (
-            uint8,
-            uint8,
-            uint8,
-            uint8,
-            uint8,
-            uint8
-        )
+        returns (uint8, uint8, uint8, uint8, uint8, uint8)
     {
         StaticAttributes memory _attribute = staticAttributes[_tokenId];
         return (
@@ -283,26 +280,41 @@ contract BlastEquipmentNFT is
         );
     }
 
-    function getDurabilityPoints(VariableAttributes memory _attribute, uint256 _tokenId) internal view returns (uint256) {
+    function getDurabilityPoints(
+        VariableAttributes memory _attribute,
+        uint256 _tokenId
+    ) internal view returns (uint256) {
         StaticAttributes memory _staticAttribute = staticAttributes[_tokenId];
-        uint256 _durabilityPoint = (block.timestamp - _attribute.lastRepairTime) / durabilityPointTimer;
-        return (_durabilityPoint >= _staticAttribute.maxDurability ? _staticAttribute.maxDurability : _durabilityPoint);
+        uint256 _durabilityPoint = (block.timestamp -
+            _attribute.lastRepairTime) / durabilityPointTimer;
+        return (
+            _durabilityPoint >= _staticAttribute.maxDurability
+                ? _staticAttribute.maxDurability
+                : _durabilityPoint
+        );
     }
 
-    function setStaticAttributes(uint256 _tokenId, StaticAttributes calldata _staticAttributes) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setStaticAttributes(
+        uint256 _tokenId,
+        StaticAttributes calldata _staticAttributes
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         staticAttributes[_tokenId] = _staticAttributes;
     }
 
     /// @notice Set the DurabilityPoint Timer
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function setDurabilityPointTimer(uint256 _newTimer) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setDurabilityPointTimer(
+        uint256 _newTimer
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newTimer > 0, Errors.INVALID_PARAM);
         durabilityPointTimer = _newTimer;
     }
 
     /// @notice Set BaseURI for token metadata URI
     /// @dev The caller must have the `DEFAULT_ADMIN_ROLE`.
-    function setBaseURI(string memory _baseURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setBaseURI(
+        string memory _baseURI
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         baseURI = _baseURI;
     }
 
@@ -328,23 +340,19 @@ contract BlastEquipmentNFT is
     /// @notice Unpauses all token transfers.
     /// @dev The caller must be the Owner (or have approval) of the Token.
     /// @param tokenId Token ID.
-    function _burn(uint256 tokenId)
-        internal
-        override(ERC721, ERC721URIStorage)
-    {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) {
         require(_isApprovedOrOwner(_msgSender(), tokenId), Errors.NOT_OWNER);
         super._burn(tokenId);
     }
 
     /// @notice Returns the TokenURI.
     /// @param tokenId Token ID.
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
-        _requireMinted(tokenId);
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        // _requireMinted(tokenId);
 
         if (revealed[tokenId] == 0) {
             return previewURI;
@@ -354,7 +362,9 @@ contract BlastEquipmentNFT is
 
     /// @dev See {IERC165-supportsInterface}.
     /// @param interfaceId Interface ID.
-    function supportsInterface(bytes4 interfaceId)
+    function supportsInterface(
+        bytes4 interfaceId
+    )
         public
         view
         virtual
