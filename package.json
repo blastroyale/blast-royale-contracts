@@ -55,6 +55,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
     "@cucumber/cucumber": "^8.0.0",
+    "@metamask/eth-sig-util": "^6.0.0",
     "@prb/math": "^2.5.0",
     "@types/cucumber": "^7.0.0",
     "axios": "^0.26.1",
