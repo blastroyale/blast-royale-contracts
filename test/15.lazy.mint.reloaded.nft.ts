@@ -76,10 +76,10 @@ class LazyMinter {
         domain: domain,
         message: {
           voucherId: 0,
-          to: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-          tokenIds: [0, 1],
-          amounts: [1, 2],
-          data: '0x00'
+          to,
+          tokenIds,
+          amounts,
+          data
         }
       },
       version: SignTypedDataVersion.V4

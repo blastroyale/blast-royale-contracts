@@ -150,9 +150,10 @@ contract LockContract is
                 "Token is not locked"
             );
         }
+        //add lazy mint here
         IERC1155(tokenContract).safeBatchTransferFrom(
             address(this),
-            msg.sender,
+            withdrawer,
             tokenIds,
             amounts,
             "0x00"
