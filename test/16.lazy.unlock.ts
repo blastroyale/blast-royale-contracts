@@ -30,17 +30,8 @@ class LazyMinter {
    */
   constructor ({ contract, privateKey } : LazyMintProps) {
     this.contract = contract
-    this.privateKey= privateKey
+    this.privateKey = privateKey
   }
-
-  /**
-   * Creates a new CSVoucher object and signs it using this LazyMinter's signing key.
-   *
-   * @param {ethers.BigNumber | number} amount the amount of CS
-   * @param {address} minter the minter
-   *
-   * @returns {CSVoucher}
-   */
 
   async createVoucher (voucherId: number, tokenContract: string, withdrawer: string, amounts:any,tokenIds:any) {
     const domain = {
@@ -98,7 +89,7 @@ class LazyMinter {
   }
 }
 
-describe('Lazy mint CS', function () {
+describe('Lazy unlock', function () {
   let nft: Contract
   let lockContract: Contract
   let admin: any

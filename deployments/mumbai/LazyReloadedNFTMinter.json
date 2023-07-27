@@ -1,0 +1,581 @@
+{
+  "address": "0x9d1c461e65F162167f92223074e3b2D09b5C3dB8",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IReloadedNFT",
+          "name": "_reloadedNFT",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_adminAddress",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "adminAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getDomainHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "version",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct EIP712Domain",
+          "name": "_input",
+          "type": "tuple"
+        }
+      ],
+      "name": "getEip712DomainPacketHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "voucherId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "tokenIds",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "amounts",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct MintBatchVoucher",
+          "name": "_input",
+          "type": "tuple"
+        }
+      ],
+      "name": "getMintbatchvoucherPacketHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "voucherId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "tokenIds",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "amounts",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct MintBatchVoucher",
+              "name": "message",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "signer",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SignedMintBatchVoucher",
+          "name": "_input",
+          "type": "tuple"
+        }
+      ],
+      "name": "getSignedmintbatchvoucherPacketHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_input",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "getUint256ArrayPacketHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "idUsed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "voucherId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "tokenIds",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "amounts",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct MintBatchVoucher",
+              "name": "message",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "signer",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SignedMintBatchVoucher",
+          "name": "signedMintBatchVoucher",
+          "type": "tuple"
+        }
+      ],
+      "name": "lazyMint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "reloadedNFT",
+      "outputs": [
+        {
+          "internalType": "contract IReloadedNFT",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_adminAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setAdminAddress",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "voucherId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "tokenIds",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "amounts",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct MintBatchVoucher",
+              "name": "message",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "signer",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SignedMintBatchVoucher",
+          "name": "_input",
+          "type": "tuple"
+        }
+      ],
+      "name": "verifySignedMintBatchVoucher",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x1139884d4547462c4055a62561c6c15e5c3a923ddc257a72ee8208b61c523589",
+  "receipt": {
+    "to": null,
+    "from": "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a",
+    "contractAddress": "0x9d1c461e65F162167f92223074e3b2D09b5C3dB8",
+    "transactionIndex": 8,
+    "gasUsed": "1170086",
+    "logsBloom": "0x00000000080000000000000000000000000000000000000008800000000000000000000000000000000000000000000000048000000000000000000000000000000000000000000000000000000000800001000000000000000180000000004000000000020000000000000000000800010000000000000080000000000000400000000000000000000000000000000000000000000080000000000000000000200000000000000000000000000000000000000000000000000000000000004000000000000000000001000000000000000000000000000000100040000020000000000000000000000000000000400000000000000000000000000000100000",
+    "blockHash": "0x437f8e8326892005f23edec3a2415b0ca1219578a5d255c484a9f8e7e672ac13",
+    "transactionHash": "0x1139884d4547462c4055a62561c6c15e5c3a923ddc257a72ee8208b61c523589",
+    "logs": [
+      {
+        "transactionIndex": 8,
+        "blockNumber": 38290245,
+        "transactionHash": "0x1139884d4547462c4055a62561c6c15e5c3a923ddc257a72ee8208b61c523589",
+        "address": "0x9d1c461e65F162167f92223074e3b2D09b5C3dB8",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000007ac410f4e36873022b57821d7a8eb3d7513c045a"
+        ],
+        "data": "0x",
+        "logIndex": 64,
+        "blockHash": "0x437f8e8326892005f23edec3a2415b0ca1219578a5d255c484a9f8e7e672ac13"
+      },
+      {
+        "transactionIndex": 8,
+        "blockNumber": 38290245,
+        "transactionHash": "0x1139884d4547462c4055a62561c6c15e5c3a923ddc257a72ee8208b61c523589",
+        "address": "0x0000000000000000000000000000000000001010",
+        "topics": [
+          "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+          "0x0000000000000000000000000000000000000000000000000000000000001010",
+          "0x0000000000000000000000007ac410f4e36873022b57821d7a8eb3d7513c045a",
+          "0x000000000000000000000000be188d6641e8b680743a4815dfa0f6208038960f"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000018e67af0b7510000000000000000000000000000000000000000000000008ad06a8911c83b0fa40000000000000000000000000000000000000000000033651c1757bc6529f0b200000000000000000000000000000000000000000000008ad051a296d783bea40000000000000000000000000000000000000000000033651c303e3755e141b2",
+        "logIndex": 65,
+        "blockHash": "0x437f8e8326892005f23edec3a2415b0ca1219578a5d255c484a9f8e7e672ac13"
+      }
+    ],
+    "blockNumber": 38290245,
+    "cumulativeGasUsed": "3950796",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x3700A37F2785E0724939b4AE7EF54286158F0b29",
+    "0x7Ac410F4E36873022b57821D7a8EB3D7513C045a"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "b8e85eea3917f0984c716a669a8b5ac9",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.9+commit.e5eed63a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IReloadedNFT\",\"name\":\"_reloadedNFT\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_adminAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"adminAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getDomainHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"version\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"verifyingContract\",\"type\":\"address\"}],\"internalType\":\"struct EIP712Domain\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"getEip712DomainPacketHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"voucherId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct MintBatchVoucher\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"getMintbatchvoucherPacketHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"voucherId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct MintBatchVoucher\",\"name\":\"message\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"signer\",\"type\":\"address\"}],\"internalType\":\"struct SignedMintBatchVoucher\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"getSignedmintbatchvoucherPacketHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"_input\",\"type\":\"uint256[]\"}],\"name\":\"getUint256ArrayPacketHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"idUsed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"voucherId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct MintBatchVoucher\",\"name\":\"message\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"signer\",\"type\":\"address\"}],\"internalType\":\"struct SignedMintBatchVoucher\",\"name\":\"signedMintBatchVoucher\",\"type\":\"tuple\"}],\"name\":\"lazyMint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"reloadedNFT\",\"outputs\":[{\"internalType\":\"contract IReloadedNFT\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_adminAddress\",\"type\":\"address\"}],\"name\":\"setAdminAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"voucherId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct MintBatchVoucher\",\"name\":\"message\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"signer\",\"type\":\"address\"}],\"internalType\":\"struct SignedMintBatchVoucher\",\"name\":\"_input\",\"type\":\"tuple\"}],\"name\":\"verifySignedMintBatchVoucher\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/LazyReloadedNFTMinter.sol\":\"LazyReloadedNFTMinter\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * By default, the owner account will be the one that deploys the contract. This\\n * can later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() {\\n        _transferOwnership(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(owner() == _msgSender(), \\\"Ownable: caller is not the owner\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions anymore. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby removing any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0x24e0364e503a9bbde94c715d26573a76f14cd2a202d45f96f52134ab806b67b9\",\"license\":\"MIT\"},\"@openzeppelin/contracts/security/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (security/ReentrancyGuard.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant _NOT_ENTERED = 1;\\n    uint256 private constant _ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    constructor() {\\n        _status = _NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and making it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        // On the first call to nonReentrant, _notEntered will be true\\n        require(_status != _ENTERED, \\\"ReentrancyGuard: reentrant call\\\");\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = _ENTERED;\\n\\n        _;\\n\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = _NOT_ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x0e9621f60b2faabe65549f7ed0f24e8853a45c1b7990d47e8160e523683f3935\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC1155/IERC1155.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (token/ERC1155/IERC1155.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../../utils/introspection/IERC165.sol\\\";\\n\\n/**\\n * @dev Required interface of an ERC1155 compliant contract, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-1155[EIP].\\n *\\n * _Available since v3.1._\\n */\\ninterface IERC1155 is IERC165 {\\n    /**\\n     * @dev Emitted when `value` tokens of token type `id` are transferred from `from` to `to` by `operator`.\\n     */\\n    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);\\n\\n    /**\\n     * @dev Equivalent to multiple {TransferSingle} events, where `operator`, `from` and `to` are the same for all\\n     * transfers.\\n     */\\n    event TransferBatch(\\n        address indexed operator,\\n        address indexed from,\\n        address indexed to,\\n        uint256[] ids,\\n        uint256[] values\\n    );\\n\\n    /**\\n     * @dev Emitted when `account` grants or revokes permission to `operator` to transfer their tokens, according to\\n     * `approved`.\\n     */\\n    event ApprovalForAll(address indexed account, address indexed operator, bool approved);\\n\\n    /**\\n     * @dev Emitted when the URI for token type `id` changes to `value`, if it is a non-programmatic URI.\\n     *\\n     * If an {URI} event was emitted for `id`, the standard\\n     * https://eips.ethereum.org/EIPS/eip-1155#metadata-extensions[guarantees] that `value` will equal the value\\n     * returned by {IERC1155MetadataURI-uri}.\\n     */\\n    event URI(string value, uint256 indexed id);\\n\\n    /**\\n     * @dev Returns the amount of tokens of token type `id` owned by `account`.\\n     *\\n     * Requirements:\\n     *\\n     * - `account` cannot be the zero address.\\n     */\\n    function balanceOf(address account, uint256 id) external view returns (uint256);\\n\\n    /**\\n     * @dev xref:ROOT:erc1155.adoc#batch-operations[Batched] version of {balanceOf}.\\n     *\\n     * Requirements:\\n     *\\n     * - `accounts` and `ids` must have the same length.\\n     */\\n    function balanceOfBatch(address[] calldata accounts, uint256[] calldata ids)\\n        external\\n        view\\n        returns (uint256[] memory);\\n\\n    /**\\n     * @dev Grants or revokes permission to `operator` to transfer the caller's tokens, according to `approved`,\\n     *\\n     * Emits an {ApprovalForAll} event.\\n     *\\n     * Requirements:\\n     *\\n     * - `operator` cannot be the caller.\\n     */\\n    function setApprovalForAll(address operator, bool approved) external;\\n\\n    /**\\n     * @dev Returns true if `operator` is approved to transfer ``account``'s tokens.\\n     *\\n     * See {setApprovalForAll}.\\n     */\\n    function isApprovedForAll(address account, address operator) external view returns (bool);\\n\\n    /**\\n     * @dev Transfers `amount` tokens of token type `id` from `from` to `to`.\\n     *\\n     * Emits a {TransferSingle} event.\\n     *\\n     * Requirements:\\n     *\\n     * - `to` cannot be the zero address.\\n     * - If the caller is not `from`, it must be have been approved to spend ``from``'s tokens via {setApprovalForAll}.\\n     * - `from` must have a balance of tokens of type `id` of at least `amount`.\\n     * - If `to` refers to a smart contract, it must implement {IERC1155Receiver-onERC1155Received} and return the\\n     * acceptance magic value.\\n     */\\n    function safeTransferFrom(\\n        address from,\\n        address to,\\n        uint256 id,\\n        uint256 amount,\\n        bytes calldata data\\n    ) external;\\n\\n    /**\\n     * @dev xref:ROOT:erc1155.adoc#batch-operations[Batched] version of {safeTransferFrom}.\\n     *\\n     * Emits a {TransferBatch} event.\\n     *\\n     * Requirements:\\n     *\\n     * - `ids` and `amounts` must have the same length.\\n     * - If `to` refers to a smart contract, it must implement {IERC1155Receiver-onERC1155BatchReceived} and return the\\n     * acceptance magic value.\\n     */\\n    function safeBatchTransferFrom(\\n        address from,\\n        address to,\\n        uint256[] calldata ids,\\n        uint256[] calldata amounts,\\n        bytes calldata data\\n    ) external;\\n}\\n\",\"keccak256\":\"0x8e93de94c9062ebc94fb7e2e3929b0781ac6a2b7772e2f7a59045861c93e5be9\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Strings.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev String operations.\\n */\\nlibrary Strings {\\n    bytes16 private constant _HEX_SYMBOLS = \\\"0123456789abcdef\\\";\\n\\n    /**\\n     * @dev Converts a `uint256` to its ASCII `string` decimal representation.\\n     */\\n    function toString(uint256 value) internal pure returns (string memory) {\\n        // Inspired by OraclizeAPI's implementation - MIT licence\\n        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol\\n\\n        if (value == 0) {\\n            return \\\"0\\\";\\n        }\\n        uint256 temp = value;\\n        uint256 digits;\\n        while (temp != 0) {\\n            digits++;\\n            temp /= 10;\\n        }\\n        bytes memory buffer = new bytes(digits);\\n        while (value != 0) {\\n            digits -= 1;\\n            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));\\n            value /= 10;\\n        }\\n        return string(buffer);\\n    }\\n\\n    /**\\n     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation.\\n     */\\n    function toHexString(uint256 value) internal pure returns (string memory) {\\n        if (value == 0) {\\n            return \\\"0x00\\\";\\n        }\\n        uint256 temp = value;\\n        uint256 length = 0;\\n        while (temp != 0) {\\n            length++;\\n            temp >>= 8;\\n        }\\n        return toHexString(value, length);\\n    }\\n\\n    /**\\n     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation with fixed length.\\n     */\\n    function toHexString(uint256 value, uint256 length) internal pure returns (string memory) {\\n        bytes memory buffer = new bytes(2 * length + 2);\\n        buffer[0] = \\\"0\\\";\\n        buffer[1] = \\\"x\\\";\\n        for (uint256 i = 2 * length + 1; i > 1; --i) {\\n            buffer[i] = _HEX_SYMBOLS[value & 0xf];\\n            value >>= 4;\\n        }\\n        require(value == 0, \\\"Strings: hex length insufficient\\\");\\n        return string(buffer);\\n    }\\n}\\n\",\"keccak256\":\"0x32c202bd28995dd20c4347b7c6467a6d3241c74c8ad3edcbb610cd9205916c45\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/cryptography/ECDSA.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v4.5.0) (utils/cryptography/ECDSA.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../Strings.sol\\\";\\n\\n/**\\n * @dev Elliptic Curve Digital Signature Algorithm (ECDSA) operations.\\n *\\n * These functions can be used to verify that a message was signed by the holder\\n * of the private keys of a given address.\\n */\\nlibrary ECDSA {\\n    enum RecoverError {\\n        NoError,\\n        InvalidSignature,\\n        InvalidSignatureLength,\\n        InvalidSignatureS,\\n        InvalidSignatureV\\n    }\\n\\n    function _throwError(RecoverError error) private pure {\\n        if (error == RecoverError.NoError) {\\n            return; // no error: do nothing\\n        } else if (error == RecoverError.InvalidSignature) {\\n            revert(\\\"ECDSA: invalid signature\\\");\\n        } else if (error == RecoverError.InvalidSignatureLength) {\\n            revert(\\\"ECDSA: invalid signature length\\\");\\n        } else if (error == RecoverError.InvalidSignatureS) {\\n            revert(\\\"ECDSA: invalid signature 's' value\\\");\\n        } else if (error == RecoverError.InvalidSignatureV) {\\n            revert(\\\"ECDSA: invalid signature 'v' value\\\");\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the address that signed a hashed message (`hash`) with\\n     * `signature` or error string. This address can then be used for verification purposes.\\n     *\\n     * The `ecrecover` EVM opcode allows for malleable (non-unique) signatures:\\n     * this function rejects them by requiring the `s` value to be in the lower\\n     * half order, and the `v` value to be either 27 or 28.\\n     *\\n     * IMPORTANT: `hash` _must_ be the result of a hash operation for the\\n     * verification to be secure: it is possible to craft signatures that\\n     * recover to arbitrary addresses for non-hashed data. A safe way to ensure\\n     * this is by receiving a hash of the original message (which may otherwise\\n     * be too long), and then calling {toEthSignedMessageHash} on it.\\n     *\\n     * Documentation for signature generation:\\n     * - with https://web3js.readthedocs.io/en/v1.3.4/web3-eth-accounts.html#sign[Web3.js]\\n     * - with https://docs.ethers.io/v5/api/signer/#Signer-signMessage[ethers]\\n     *\\n     * _Available since v4.3._\\n     */\\n    function tryRecover(bytes32 hash, bytes memory signature) internal pure returns (address, RecoverError) {\\n        // Check the signature length\\n        // - case 65: r,s,v signature (standard)\\n        // - case 64: r,vs signature (cf https://eips.ethereum.org/EIPS/eip-2098) _Available since v4.1._\\n        if (signature.length == 65) {\\n            bytes32 r;\\n            bytes32 s;\\n            uint8 v;\\n            // ecrecover takes the signature parameters, and the only way to get them\\n            // currently is to use assembly.\\n            assembly {\\n                r := mload(add(signature, 0x20))\\n                s := mload(add(signature, 0x40))\\n                v := byte(0, mload(add(signature, 0x60)))\\n            }\\n            return tryRecover(hash, v, r, s);\\n        } else if (signature.length == 64) {\\n            bytes32 r;\\n            bytes32 vs;\\n            // ecrecover takes the signature parameters, and the only way to get them\\n            // currently is to use assembly.\\n            assembly {\\n                r := mload(add(signature, 0x20))\\n                vs := mload(add(signature, 0x40))\\n            }\\n            return tryRecover(hash, r, vs);\\n        } else {\\n            return (address(0), RecoverError.InvalidSignatureLength);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the address that signed a hashed message (`hash`) with\\n     * `signature`. This address can then be used for verification purposes.\\n     *\\n     * The `ecrecover` EVM opcode allows for malleable (non-unique) signatures:\\n     * this function rejects them by requiring the `s` value to be in the lower\\n     * half order, and the `v` value to be either 27 or 28.\\n     *\\n     * IMPORTANT: `hash` _must_ be the result of a hash operation for the\\n     * verification to be secure: it is possible to craft signatures that\\n     * recover to arbitrary addresses for non-hashed data. A safe way to ensure\\n     * this is by receiving a hash of the original message (which may otherwise\\n     * be too long), and then calling {toEthSignedMessageHash} on it.\\n     */\\n    function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {\\n        (address recovered, RecoverError error) = tryRecover(hash, signature);\\n        _throwError(error);\\n        return recovered;\\n    }\\n\\n    /**\\n     * @dev Overload of {ECDSA-tryRecover} that receives the `r` and `vs` short-signature fields separately.\\n     *\\n     * See https://eips.ethereum.org/EIPS/eip-2098[EIP-2098 short signatures]\\n     *\\n     * _Available since v4.3._\\n     */\\n    function tryRecover(\\n        bytes32 hash,\\n        bytes32 r,\\n        bytes32 vs\\n    ) internal pure returns (address, RecoverError) {\\n        bytes32 s = vs & bytes32(0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);\\n        uint8 v = uint8((uint256(vs) >> 255) + 27);\\n        return tryRecover(hash, v, r, s);\\n    }\\n\\n    /**\\n     * @dev Overload of {ECDSA-recover} that receives the `r and `vs` short-signature fields separately.\\n     *\\n     * _Available since v4.2._\\n     */\\n    function recover(\\n        bytes32 hash,\\n        bytes32 r,\\n        bytes32 vs\\n    ) internal pure returns (address) {\\n        (address recovered, RecoverError error) = tryRecover(hash, r, vs);\\n        _throwError(error);\\n        return recovered;\\n    }\\n\\n    /**\\n     * @dev Overload of {ECDSA-tryRecover} that receives the `v`,\\n     * `r` and `s` signature fields separately.\\n     *\\n     * _Available since v4.3._\\n     */\\n    function tryRecover(\\n        bytes32 hash,\\n        uint8 v,\\n        bytes32 r,\\n        bytes32 s\\n    ) internal pure returns (address, RecoverError) {\\n        // EIP-2 still allows signature malleability for ecrecover(). Remove this possibility and make the signature\\n        // unique. Appendix F in the Ethereum Yellow paper (https://ethereum.github.io/yellowpaper/paper.pdf), defines\\n        // the valid range for s in (301): 0 < s < secp256k1n \\u00f7 2 + 1, and for v in (302): v \\u2208 {27, 28}. Most\\n        // signatures from current libraries generate a unique signature with an s-value in the lower half order.\\n        //\\n        // If your library generates malleable signatures, such as s-values in the upper range, calculate a new s-value\\n        // with 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 - s1 and flip v from 27 to 28 or\\n        // vice versa. If your library also generates signatures with 0/1 for v instead 27/28, add 27 to v to accept\\n        // these malleable signatures as well.\\n        if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {\\n            return (address(0), RecoverError.InvalidSignatureS);\\n        }\\n        if (v != 27 && v != 28) {\\n            return (address(0), RecoverError.InvalidSignatureV);\\n        }\\n\\n        // If the signature is valid (and not malleable), return the signer address\\n        address signer = ecrecover(hash, v, r, s);\\n        if (signer == address(0)) {\\n            return (address(0), RecoverError.InvalidSignature);\\n        }\\n\\n        return (signer, RecoverError.NoError);\\n    }\\n\\n    /**\\n     * @dev Overload of {ECDSA-recover} that receives the `v`,\\n     * `r` and `s` signature fields separately.\\n     */\\n    function recover(\\n        bytes32 hash,\\n        uint8 v,\\n        bytes32 r,\\n        bytes32 s\\n    ) internal pure returns (address) {\\n        (address recovered, RecoverError error) = tryRecover(hash, v, r, s);\\n        _throwError(error);\\n        return recovered;\\n    }\\n\\n    /**\\n     * @dev Returns an Ethereum Signed Message, created from a `hash`. This\\n     * produces hash corresponding to the one signed with the\\n     * https://eth.wiki/json-rpc/API#eth_sign[`eth_sign`]\\n     * JSON-RPC method as part of EIP-191.\\n     *\\n     * See {recover}.\\n     */\\n    function toEthSignedMessageHash(bytes32 hash) internal pure returns (bytes32) {\\n        // 32 is the length in bytes of hash,\\n        // enforced by the type signature above\\n        return keccak256(abi.encodePacked(\\\"\\\\x19Ethereum Signed Message:\\\\n32\\\", hash));\\n    }\\n\\n    /**\\n     * @dev Returns an Ethereum Signed Message, created from `s`. This\\n     * produces hash corresponding to the one signed with the\\n     * https://eth.wiki/json-rpc/API#eth_sign[`eth_sign`]\\n     * JSON-RPC method as part of EIP-191.\\n     *\\n     * See {recover}.\\n     */\\n    function toEthSignedMessageHash(bytes memory s) internal pure returns (bytes32) {\\n        return keccak256(abi.encodePacked(\\\"\\\\x19Ethereum Signed Message:\\\\n\\\", Strings.toString(s.length), s));\\n    }\\n\\n    /**\\n     * @dev Returns an Ethereum Signed Typed Data, created from a\\n     * `domainSeparator` and a `structHash`. This produces hash corresponding\\n     * to the one signed with the\\n     * https://eips.ethereum.org/EIPS/eip-712[`eth_signTypedData`]\\n     * JSON-RPC method as part of EIP-712.\\n     *\\n     * See {recover}.\\n     */\\n    function toTypedDataHash(bytes32 domainSeparator, bytes32 structHash) internal pure returns (bytes32) {\\n        return keccak256(abi.encodePacked(\\\"\\\\x19\\\\x01\\\", domainSeparator, structHash));\\n    }\\n}\\n\",\"keccak256\":\"0x3c07f43e60e099b3b157243b3152722e73b80eeb7985c2cd73712828d7f7da29\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/cryptography/draft-EIP712.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./ECDSA.sol\\\";\\n\\n/**\\n * @dev https://eips.ethereum.org/EIPS/eip-712[EIP 712] is a standard for hashing and signing of typed structured data.\\n *\\n * The encoding specified in the EIP is very generic, and such a generic implementation in Solidity is not feasible,\\n * thus this contract does not implement the encoding itself. Protocols need to implement the type-specific encoding\\n * they need in their contracts using a combination of `abi.encode` and `keccak256`.\\n *\\n * This contract implements the EIP 712 domain separator ({_domainSeparatorV4}) that is used as part of the encoding\\n * scheme, and the final step of the encoding to obtain the message digest that is then signed via ECDSA\\n * ({_hashTypedDataV4}).\\n *\\n * The implementation of the domain separator was designed to be as efficient as possible while still properly updating\\n * the chain id to protect against replay attacks on an eventual fork of the chain.\\n *\\n * NOTE: This contract implements the version of the encoding known as \\\"v4\\\", as implemented by the JSON RPC method\\n * https://docs.metamask.io/guide/signing-data.html[`eth_signTypedDataV4` in MetaMask].\\n *\\n * _Available since v3.4._\\n */\\nabstract contract EIP712 {\\n    /* solhint-disable var-name-mixedcase */\\n    // Cache the domain separator as an immutable value, but also store the chain id that it corresponds to, in order to\\n    // invalidate the cached domain separator if the chain id changes.\\n    bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;\\n    uint256 private immutable _CACHED_CHAIN_ID;\\n    address private immutable _CACHED_THIS;\\n\\n    bytes32 private immutable _HASHED_NAME;\\n    bytes32 private immutable _HASHED_VERSION;\\n    bytes32 private immutable _TYPE_HASH;\\n\\n    /* solhint-enable var-name-mixedcase */\\n\\n    /**\\n     * @dev Initializes the domain separator and parameter caches.\\n     *\\n     * The meaning of `name` and `version` is specified in\\n     * https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator[EIP 712]:\\n     *\\n     * - `name`: the user readable name of the signing domain, i.e. the name of the DApp or the protocol.\\n     * - `version`: the current major version of the signing domain.\\n     *\\n     * NOTE: These parameters cannot be changed except through a xref:learn::upgrading-smart-contracts.adoc[smart\\n     * contract upgrade].\\n     */\\n    constructor(string memory name, string memory version) {\\n        bytes32 hashedName = keccak256(bytes(name));\\n        bytes32 hashedVersion = keccak256(bytes(version));\\n        bytes32 typeHash = keccak256(\\n            \\\"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)\\\"\\n        );\\n        _HASHED_NAME = hashedName;\\n        _HASHED_VERSION = hashedVersion;\\n        _CACHED_CHAIN_ID = block.chainid;\\n        _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator(typeHash, hashedName, hashedVersion);\\n        _CACHED_THIS = address(this);\\n        _TYPE_HASH = typeHash;\\n    }\\n\\n    /**\\n     * @dev Returns the domain separator for the current chain.\\n     */\\n    function _domainSeparatorV4() internal view returns (bytes32) {\\n        if (address(this) == _CACHED_THIS && block.chainid == _CACHED_CHAIN_ID) {\\n            return _CACHED_DOMAIN_SEPARATOR;\\n        } else {\\n            return _buildDomainSeparator(_TYPE_HASH, _HASHED_NAME, _HASHED_VERSION);\\n        }\\n    }\\n\\n    function _buildDomainSeparator(\\n        bytes32 typeHash,\\n        bytes32 nameHash,\\n        bytes32 versionHash\\n    ) private view returns (bytes32) {\\n        return keccak256(abi.encode(typeHash, nameHash, versionHash, block.chainid, address(this)));\\n    }\\n\\n    /**\\n     * @dev Given an already https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct[hashed struct], this\\n     * function returns the hash of the fully encoded EIP712 message for this domain.\\n     *\\n     * This hash can be used together with {ECDSA-recover} to obtain the signer of a message. For example:\\n     *\\n     * ```solidity\\n     * bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(\\n     *     keccak256(\\\"Mail(address to,string contents)\\\"),\\n     *     mailTo,\\n     *     keccak256(bytes(mailContents))\\n     * )));\\n     * address signer = ECDSA.recover(digest, signature);\\n     * ```\\n     */\\n    function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {\\n        return ECDSA.toTypedDataHash(_domainSeparatorV4(), structHash);\\n    }\\n}\\n\",\"keccak256\":\"0x6688fad58b9ec0286d40fa957152e575d5d8bd4c3aa80985efdb11b44f776ae7\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/introspection/IERC165.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[EIP].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x447a5f3ddc18419d41ff92b3773fb86471b1db25773e07f877f548918a185bf1\",\"license\":\"MIT\"},\"contracts/LazyReloadedNFTMinter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\n\\nimport \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport \\\"@openzeppelin/contracts/utils/cryptography/ECDSA.sol\\\";\\nimport \\\"@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol\\\";\\nimport \\\"@openzeppelin/contracts/security/ReentrancyGuard.sol\\\";\\nimport \\\"./Utilities/EIP712MintReloadedNFTDecoder.sol\\\";\\nimport \\\"./interfaces/IReloadedNFT.sol\\\";\\n\\ncontract LazyReloadedNFTMinter is EIP712Decoder, Ownable, ReentrancyGuard {\\n    address public adminAddress;\\n    mapping(uint256 => bool) public idUsed;\\n    IReloadedNFT public reloadedNFT;\\n\\n    string private constant EIP712_DOMAIN =\\n        \\\"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)\\\";\\n\\n    bytes32 private constant EIP712_DOMAIN_TYPEHASH =\\n        keccak256(abi.encodePacked(EIP712_DOMAIN));\\n\\n    constructor(IReloadedNFT _reloadedNFT, address _adminAddress) {\\n        require(\\n            address(_reloadedNFT) != address(0) &&\\n                address(_adminAddress) != address(0),\\n            \\\"No Zero Address\\\"\\n        );\\n        reloadedNFT = _reloadedNFT;\\n        adminAddress = _adminAddress;\\n    }\\n\\n    function lazyMint(\\n        SignedMintBatchVoucher calldata signedMintBatchVoucher\\n    ) public nonReentrant {\\n        require(\\n            !idUsed[signedMintBatchVoucher.message.voucherId],\\n            \\\"voucher had been used\\\"\\n        );\\n        bool verifiedAddress = verifySignedMintBatchVoucher(\\n            signedMintBatchVoucher\\n        ) == adminAddress;\\n        require(verifiedAddress, \\\"Invalid signature\\\");\\n\\n        reloadedNFT.mintBatch(\\n            signedMintBatchVoucher.message.to,\\n            signedMintBatchVoucher.message.tokenIds,\\n            signedMintBatchVoucher.message.amounts,\\n            signedMintBatchVoucher.message.data\\n        );\\n        idUsed[signedMintBatchVoucher.message.voucherId] = true;\\n    }\\n\\n    function getDomainHash() public view virtual override returns (bytes32) {\\n        uint256 chainId;\\n        assembly {\\n            chainId := chainid()\\n        }\\n\\n        bytes32 DOMAIN_SEPARATOR = keccak256(\\n            abi.encode(\\n                EIP712_DOMAIN_TYPEHASH,\\n                keccak256(\\\"Lazymint-ReloadedNFT\\\"),\\n                keccak256(\\\"1\\\"),\\n                chainId,\\n                address(this)\\n            )\\n        );\\n        return DOMAIN_SEPARATOR;\\n    }\\n\\n    function setAdminAddress(address _adminAddress) public onlyOwner {\\n        adminAddress = _adminAddress;\\n    }\\n}\\n\",\"keccak256\":\"0xcfcc5a56521c4cdba6c27cb1db94ad8c338b2dc8a004f4774cbccfd439e9e1dc\",\"license\":\"MIT\"},\"contracts/Utilities/EIP712MintReloadedNFTDecoder.sol\":{\"content\":\"pragma solidity ^0.8.9;\\n// SPDX-License-Identifier: MIT\\n\\nstruct SignedMintBatchVoucher {\\n    MintBatchVoucher message;\\n    bytes signature;\\n    address signer;\\n}\\n\\nbytes32 constant signedmintbatchvoucherTypehash = keccak256(\\n    \\\"SignedMintBatchVoucher(MintBatchVoucher message,bytes signature,address signer)MintBatchVoucher(uint256 voucherId,address to,uint256[] tokenIds,uint256[] amounts,bytes data)\\\"\\n);\\n\\nstruct EIP712Domain {\\n    string name;\\n    string version;\\n    uint256 chainId;\\n    address verifyingContract;\\n}\\n\\nbytes32 constant eip712domainTypehash = keccak256(\\n    \\\"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)\\\"\\n);\\n\\nstruct MintBatchVoucher {\\n    uint256 voucherId;\\n    address to;\\n    uint256[] tokenIds;\\n    uint256[] amounts;\\n    bytes data;\\n}\\n\\nbytes32 constant mintbatchvoucherTypehash = keccak256(\\n    \\\"MintBatchVoucher(uint256 voucherId,address to,uint256[] tokenIds,uint256[] amounts,bytes data)\\\"\\n);\\n\\nabstract contract ERC1271Contract {\\n    /**\\n     * @dev Should return whether the signature provided is valid for the provided hash\\n     * @param _hash      Hash of the data to be signed\\n     * @param _signature Signature byte array associated with _hash\\n     *\\n     * MUST return the bytes4 magic value 0x1626ba7e when function passes.\\n     * MUST NOT modify state (using STATICCALL for solc < 0.5, view modifier for solc > 0.5)\\n     * MUST allow external calls\\n     */\\n    function isValidSignature(\\n        bytes32 _hash,\\n        bytes memory _signature\\n    ) public view virtual returns (bytes4 magicValue);\\n}\\n\\nabstract contract EIP712Decoder {\\n    function getDomainHash() public view virtual returns (bytes32);\\n\\n    /**\\n     * @dev Recover signer address from a message by using their signature\\n     * @param hash bytes32 message, the hash is the signed message. What is recovered is the signer address.\\n     * @param sig bytes signature, the signature is generated using web3.eth.sign()\\n     */\\n    function recover(\\n        bytes32 hash,\\n        bytes memory sig\\n    ) internal pure returns (address) {\\n        bytes32 r;\\n        bytes32 s;\\n        uint8 v;\\n\\n        // Check the signature length\\n        if (sig.length != 65) {\\n            return (address(0));\\n        }\\n\\n        // Divide the signature in r, s and v variables\\n        assembly {\\n            r := mload(add(sig, 32))\\n            s := mload(add(sig, 64))\\n            v := byte(0, mload(add(sig, 96)))\\n        }\\n        // Version of signature should be 27 or 28, but 0 and 1 are also possible versions\\n        if (v < 27) {\\n            v += 27;\\n        }\\n\\n        // If the version is correct return the signer address\\n        if (v != 27 && v != 28) {\\n            return (address(0));\\n        } else {\\n            return ecrecover(hash, v, r, s);\\n        }\\n    }\\n\\n    function getSignedmintbatchvoucherPacketHash(\\n        SignedMintBatchVoucher memory _input\\n    ) public pure returns (bytes32) {\\n        bytes memory encoded = abi.encode(\\n            signedmintbatchvoucherTypehash,\\n            getMintbatchvoucherPacketHash(_input.message),\\n            keccak256(_input.signature),\\n            _input.signer\\n        );\\n        return keccak256(encoded);\\n    }\\n\\n    function getEip712DomainPacketHash(\\n        EIP712Domain memory _input\\n    ) public pure returns (bytes32) {\\n        bytes memory encoded = abi.encode(\\n            eip712domainTypehash,\\n            keccak256(bytes(_input.name)),\\n            keccak256(bytes(_input.version)),\\n            _input.chainId,\\n            _input.verifyingContract\\n        );\\n        return keccak256(encoded);\\n    }\\n\\n    function getMintbatchvoucherPacketHash(\\n        MintBatchVoucher memory _input\\n    ) public pure returns (bytes32) {\\n        bytes memory encoded = abi.encode(\\n            mintbatchvoucherTypehash,\\n            _input.voucherId,\\n            _input.to,\\n            getUint256ArrayPacketHash(_input.tokenIds),\\n            getUint256ArrayPacketHash(_input.amounts),\\n            keccak256(_input.data)\\n        );\\n        return keccak256(encoded);\\n    }\\n\\n    function getUint256ArrayPacketHash(\\n        uint256[] memory _input\\n    ) public pure returns (bytes32) {\\n        return keccak256(abi.encodePacked(_input));\\n    }\\n\\n    function verifySignedMintBatchVoucher(\\n        SignedMintBatchVoucher memory _input\\n    ) public view returns (address) {\\n        bytes32 packetHash = getMintbatchvoucherPacketHash(_input.message);\\n        bytes32 digest = keccak256(\\n            abi.encodePacked(\\\"\\\\x19\\\\x01\\\", getDomainHash(), packetHash)\\n        );\\n\\n        if (_input.signer == 0x0000000000000000000000000000000000000000) {\\n            address recoveredSigner = recover(digest, _input.signature);\\n            return recoveredSigner;\\n        } else {\\n            // EIP-1271 signature verification\\n            bytes4 result = ERC1271Contract(_input.signer).isValidSignature(\\n                digest,\\n                _input.signature\\n            );\\n            require(result == 0x1626ba7e, \\\"INVALID_SIGNATURE\\\");\\n            return _input.signer;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x3c421eccf2d45dd1c5fc566d3849b55d1be841cf8aed2b36a5fb3c63092bfb1e\",\"license\":\"MIT\"},\"contracts/interfaces/IReloadedNFT.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.9;\\nimport \\\"@openzeppelin/contracts/token/ERC1155/IERC1155.sol\\\";\\n\\n/**\\n * @dev required interface of Reloaded NFT.\\n */\\ninterface IReloadedNFT is IERC1155 {\\n    function mint(\\n        address account,\\n        uint256 id,\\n        uint256 amount,\\n        bytes memory data\\n    ) external;\\n\\n    function mintBatch(\\n        address to,\\n        uint256[] memory ids,\\n        uint256[] memory amounts,\\n        bytes memory data\\n    ) external;\\n}\\n\",\"keccak256\":\"0x8734b92ec9cb24cf36c91d779c46d1e0d82e69c97c8a9d1c91ee167f5a867462\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b506040516200140538038062001405833981016040819052620000349162000142565b6200003f33620000d9565b600180556001600160a01b038216158015906200006457506001600160a01b03811615155b620000a75760405162461bcd60e51b815260206004820152600f60248201526e4e6f205a65726f204164647265737360881b604482015260640160405180910390fd5b600480546001600160a01b039384166001600160a01b0319918216179091556002805492909316911617905562000181565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b6001600160a01b03811681146200013f57600080fd5b50565b600080604083850312156200015657600080fd5b8251620001638162000129565b6020840151909250620001768162000129565b809150509250929050565b61127480620001916000396000f3fe608060405234801561001057600080fd5b50600436106100ea5760003560e01c806388f170d01161008c578063b1297a9011610066578063b1297a90146101e2578063c8d2d504146101f5578063f2fde38b14610208578063fc6f94681461021b57600080fd5b806388f170d0146101ab5780638da5cb5b146101be5780639bcb968c146101cf57600080fd5b806355fac1cd116100c857806355fac1cd14610155578063693b028914610168578063715018a61461019b57806383ebb771146101a357600080fd5b806316354ab0146100ef5780632c1e816d1461011f5780633c9f21a014610134575b600080fd5b6101026100fd366004610d7b565b61022e565b6040516001600160a01b0390911681526020015b60405180910390f35b61013261012d366004610db7565b6103a8565b005b610147610142366004610dd9565b6103f4565b604051908152602001610116565b610132610163366004610e84565b610494565b61018b610176366004610ebe565b60036020526000908152604090205460ff1681565b6040519015158152602001610116565b6101326106bf565b6101476106f5565b6101476101b9366004610ed7565b6107a2565b6000546001600160a01b0316610102565b6101476101dd366004610f0b565b610835565b6101476101f0366004610d7b565b610865565b600454610102906001600160a01b031681565b610132610216366004610db7565b6108d5565b600254610102906001600160a01b031681565b60008061023e83600001516107a2565b9050600061024a6106f5565b60405161190160f01b602082015260228101919091526042810183905260620160405160208183030381529060405280519060200120905083604001516001600160a01b031660006001600160a01b031614156102ba5760006102b1828660200151610970565b95945050505050565b600084604001516001600160a01b0316631626ba7e8387602001516040518363ffffffff1660e01b81526004016102f2929190610f6f565b60206040518083038186803b15801561030a57600080fd5b505afa15801561031e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103429190610fa9565b9050630b135d3f60e11b6001600160e01b031982161461039d5760405162461bcd60e51b8152602060048201526011602482015270494e56414c49445f5349474e415455524560781b60448201526064015b60405180910390fd5b505050506040015190565b6000546001600160a01b031633146103d25760405162461bcd60e51b815260040161039490610fd3565b600280546001600160a01b0319166001600160a01b0392909216919091179055565b6000807f8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f836000015180519060200120846020015180519060200120856040015186606001516040516020016104759594939291909485526020850193909352604084019190915260608301526001600160a01b0316608082015260a00190565b60408051601f1981840301815291905280516020909101209392505050565b600260015414156104e75760405162461bcd60e51b815260206004820152601f60248201527f5265656e7472616e637947756172643a207265656e7472616e742063616c6c006044820152606401610394565b6002600155600360006104fa8380611008565b35815260208101919091526040016000205460ff16156105545760405162461bcd60e51b81526020600482015260156024820152741d9bdd58da195c881a1859081899595b881d5cd959605a1b6044820152606401610394565b6002546000906001600160a01b031661056f6100fd84611028565b6001600160a01b0316149050806105bc5760405162461bcd60e51b8152602060048201526011602482015270496e76616c6964207369676e617475726560781b6044820152606401610394565b6004546001600160a01b0316631f7fdffa6105d78480611008565b6105e8906040810190602001610db7565b6105f28580611008565b610600906040810190611034565b61060a8780611008565b610618906060810190611034565b6106228980611008565b610630906080810190611084565b6040518863ffffffff1660e01b81526004016106529796959493929190611100565b600060405180830381600087803b15801561066c57600080fd5b505af1158015610680573d6000803e3d6000fd5b506001925060039150600090506106978580611008565b3581526020810191909152604001600020805460ff1916911515919091179055505060018055565b6000546001600160a01b031633146106e95760405162461bcd60e51b815260040161039490610fd3565b6106f36000610a49565b565b60008046905060006040518060800160405280605281526020016111ed605291396040516020016107269190611171565b60408051601f198184030181528282528051602091820120908301527fd64699bbe2cd6fd999800a19a444ce2a16c2ab117f0bcf5190cc291783a4f4d3908201527fc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc66060820152608081018390523060a082015260c001610475565b6000807f91e7feed788be63e5b7f11e0604c2dfed5d7320aa17b360f2df7d3802d86eb0d836000015184602001516107dd8660400151610835565b6107ea8760600151610835565b608088015180516020918201206040516104759796959493920195865260208601949094526001600160a01b039290921660408501526060840152608083015260a082015260c00190565b6000816040516020016108489190611183565b604051602081830303815290604052805190602001209050919050565b6000807fa3ac6e13313fb6df774db19f56d5bc4bb29f8e316a97615eed57dd46c8fc80f161089684600001516107a2565b602080860151805190820120604080880151905161047595949301938452602084019290925260408301526001600160a01b0316606082015260800190565b6000546001600160a01b031633146108ff5760405162461bcd60e51b815260040161039490610fd3565b6001600160a01b0381166109645760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b6064820152608401610394565b61096d81610a49565b50565b600080600080845160411461098b5760009350505050610a43565b50505060208201516040830151606084015160001a601b8110156109b7576109b4601b826111b9565b90505b8060ff16601b141580156109cf57508060ff16601c14155b156109e05760009350505050610a43565b60408051600081526020810180835288905260ff831691810191909152606081018490526080810183905260019060a0016020604051602081039080840390855afa158015610a33573d6000803e3d6000fd5b5050506020604051035193505050505b92915050565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b634e487b7160e01b600052604160045260246000fd5b60405160a081016001600160401b0381118282101715610ad157610ad1610a99565b60405290565b604051608081016001600160401b0381118282101715610ad157610ad1610a99565b604051601f8201601f191681016001600160401b0381118282101715610b2157610b21610a99565b604052919050565b80356001600160a01b0381168114610b4057600080fd5b919050565b600082601f830112610b5657600080fd5b813560206001600160401b03821115610b7157610b71610a99565b8160051b610b80828201610af9565b9283528481018201928281019087851115610b9a57600080fd5b83870192505b84831015610bb957823582529183019190830190610ba0565b979650505050505050565b600082601f830112610bd557600080fd5b81356001600160401b03811115610bee57610bee610a99565b610c01601f8201601f1916602001610af9565b818152846020838601011115610c1657600080fd5b816020850160208301376000918101602001919091529392505050565b600060a08284031215610c4557600080fd5b610c4d610aaf565b905081358152610c5f60208301610b29565b602082015260408201356001600160401b0380821115610c7e57600080fd5b610c8a85838601610b45565b60408401526060840135915080821115610ca357600080fd5b610caf85838601610b45565b60608401526080840135915080821115610cc857600080fd5b50610cd584828501610bc4565b60808301525092915050565b600060608284031215610cf357600080fd5b604051606081016001600160401b038282108183111715610d1657610d16610a99565b816040528293508435915080821115610d2e57600080fd5b610d3a86838701610c33565b83526020850135915080821115610d5057600080fd5b50610d5d85828601610bc4565b602083015250610d6f60408401610b29565b60408201525092915050565b600060208284031215610d8d57600080fd5b81356001600160401b03811115610da357600080fd5b610daf84828501610ce1565b949350505050565b600060208284031215610dc957600080fd5b610dd282610b29565b9392505050565b600060208284031215610deb57600080fd5b81356001600160401b0380821115610e0257600080fd5b9083019060808286031215610e1657600080fd5b610e1e610ad7565b823582811115610e2d57600080fd5b610e3987828601610bc4565b825250602083013582811115610e4e57600080fd5b610e5a87828601610bc4565b60208301525060408301356040820152610e7660608401610b29565b606082015295945050505050565b600060208284031215610e9657600080fd5b81356001600160401b03811115610eac57600080fd5b820160608185031215610dd257600080fd5b600060208284031215610ed057600080fd5b5035919050565b600060208284031215610ee957600080fd5b81356001600160401b03811115610eff57600080fd5b610daf84828501610c33565b600060208284031215610f1d57600080fd5b81356001600160401b03811115610f3357600080fd5b610daf84828501610b45565b60005b83811015610f5a578181015183820152602001610f42565b83811115610f69576000848401525b50505050565b8281526040602082015260008251806040840152610f94816060850160208701610f3f565b601f01601f1916919091016060019392505050565b600060208284031215610fbb57600080fd5b81516001600160e01b031981168114610dd257600080fd5b6020808252818101527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604082015260600190565b60008235609e1983360301811261101e57600080fd5b9190910192915050565b6000610a433683610ce1565b6000808335601e1984360301811261104b57600080fd5b8301803591506001600160401b0382111561106557600080fd5b6020019150600581901b360382131561107d57600080fd5b9250929050565b6000808335601e1984360301811261109b57600080fd5b8301803591506001600160401b038211156110b557600080fd5b60200191503681900382131561107d57600080fd5b81835260006001600160fb1b038311156110e357600080fd5b8260051b8083602087013760009401602001938452509192915050565b6001600160a01b0388168152608060208201819052600090611125908301888a6110ca565b82810360408401526111388187896110ca565b90508281036060840152838152838560208301376000602085830101526020601f19601f86011682010191505098975050505050505050565b6000825161101e818460208701610f3f565b815160009082906020808601845b838110156111ad57815185529382019390820190600101611191565b50929695505050505050565b600060ff821660ff84168060ff038211156111e457634e487b7160e01b600052601160045260246000fd5b01939250505056fe454950373132446f6d61696e28737472696e67206e616d652c737472696e672076657273696f6e2c75696e7432353620636861696e49642c6164647265737320766572696679696e67436f6e747261637429a2646970667358221220fa7c2e535cf8199b01dd6f74e756d1efde936700c380a9502949d5df6ba9ef8b64736f6c63430008090033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100ea5760003560e01c806388f170d01161008c578063b1297a9011610066578063b1297a90146101e2578063c8d2d504146101f5578063f2fde38b14610208578063fc6f94681461021b57600080fd5b806388f170d0146101ab5780638da5cb5b146101be5780639bcb968c146101cf57600080fd5b806355fac1cd116100c857806355fac1cd14610155578063693b028914610168578063715018a61461019b57806383ebb771146101a357600080fd5b806316354ab0146100ef5780632c1e816d1461011f5780633c9f21a014610134575b600080fd5b6101026100fd366004610d7b565b61022e565b6040516001600160a01b0390911681526020015b60405180910390f35b61013261012d366004610db7565b6103a8565b005b610147610142366004610dd9565b6103f4565b604051908152602001610116565b610132610163366004610e84565b610494565b61018b610176366004610ebe565b60036020526000908152604090205460ff1681565b6040519015158152602001610116565b6101326106bf565b6101476106f5565b6101476101b9366004610ed7565b6107a2565b6000546001600160a01b0316610102565b6101476101dd366004610f0b565b610835565b6101476101f0366004610d7b565b610865565b600454610102906001600160a01b031681565b610132610216366004610db7565b6108d5565b600254610102906001600160a01b031681565b60008061023e83600001516107a2565b9050600061024a6106f5565b60405161190160f01b602082015260228101919091526042810183905260620160405160208183030381529060405280519060200120905083604001516001600160a01b031660006001600160a01b031614156102ba5760006102b1828660200151610970565b95945050505050565b600084604001516001600160a01b0316631626ba7e8387602001516040518363ffffffff1660e01b81526004016102f2929190610f6f565b60206040518083038186803b15801561030a57600080fd5b505afa15801561031e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103429190610fa9565b9050630b135d3f60e11b6001600160e01b031982161461039d5760405162461bcd60e51b8152602060048201526011602482015270494e56414c49445f5349474e415455524560781b60448201526064015b60405180910390fd5b505050506040015190565b6000546001600160a01b031633146103d25760405162461bcd60e51b815260040161039490610fd3565b600280546001600160a01b0319166001600160a01b0392909216919091179055565b6000807f8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f836000015180519060200120846020015180519060200120856040015186606001516040516020016104759594939291909485526020850193909352604084019190915260608301526001600160a01b0316608082015260a00190565b60408051601f1981840301815291905280516020909101209392505050565b600260015414156104e75760405162461bcd60e51b815260206004820152601f60248201527f5265656e7472616e637947756172643a207265656e7472616e742063616c6c006044820152606401610394565b6002600155600360006104fa8380611008565b35815260208101919091526040016000205460ff16156105545760405162461bcd60e51b81526020600482015260156024820152741d9bdd58da195c881a1859081899595b881d5cd959605a1b6044820152606401610394565b6002546000906001600160a01b031661056f6100fd84611028565b6001600160a01b0316149050806105bc5760405162461bcd60e51b8152602060048201526011602482015270496e76616c6964207369676e617475726560781b6044820152606401610394565b6004546001600160a01b0316631f7fdffa6105d78480611008565b6105e8906040810190602001610db7565b6105f28580611008565b610600906040810190611034565b61060a8780611008565b610618906060810190611034565b6106228980611008565b610630906080810190611084565b6040518863ffffffff1660e01b81526004016106529796959493929190611100565b600060405180830381600087803b15801561066c57600080fd5b505af1158015610680573d6000803e3d6000fd5b506001925060039150600090506106978580611008565b3581526020810191909152604001600020805460ff1916911515919091179055505060018055565b6000546001600160a01b031633146106e95760405162461bcd60e51b815260040161039490610fd3565b6106f36000610a49565b565b60008046905060006040518060800160405280605281526020016111ed605291396040516020016107269190611171565b60408051601f198184030181528282528051602091820120908301527fd64699bbe2cd6fd999800a19a444ce2a16c2ab117f0bcf5190cc291783a4f4d3908201527fc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc66060820152608081018390523060a082015260c001610475565b6000807f91e7feed788be63e5b7f11e0604c2dfed5d7320aa17b360f2df7d3802d86eb0d836000015184602001516107dd8660400151610835565b6107ea8760600151610835565b608088015180516020918201206040516104759796959493920195865260208601949094526001600160a01b039290921660408501526060840152608083015260a082015260c00190565b6000816040516020016108489190611183565b604051602081830303815290604052805190602001209050919050565b6000807fa3ac6e13313fb6df774db19f56d5bc4bb29f8e316a97615eed57dd46c8fc80f161089684600001516107a2565b602080860151805190820120604080880151905161047595949301938452602084019290925260408301526001600160a01b0316606082015260800190565b6000546001600160a01b031633146108ff5760405162461bcd60e51b815260040161039490610fd3565b6001600160a01b0381166109645760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b6064820152608401610394565b61096d81610a49565b50565b600080600080845160411461098b5760009350505050610a43565b50505060208201516040830151606084015160001a601b8110156109b7576109b4601b826111b9565b90505b8060ff16601b141580156109cf57508060ff16601c14155b156109e05760009350505050610a43565b60408051600081526020810180835288905260ff831691810191909152606081018490526080810183905260019060a0016020604051602081039080840390855afa158015610a33573d6000803e3d6000fd5b5050506020604051035193505050505b92915050565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b634e487b7160e01b600052604160045260246000fd5b60405160a081016001600160401b0381118282101715610ad157610ad1610a99565b60405290565b604051608081016001600160401b0381118282101715610ad157610ad1610a99565b604051601f8201601f191681016001600160401b0381118282101715610b2157610b21610a99565b604052919050565b80356001600160a01b0381168114610b4057600080fd5b919050565b600082601f830112610b5657600080fd5b813560206001600160401b03821115610b7157610b71610a99565b8160051b610b80828201610af9565b9283528481018201928281019087851115610b9a57600080fd5b83870192505b84831015610bb957823582529183019190830190610ba0565b979650505050505050565b600082601f830112610bd557600080fd5b81356001600160401b03811115610bee57610bee610a99565b610c01601f8201601f1916602001610af9565b818152846020838601011115610c1657600080fd5b816020850160208301376000918101602001919091529392505050565b600060a08284031215610c4557600080fd5b610c4d610aaf565b905081358152610c5f60208301610b29565b602082015260408201356001600160401b0380821115610c7e57600080fd5b610c8a85838601610b45565b60408401526060840135915080821115610ca357600080fd5b610caf85838601610b45565b60608401526080840135915080821115610cc857600080fd5b50610cd584828501610bc4565b60808301525092915050565b600060608284031215610cf357600080fd5b604051606081016001600160401b038282108183111715610d1657610d16610a99565b816040528293508435915080821115610d2e57600080fd5b610d3a86838701610c33565b83526020850135915080821115610d5057600080fd5b50610d5d85828601610bc4565b602083015250610d6f60408401610b29565b60408201525092915050565b600060208284031215610d8d57600080fd5b81356001600160401b03811115610da357600080fd5b610daf84828501610ce1565b949350505050565b600060208284031215610dc957600080fd5b610dd282610b29565b9392505050565b600060208284031215610deb57600080fd5b81356001600160401b0380821115610e0257600080fd5b9083019060808286031215610e1657600080fd5b610e1e610ad7565b823582811115610e2d57600080fd5b610e3987828601610bc4565b825250602083013582811115610e4e57600080fd5b610e5a87828601610bc4565b60208301525060408301356040820152610e7660608401610b29565b606082015295945050505050565b600060208284031215610e9657600080fd5b81356001600160401b03811115610eac57600080fd5b820160608185031215610dd257600080fd5b600060208284031215610ed057600080fd5b5035919050565b600060208284031215610ee957600080fd5b81356001600160401b03811115610eff57600080fd5b610daf84828501610c33565b600060208284031215610f1d57600080fd5b81356001600160401b03811115610f3357600080fd5b610daf84828501610b45565b60005b83811015610f5a578181015183820152602001610f42565b83811115610f69576000848401525b50505050565b8281526040602082015260008251806040840152610f94816060850160208701610f3f565b601f01601f1916919091016060019392505050565b600060208284031215610fbb57600080fd5b81516001600160e01b031981168114610dd257600080fd5b6020808252818101527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604082015260600190565b60008235609e1983360301811261101e57600080fd5b9190910192915050565b6000610a433683610ce1565b6000808335601e1984360301811261104b57600080fd5b8301803591506001600160401b0382111561106557600080fd5b6020019150600581901b360382131561107d57600080fd5b9250929050565b6000808335601e1984360301811261109b57600080fd5b8301803591506001600160401b038211156110b557600080fd5b60200191503681900382131561107d57600080fd5b81835260006001600160fb1b038311156110e357600080fd5b8260051b8083602087013760009401602001938452509192915050565b6001600160a01b0388168152608060208201819052600090611125908301888a6110ca565b82810360408401526111388187896110ca565b90508281036060840152838152838560208301376000602085830101526020601f19601f86011682010191505098975050505050505050565b6000825161101e818460208701610f3f565b815160009082906020808601845b838110156111ad57815185529382019390820190600101611191565b50929695505050505050565b600060ff821660ff84168060ff038211156111e457634e487b7160e01b600052601160045260246000fd5b01939250505056fe454950373132446f6d61696e28737472696e67206e616d652c737472696e672076657273696f6e2c75696e7432353620636861696e49642c6164647265737320766572696679696e67436f6e747261637429a2646970667358221220fa7c2e535cf8199b01dd6f74e756d1efde936700c380a9502949d5df6ba9ef8b64736f6c63430008090033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 435,
+        "contract": "contracts/LazyReloadedNFTMinter.sol:LazyReloadedNFTMinter",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 635,
+        "contract": "contracts/LazyReloadedNFTMinter.sol:LazyReloadedNFTMinter",
+        "label": "_status",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11175,
+        "contract": "contracts/LazyReloadedNFTMinter.sol:LazyReloadedNFTMinter",
+        "label": "adminAddress",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 11179,
+        "contract": "contracts/LazyReloadedNFTMinter.sol:LazyReloadedNFTMinter",
+        "label": "idUsed",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_uint256,t_bool)"
+      },
+      {
+        "astId": 11182,
+        "contract": "contracts/LazyReloadedNFTMinter.sol:LazyReloadedNFTMinter",
+        "label": "reloadedNFT",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_contract(IReloadedNFT)21161"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_contract(IReloadedNFT)21161": {
+        "encoding": "inplace",
+        "label": "contract IReloadedNFT",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_uint256,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
