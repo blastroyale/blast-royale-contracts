@@ -10,7 +10,7 @@ import "./interfaces/IReloadedNFT.sol";
 
 contract LazyReloadedNFTMinter is EIP712Decoder, Ownable, ReentrancyGuard {
     address public adminAddress;
-    mapping(uint256 => bool) public idUsed;
+    mapping(bytes16 => bool) public idUsed;
     IReloadedNFT public reloadedNFT;
 
     string private constant EIP712_DOMAIN =
@@ -36,6 +36,7 @@ contract LazyReloadedNFTMinter is EIP712Decoder, Ownable, ReentrancyGuard {
             !idUsed[signedMintBatchVoucher.message.voucherId],
             "voucher had been used"
         );
+
         bool verifiedAddress = verifySignedMintBatchVoucher(
             signedMintBatchVoucher
         ) == adminAddress;

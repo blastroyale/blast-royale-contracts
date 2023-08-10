@@ -30,7 +30,7 @@ class LazyMinter {
     this.privateKey = privateKey
   }
 
-  async createVoucher (voucherId: number, to: string, tokenIds: any, amounts:any, data:any) {
+  async createVoucher (voucherId: string, to: string, tokenIds: any, amounts:any, data:any) {
     const domain = {
       name: 'Lazymint-ReloadedNFT',
       version: '1',
@@ -46,7 +46,7 @@ class LazyMinter {
         { name: 'verifyingContract', type: 'address' }
       ],
       MintBatchVoucher: [
-        { name: 'voucherId', type: 'uint256' },
+        { name: 'voucherId', type: 'bytes16' },
         { name: 'to', type: 'address' },
         { name: 'tokenIds', type: 'uint256[]' },
         { name: 'amounts', type: 'uint256[]' },
@@ -120,7 +120,7 @@ describe('Lazy mint nft', function () {
       privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     })
     const voucher1 = await lazyminter.createVoucher(
-      0,
+      '0x30B4C5DA908E1B4DBFAB8E3C50BEB55B',
       '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
       [0, 1],
       [1, 2],

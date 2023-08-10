@@ -8,4 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 interface ICraftSpiceToken is IERC20 {
     function mintFromScrap(address _to, uint256 _amount) external;
+
+    function claim(address _to, uint256 _amount) external;
 }

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
@@ -11,7 +10,7 @@ import "./interfaces/ILockContract.sol";
 
 contract LazyUnlock is EIP712Decoder, Ownable, ReentrancyGuard {
     address public adminAddress;
-    mapping(uint256 => bool) public idUsed;
+    mapping(bytes16 => bool) public idUsed;
     ILockContract public lockContract;
 
     string private constant EIP712_DOMAIN =

@@ -1,14 +1,14 @@
 pragma solidity ^0.8.9;
 // SPDX-License-Identifier: MIT
 
-struct SignedUnlockVoucher {
-    UnlockVoucher message;
+struct SignedCSVoucher {
+    CSVoucher message;
     bytes signature;
     address signer;
 }
 
-bytes32 constant signedunlockvoucherTypehash = keccak256(
-    "SignedUnlockVoucher(UnlockVoucher message,bytes signature,address signer)UnlockVoucher(bytes16 voucherId,address tokenContract,address withdrawer,uint256[] tokenIds,uint256[] amounts)"
+bytes32 constant signedcsvoucherTypehash = keccak256(
+    "SignedCSVoucher(CSVoucher message,bytes signature,address signer)CSVoucher(bytes16 id,uint256 amount,address minter)"
 );
 
 struct EIP712Domain {
@@ -22,16 +22,14 @@ bytes32 constant eip712domainTypehash = keccak256(
     "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
 
-struct UnlockVoucher {
-    bytes16 voucherId;
-    address tokenContract;
-    address withdrawer;
-    uint256[] tokenIds;
-    uint256[] amounts;
+struct CSVoucher {
+    bytes16 id;
+    uint256 amount;
+    address minter;
 }
 
-bytes32 constant unlockvoucherTypehash = keccak256(
-    "UnlockVoucher(bytes16 voucherId,address tokenContract,address withdrawer,uint256[] tokenIds,uint256[] amounts)"
+bytes32 constant csvoucherTypehash = keccak256(
+    "CSVoucher(bytes16 id,uint256 amount,address minter)"
 );
 
 abstract contract ERC1271Contract {
@@ -90,12 +88,12 @@ abstract contract EIP712Decoder {
         }
     }
 
-    function getSignedunlockvoucherPacketHash(
-        SignedUnlockVoucher memory _input
+    function getSignedcsvoucherPacketHash(
+        SignedCSVoucher memory _input
     ) public pure returns (bytes32) {
         bytes memory encoded = abi.encode(
-            signedunlockvoucherTypehash,
-            getUnlockvoucherPacketHash(_input.message),
+            signedcsvoucherTypehash,
+            getCsvoucherPacketHash(_input.message),
             keccak256(_input.signature),
             _input.signer
         );
@@ -115,30 +113,22 @@ abstract contract EIP712Decoder {
         return keccak256(encoded);
     }
 
-    function getUnlockvoucherPacketHash(
-        UnlockVoucher memory _input
+    function getCsvoucherPacketHash(
+        CSVoucher memory _input
     ) public pure returns (bytes32) {
         bytes memory encoded = abi.encode(
-            unlockvoucherTypehash,
-            _input.voucherId,
-            _input.tokenContract,
-            _input.withdrawer,
-            getUint256ArrayPacketHash(_input.tokenIds),
-            getUint256ArrayPacketHash(_input.amounts)
+            csvoucherTypehash,
+            _input.id,
+            _input.amount,
+            _input.minter
         );
         return keccak256(encoded);
     }
 
-    function getUint256ArrayPacketHash(
-        uint256[] memory _input
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_input));
-    }
-
-    function verifySignedUnlockVoucher(
-        SignedUnlockVoucher memory _input
+    function verifySignedCSVoucher(
+        SignedCSVoucher memory _input
     ) public view returns (address) {
-        bytes32 packetHash = getUnlockvoucherPacketHash(_input.message);
+        bytes32 packetHash = getCsvoucherPacketHash(_input.message);
         bytes32 digest = keccak256(
             abi.encodePacked("\x19\x01", getDomainHash(), packetHash)
         );

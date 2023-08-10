@@ -8,7 +8,7 @@ struct SignedMintBatchVoucher {
 }
 
 bytes32 constant signedmintbatchvoucherTypehash = keccak256(
-    "SignedMintBatchVoucher(MintBatchVoucher message,bytes signature,address signer)MintBatchVoucher(uint256 voucherId,address to,uint256[] tokenIds,uint256[] amounts,bytes data)"
+    "SignedMintBatchVoucher(MintBatchVoucher message,bytes signature,address signer)MintBatchVoucher(bytes16 voucherId,address to,uint256[] tokenIds,uint256[] amounts,bytes data)"
 );
 
 struct EIP712Domain {
@@ -23,7 +23,7 @@ bytes32 constant eip712domainTypehash = keccak256(
 );
 
 struct MintBatchVoucher {
-    uint256 voucherId;
+    bytes16 voucherId;
     address to;
     uint256[] tokenIds;
     uint256[] amounts;
@@ -31,7 +31,7 @@ struct MintBatchVoucher {
 }
 
 bytes32 constant mintbatchvoucherTypehash = keccak256(
-    "MintBatchVoucher(uint256 voucherId,address to,uint256[] tokenIds,uint256[] amounts,bytes data)"
+    "MintBatchVoucher(bytes16 voucherId,address to,uint256[] tokenIds,uint256[] amounts,bytes data)"
 );
 
 abstract contract ERC1271Contract {

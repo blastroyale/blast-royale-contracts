@@ -33,29 +33,29 @@ class LazyMinter {
     this.privateKey = privateKey
   }
 
-  async createVoucher (voucherId: number, tokenContract: string, withdrawer: string, amounts:any,tokenIds:any) {
+  async createVoucher (voucherId: string, tokenContract: string, withdrawer: string, amounts:any, tokenIds:any) {
     const domain = {
       name: 'Lazy-Unlock',
       version: '1',
       verifyingContract: lazyMint.address,
       chainId: 31337
     }
-    
+
     const types2 = {
-  EIP712Domain: [
-    { name: "name", type: "string" },
-    { name: "version", type: "string" },
-    { name: "chainId", type: "uint256" },
-    { name: "verifyingContract", type: "address" },
-  ],
-   UnlockVoucher: [
-    { name: "voucherId", type: "uint256" },
-    { name: "tokenContract", type: "address" },
-    { name: "withdrawer", type: "address" },
-    { name: "tokenIds", type: "uint256[]" },
-    { name: "amounts", type: "uint256[]" },
-  ],
-};
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' }
+      ],
+      UnlockVoucher: [
+        { name: 'voucherId', type: 'bytes16' },
+        { name: 'tokenContract', type: 'address' },
+        { name: 'withdrawer', type: 'address' },
+        { name: 'tokenIds', type: 'uint256[]' },
+        { name: 'amounts', type: 'uint256[]' }
+      ]
+    }
 
     const privateKey = Buffer.from(
       this.privateKey.slice(2),
@@ -67,25 +67,26 @@ class LazyMinter {
       data: {
         types: types2,
         primaryType: 'UnlockVoucher',
-        domain:domain,
+        domain: domain,
         message: {
-            voucherId: voucherId,
-            tokenContract: tokenContract,
-            withdrawer: withdrawer,
-            tokenIds,
-            amounts
-        },
+          voucherId: voucherId,
+          tokenContract: tokenContract,
+          withdrawer: withdrawer,
+          tokenIds,
+          amounts
+        }
       },
       version: SignTypedDataVersion.V4
     })
 
-    
-    return {signature: signature2,voucherId: voucherId,
-            tokenContract: tokenContract,
-            withdrawer: withdrawer,
-            tokenIds,
-            amounts,}
-
+    return {
+      signature: signature2,
+      voucherId: voucherId,
+      tokenContract: tokenContract,
+      withdrawer: withdrawer,
+      tokenIds,
+      amounts
+    }
   }
 }
 
@@ -99,14 +100,12 @@ describe('Lazy unlock', function () {
   let treasury2: SignerWithAddress
 
   before('deploying', async () => {
-
     const signers = await ethers.getSigners()
     admin = signers[0]
     player1 = signers[1]
     player2 = signers[2]
     treasury1 = signers[3]
     treasury2 = signers[4]
-
   })
 
   it('Deploy NFT contract', async function () {
@@ -148,25 +147,29 @@ describe('Lazy unlock', function () {
     // create voucher
     const lazyminter = new LazyMinter({
       contract: lazyMint.address,
-      privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+      privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     })
     // voucherId: number, tokenContract: string, withdrawer: string, amounts:any,tokenIds:any
     const voucher1 = await lazyminter.createVoucher(
-      0,
+      '0x30B4C5DA908E1B4DBFAB8E3C50BEB55B',
       nft.address,
       player1.address,
-       [1,2],
-       [0,1]
-    ) 
-    const withdrawRole = await lockContract.WITHDRAW_ROLE();
+      [1, 2],
+      [0, 1]
+    )
+    const withdrawRole = await lockContract.WITHDRAW_ROLE()
     await lockContract.connect(admin).grantRole(withdrawRole, lazyMint.address)
-    await lazyMint.connect(player1).lazyMint({signature: voucher1.signature, signer: '0x0000000000000000000000000000000000000000', message:{
-            voucherId: voucher1.voucherId,
-            tokenContract: voucher1.tokenContract,
-            withdrawer: voucher1.withdrawer,
-            amounts: voucher1.amounts,
-            tokenIds: voucher1.tokenIds,
-        }})
+    await lazyMint.connect(player1).lazyMint({
+      signature: voucher1.signature,
+      signer: '0x0000000000000000000000000000000000000000',
+      message: {
+        voucherId: voucher1.voucherId,
+        tokenContract: voucher1.tokenContract,
+        withdrawer: voucher1.withdrawer,
+        amounts: voucher1.amounts,
+        tokenIds: voucher1.tokenIds
+      }
+    })
     // await lockContract.connect(admin).withdrawERC1155(voucher1.tokenContract,voucher1.withdrawer,voucher1.tokenIds,voucher1.amounts)
     // let amount = await nft.balanceOfBatch([player1.address,player1.address],[0,1]);
 
@@ -178,5 +181,4 @@ describe('Lazy unlock', function () {
     //   amount[1].toString()
     // ).to.equal('2')
   })
-
 })
